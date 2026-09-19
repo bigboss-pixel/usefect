@@ -1,0 +1,280 @@
+// UMA LIBRARY NEXT
+// PHASE 2.1 — IDENTITY & ACCESS
+
+model User {
+  id               Int                        @id @default(autoincrement())
+
+  email            String                     @unique
+  username         String?                    @unique
+  fullName         String
+
+  passwordHash     String
+  phone            String?
+  refreshTokenHash String?
+
+  isActive         Boolean                    @default(true)
+
+  createdAt        TimestamptzString          @default(now())
+  updatedAt        temporal.updatedAtString()
+
+  roles            UserRole[]
+
+  studentProfile   StudentProfile?
+  lecturerProfile  LecturerProfile?
+
+  loans            Loan[]
+  reservations     Reservation[]
+  notifications    Notification[]
+  passwordResets   PasswordReset[]
+  memberQr         MemberQr?
+}
+
+model StudentProfile {
+  id             Int                        @id @default(autoincrement())
+
+  user           User                       @relation(fields:[userId], references:[id])
+  userId         Int                        @unique
+
+  npm            String                     @unique
+
+  faculty        String?
+  studyProgram   String?
+
+  enrollmentYear Int?
+
+  createdAt      TimestamptzString          @default(now())
+  updatedAt      temporal.updatedAtString()
+}
+
+model LecturerProfile {
+  id             Int                        @id @default(autoincrement())
+
+  user           User                       @relation(fields:[userId], references:[id])
+  userId         Int                        @unique
+
+  lecturerNumber String                     @unique
+
+  faculty        String?
+  studyProgram   String?
+
+  createdAt      TimestamptzString          @default(now())
+  updatedAt      temporal.updatedAtString()
+}
+
+model Role {
+  id          Int                        @id @default(autoincrement())
+
+  name        String                     @unique
+  description String?
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  users       UserRole[]
+  permissions RolePermission[]
+}
+
+model Permission {
+  id          Int                        @id @default(autoincrement())
+
+  code        String                     @unique
+  description String?
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  roles       RolePermission[]
+}
+
+model UserRole {
+  id        Int               @id @default(autoincrement())
+
+  user      User              @relation(fields:[userId], references:[id])
+  userId    Int
+
+  role      Role              @relation(fields:[roleId], references:[id])
+  roleId    Int
+
+  createdAt TimestamptzString @default(now())
+
+  @@unique([userId, roleId])
+}
+
+model RolePermission {
+  id           Int               @id @default(autoincrement())
+
+  role         Role              @relation(fields:[roleId], references:[id])
+  roleId       Int
+
+  permission   Permission        @relation(fields:[permissionId], references:[id])
+  permissionId Int
+
+  createdAt    TimestamptzString @default(now())
+
+  @@unique([roleId, permissionId])
+}
+
+model Category {
+  id          Int                        @id @default(autoincrement())
+
+  name        String                     @unique
+  description String?
+
+  createdAt   TimestamptzString          @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  books       Book[]
+}
+
+model Book {
+  id              Int                        @id @default(autoincrement())
+
+  isbn            String                     @unique
+
+  title           String
+  author          String
+
+  publisher       String?
+  publicationYear Int?
+
+  description     String?
+
+  category        Category                   @relation(fields:[categoryId], references:[id])
+  categoryId      Int
+
+  copies          BookCopy[]
+  reservations    Reservation[]
+
+  createdAt       TimestamptzString          @default(now())
+  updatedAt       temporal.updatedAtString()
+}
+
+model BookCopy {
+  id            Int                        @id @default(autoincrement())
+
+  book          Book                       @relation(fields:[bookId], references:[id])
+  bookId        Int
+
+  barcode       String                     @unique
+
+  status        String                     @default("AVAILABLE")
+
+  shelfLocation String?
+  homeLocation  String?
+
+  loans         Loan[]
+
+  createdAt     TimestamptzString          @default(now())
+  updatedAt     temporal.updatedAtString()
+}
+
+model Reservation {
+  id           Int                        @id @default(autoincrement())
+
+  user         User                       @relation(fields:[userId], references:[id])
+  userId       Int
+
+  book         Book                       @relation(fields:[bookId], references:[id])
+  bookId       Int
+
+  status       String                     @default("PENDING")
+
+  expiresAt    TimestamptzString?
+
+  approvedAt   TimestamptzString?
+  pickedUpAt   TimestamptzString?
+  cancelledAt  TimestamptzString?
+
+  loan         Loan?
+
+  createdAt    TimestamptzString          @default(now())
+  updatedAt    temporal.updatedAtString()
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([status])
+}
+
+model Loan {
+  id            Int                        @id @default(autoincrement())
+
+  user          User                       @relation(fields:[userId], references:[id])
+  userId        Int
+
+  bookCopy      BookCopy                   @relation(fields:[bookCopyId], references:[id])
+  bookCopyId    Int
+
+  reservation   Reservation?               @relation(fields:[reservationId], references:[id])
+  reservationId Int?                       @unique
+
+  borrowedAt    TimestamptzString          @default(now())
+
+  dueDate       TimestamptzString
+
+  returnedAt    TimestamptzString?
+
+  returnRequestedAt TimestamptzString?
+
+  returnRequestStatus String               @default("NONE")
+
+  status        String                     @default("PENDING")
+
+  fineAmount    Int                        @default(0)
+
+  renewalCount  Int                        @default(0)
+
+  createdAt     TimestamptzString          @default(now())
+  updatedAt     temporal.updatedAtString()
+
+  @@index([userId])
+  @@index([bookCopyId])
+  @@index([status])
+}
+
+model Notification {
+  id        Int                        @id @default(autoincrement())
+
+  user      User                       @relation(fields:[userId], references:[id])
+  userId    Int
+
+  type      String
+  title     String
+  message   String
+
+  isRead    Boolean                    @default(false)
+
+  createdAt TimestamptzString          @default(now())
+  updatedAt temporal.updatedAtString()
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model PasswordReset {
+  id        Int               @id @default(autoincrement())
+
+  user      User              @relation(fields:[userId], references:[id])
+  userId    Int
+
+  otpHash   String
+  expiresAt TimestamptzString
+  attempts  Int               @default(0)
+  usedAt    TimestamptzString?
+  createdAt TimestamptzString @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+
+model MemberQr {
+  id              Int               @id @default(autoincrement())
+  user            User              @relation(fields:[userId], references:[id])
+  userId          Int               @unique
+  tokenHash       String            @unique
+  tokenEncrypted  String?
+  revokedAt       TimestamptzString?
+  createdAt       TimestamptzString @default(now())
+  updatedAt       temporal.updatedAtString()
+}

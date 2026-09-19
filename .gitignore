@@ -1,0 +1,17 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+.next/
+dist/
+coverage/
+*.log
+
+apps/api/.agents/
+apps/api/.claude/
+apps/api/.cursor/
+apps/api/.devin/
+apps/api/cookies.txt
+apps/api/tsconfig.build.tsbuildinfo
+apps/api/src/loans/loans.service.before-recovery.ts
