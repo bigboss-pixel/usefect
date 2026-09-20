@@ -27,6 +27,7 @@ model User {
   notifications    Notification[]
   passwordResets   PasswordReset[]
   memberQr         MemberQr?
+  auditLogs        AuditLog[]
 }
 
 model StudentProfile {
@@ -289,4 +290,25 @@ model LibrarySetting {
   reservationExpiryHours Int @default(24)
   createdAt              TimestamptzString @default(now())
   updatedAt              TimestamptzString @default(now())
+}
+model AuditLog {
+  id          Int                        @id @default(autoincrement())
+
+  user        User?                      @relation(fields:[userId], references:[id])
+  userId      Int?
+
+  action      String
+  entity      String
+  entityId    Int?
+
+  description String?
+  details     String?
+
+  createdAt   TimestamptzString          @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([entityId])
+  @@index([createdAt])
 }

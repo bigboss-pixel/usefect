@@ -116,24 +116,44 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const { npm, password } = loginDto;
 
-    const studentProfile =
+    const identifier = npm.trim();
+
+    let user = null;
+    let studentProfile = null;
+
+    // =========================
+    // 1. LOGIN MAHASISWA
+    // =========================
+    studentProfile =
       await db.orm.public.StudentProfile
-        .where({ npm })
+        .where({ npm: identifier })
         .first();
 
-    if (!studentProfile) {
-      throw new UnauthorizedException(
-        'NPM atau password salah',
-      );
+    if (studentProfile) {
+      user = await db.orm.public.User
+        .where({ id: studentProfile.userId })
+        .first();
     }
 
-    const user = await db.orm.public.User
-      .where({ id: studentProfile.userId })
-      .first();
+    // =========================
+    // 2. LOGIN NON-MAHASISWA
+    //    email / username
+    // =========================
+    if (!user) {
+      user = await db.orm.public.User
+        .where({ email: identifier })
+        .first();
+    }
+
+    if (!user) {
+      user = await db.orm.public.User
+        .where({ username: identifier })
+        .first();
+    }
 
     if (!user) {
       throw new UnauthorizedException(
-        'NPM atau password salah',
+        'NPM, email/username, atau password salah',
       );
     }
 
@@ -143,6 +163,9 @@ export class AuthService {
       );
     }
 
+    // =========================
+    // 3. VALIDASI PASSWORD
+    // =========================
     const isPasswordValid =
       await bcrypt.compare(
         password,
@@ -151,10 +174,38 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException(
-        'NPM atau password salah',
+        'NPM, email/username, atau password salah',
       );
     }
 
+    // =========================
+    // 4. AMBIL SEMUA ROLE USER
+    // =========================
+    const userRoles =
+      await db.orm.public.UserRole
+        .where({
+          userId: user.id,
+        })
+        .all();
+
+    const roles: string[] = [];
+
+    for (const userRole of userRoles) {
+      const role =
+        await db.orm.public.Role
+          .where({
+            id: userRole.roleId,
+          })
+          .first();
+
+      if (role) {
+        roles.push(role.name);
+      }
+    }
+
+    // =========================
+    // 5. JWT
+    // =========================
     const payload = {
       sub: user.id,
       email: user.email,
@@ -200,11 +251,14 @@ export class AuthService {
       message: 'Login berhasil',
       accessToken,
       refreshToken,
+
       user: {
         id: user.id,
-        npm: studentProfile.npm,
+        npm: studentProfile?.npm ?? null,
         email: user.email,
+        username: user.username,
         fullName: user.fullName,
+        roles,
       },
     };
   }

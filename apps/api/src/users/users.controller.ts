@@ -38,6 +38,14 @@ import {
   Permissions,
 } from '../auth/decorators/permissions.decorator.js';
 
+import {
+  Roles,
+} from '../auth/decorators/roles.decorator.js';
+
+import {
+  RolesGuard,
+} from '../auth/guards/roles.guard.js';
+
 @Controller('users')
 @UseGuards(
   JwtAuthGuard,
@@ -81,6 +89,12 @@ export class UsersController {
   // POST /users/:id/roles
   // =========================
   @Post(':id/roles')
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+    PermissionsGuard,
+  )
+  @Roles('SUPER_ADMIN')
   @Permissions('USER_UPDATE')
   async assignRole(
     @Param(
@@ -103,6 +117,12 @@ export class UsersController {
   // DELETE /users/:id/roles/:roleId
   // =========================
   @Delete(':id/roles/:roleId')
+  @UseGuards(
+    JwtAuthGuard,
+    RolesGuard,
+    PermissionsGuard,
+  )
+  @Roles('SUPER_ADMIN')
   @Permissions('USER_UPDATE')
   async removeRole(
     @Param(

@@ -114,9 +114,6 @@ export default function AdminKelolaPeminjamanPage() {
   const [returnIsbn, setReturnIsbn] =
     useState("");
 
-  const [returnLoanId, setReturnLoanId] =
-    useState<number | null>(null);
-
   const [returnPreview, setReturnPreview] =
     useState<any | null>(null);
 
@@ -761,9 +758,6 @@ export default function AdminKelolaPeminjamanPage() {
               memberQrToken.trim(),
             isbn:
               returnIsbn.trim(),
-            ...(returnLoanId !== null
-              ? { loanId: returnLoanId }
-              : {}),
           }),
         },
       );
@@ -853,9 +847,6 @@ export default function AdminKelolaPeminjamanPage() {
               returnCondition,
             shelfConfirmed:
               returnShelfConfirmed,
-            ...(returnLoanId !== null
-              ? { loanId: returnLoanId }
-              : {}),
           }),
         },
       );
@@ -1124,7 +1115,6 @@ export default function AdminKelolaPeminjamanPage() {
                     className="admin-manage-loan-transaction-submit"
                     onClick={() => {
                       setMemberQrToken("");
-                      setReturnLoanId(request.id);
                       setReturnIsbn(
                         request.bookCopy?.book?.isbn ?? "",
                       );

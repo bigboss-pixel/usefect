@@ -27,14 +27,22 @@ import { JwtAuthGuard }
 import { PermissionsGuard }
   from '../auth/guards/permissions.guard.js';
 
+import { RolesGuard }
+  from '../auth/guards/roles.guard.js';
+
 import { Permissions }
   from '../auth/decorators/permissions.decorator.js';
+
+import { Roles }
+  from '../auth/decorators/roles.decorator.js';
 
 @Controller('roles')
 @UseGuards(
   JwtAuthGuard,
+  RolesGuard,
   PermissionsGuard,
 )
+@Roles('SUPER_ADMIN')
 @Permissions('ROLE_MANAGE')
 export class RolesController {
   constructor(

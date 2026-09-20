@@ -216,6 +216,10 @@ export class ReservationsController {
   // EXPIRE
   // PATCH /reservations/:id/expire
   // =========================
+  // =========================
+  // PICKUP WITH MEMBER QR + ISBN
+  // PATCH /reservations/:id/pickup
+  // =========================
   @Patch(':id/pickup')
   @Permissions('RESERVATION_PICKUP')
   pickup(
@@ -226,27 +230,8 @@ export class ReservationsController {
     return this.reservationsService.pickup(
       id,
       req.user.userId,
-      dto.userId,
-      dto.barcode,
-    );
-  }
-
-  // =========================
-  // PICKUP WITH MEMBER QR
-  // POST /reservations/:id/pickup-qr
-  // =========================
-  @Post(':id/pickup-qr')
-  @Permissions('RESERVATION_PICKUP')
-  pickupQr(
-    @Req() req: any,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: StaffTransactionDto,
-  ) {
-    return this.reservationsService.pickupQr(
-      id,
-      req.user.userId,
       dto.memberQrToken,
-      dto.barcode,
+      dto.isbn,
     );
   }
 

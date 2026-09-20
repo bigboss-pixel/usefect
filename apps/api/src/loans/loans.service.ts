@@ -11,6 +11,7 @@ import { CreateLoanDto } from './dto/create-loan.dto.js';
 import { MemberQrService } from '../member-qr/member-qr.service.js';
 import { ReservationsService } from '../reservations/reservations.service.js';
 import { LibrarySettingsService } from '../library-settings/library-settings.service.js';
+import { AuditLogService } from '../audit-log/audit-log.service.js';
 
 @Injectable()
 
@@ -20,6 +21,7 @@ import { LibrarySettingsService } from '../library-settings/library-settings.ser
     private readonly memberQrService: MemberQrService,
     private readonly reservationsService: ReservationsService,
     private readonly librarySettingsService: LibrarySettingsService,
+    private readonly auditLogService: AuditLogService,
   ) {}
 
 
@@ -265,6 +267,20 @@ import { LibrarySettingsService } from '../library-settings/library-settings.ser
           book,
         };
       });
+
+    // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId,
+      action: 'LOAN_CREATED',
+      entity: 'Loan',
+      entityId: result.loan.id,
+      description: `Peminjaman dibuat untuk ${result.user.fullName}`,
+      details: result.book
+        ? `Buku: ${result.book.title} | ISBN: ${result.book.isbn} | Copy: ${result.bookCopy.id}`
+        : `Copy: ${result.bookCopy.id}`,
+    });
 
     // =========================
     // RESPONSE
@@ -1773,6 +1789,18 @@ filteredLoans.sort(
       });
 
     // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId: requesterUserId,
+      action: 'LOAN_RENEWED',
+      entity: 'Loan',
+      entityId: result.updatedLoan.id,
+      description: `Peminjaman #${result.updatedLoan.id} diperpanjang`,
+      details: `Due date baru: ${result.newDueDate.toISOString()} | Renewal ke-${result.updatedLoan.renewalCount}`,
+    });
+
+    // =========================
     // RESPONSE
     // =========================
     return {
@@ -2212,6 +2240,18 @@ async returnBook(id: number) {
         );
     }
   }
+
+  // =========================
+  // AUDIT LOG
+  // =========================
+  await this.auditLogService.create({
+    userId: result.updatedLoan.userId,
+    action: 'LOAN_RETURNED',
+    entity: 'Loan',
+    entityId: result.updatedLoan.id,
+    description: `Peminjaman #${result.updatedLoan.id} dikembalikan`,
+    details: `Copy: ${result.updatedBookCopy.id} | Denda: ${result.updatedLoan.fineAmount}`,
+  });
 
   // =========================
   // RESPONSE
@@ -2826,6 +2866,18 @@ async staffReturnTransaction(
         result.book.id,
       );
   }
+
+  // =========================
+  // AUDIT LOG
+  // =========================
+  await this.auditLogService.create({
+    userId,
+    action: 'LOAN_RETURNED',
+    entity: 'Loan',
+    entityId: result.loan.id,
+    description: `Peminjaman #${result.loan.id} dikembalikan`,
+    details: `ISBN: ${result.book.isbn} | Kondisi: ${condition} | Status copy: ${result.bookCopy.status} | Denda: ${result.loan.fineAmount}`,
+  });
 
   return result;
 }

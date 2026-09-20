@@ -378,6 +378,7 @@ export class RolesService {
 
   // Lindungi role sistem
   const systemRoles = [
+    'SUPER_ADMIN',
     'ADMIN',
     'LIBRARIAN',
     'STUDENT',

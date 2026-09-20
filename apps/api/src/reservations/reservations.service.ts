@@ -16,6 +16,9 @@ import { NotificationsService }
 import { LibrarySettingsService }
   from '../library-settings/library-settings.service.js';
 
+import { AuditLogService }
+  from '../audit-log/audit-log.service.js';
+
 @Injectable()
 export class ReservationsService {
 
@@ -28,6 +31,9 @@ export class ReservationsService {
 
     private readonly librarySettingsService:
       LibrarySettingsService,
+
+    private readonly auditLogService:
+      AuditLogService,
   ) {}
 
   // =========================
@@ -252,6 +258,18 @@ export class ReservationsService {
           queuePosition,
         };
       });
+
+    // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId,
+      action: 'RESERVATION_CREATED',
+      entity: 'Reservation',
+      entityId: result.reservation.id,
+      description: `Reservation #${result.reservation.id} dibuat`,
+      details: `Buku: ${result.book.title} | ISBN: ${result.book.isbn} | Posisi antrean: ${result.queuePosition}`,
+    });
 
     return {
       message:
@@ -551,6 +569,18 @@ export class ReservationsService {
       `Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan. Reservation berlaku selama ${reservationExpiryHours} jam.`, 
     );
 
+    // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId,
+      action: 'RESERVATION_APPROVED',
+      entity: 'Reservation',
+      entityId: updated.id,
+      description: `Reservation #${updated.id} disetujui`,
+      details: `Status: ${updated.status} | Berlaku sampai: ${updated.expiresAt}`,
+    });
+
     return {
       message:
         'Reservation disetujui dan siap diambil',
@@ -600,6 +630,12 @@ export class ReservationsService {
             new Date().toISOString(),
         });
 
+    if (!updated) {
+      throw new BadRequestException(
+        'Reservation gagal ditolak',
+      );
+    }
+
     await this.notificationsService.create(
       reservation.userId,
       'RESERVATION_REJECTED',
@@ -611,6 +647,20 @@ export class ReservationsService {
       await this.promoteNextReservation(
         reservation.bookId,
       );
+
+    // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId,
+      action: 'RESERVATION_REJECTED',
+      entity: 'Reservation',
+      entityId: updated.id,
+      description: `Reservation #${updated.id} ditolak`,
+      details: nextReservation
+        ? `Reservation berikutnya #${nextReservation.id} dipromosikan`
+        : 'Tidak ada reservation berikutnya yang dipromosikan',
+    });
 
     return {
       message:
@@ -674,6 +724,12 @@ export class ReservationsService {
             new Date().toISOString(),
         });
 
+    if (!updated) {
+      throw new BadRequestException(
+        'Reservation gagal dibatalkan',
+      );
+    }
+
     await this.notificationsService.create(
       reservation.userId,
       'RESERVATION_CANCELLED',
@@ -685,6 +741,20 @@ export class ReservationsService {
       await this.promoteNextReservation(
         reservation.bookId,
       );
+
+    // =========================
+    // AUDIT LOG
+    // =========================
+    await this.auditLogService.create({
+      userId,
+      action: 'RESERVATION_CANCELLED',
+      entity: 'Reservation',
+      entityId: updated.id,
+      description: `Reservation #${updated.id} dibatalkan`,
+      details: nextReservation
+        ? `Reservation berikutnya #${nextReservation.id} dipromosikan`
+        : 'Tidak ada reservation berikutnya yang dipromosikan',
+    });
 
     return {
       message:
@@ -703,8 +773,8 @@ export class ReservationsService {
   async pickup(
     id: number,
     staffUserId: number,
-    userId: number,
-    barcode: string,
+    memberQrToken: string,
+    isbn: string,
   ) {
     if (!(await this.isLibraryStaff(staffUserId))) {
       throw new ForbiddenException(
@@ -712,7 +782,17 @@ export class ReservationsService {
       );
     }
 
+    const qrResult =
+      await this.memberQrService.validateQr(
+        memberQrToken,
+      );
+
+    const userId =
+      qrResult.member.userId;
+
     let expiredBookId: number | null = null;
+    let expiredReservationId: number | null = null;
+    let expiredReservationUserId: number | null = null;
 
     const result =
       await db.transaction(async (tx) => {
@@ -742,6 +822,8 @@ export class ReservationsService {
         });
 
         expiredBookId = reservation.bookId;
+        expiredReservationId = reservation.id;
+        expiredReservationUserId = reservation.userId;
 
         return null;
       }
@@ -780,26 +862,41 @@ export class ReservationsService {
         );
       }
 
-      const copies =
-        await tx.orm.public.BookCopy.where({ barcode }).all();
+      const book =
+        await tx.orm.public.Book
+          .where({
+            isbn,
+          })
+          .first();
 
-      const bookCopy = copies[0];
+      if (!book) {
+        throw new NotFoundException(
+          'ISBN buku tidak ditemukan',
+        );
+      }
+
+      if (book.id !== reservation.bookId) {
+        throw new BadRequestException(
+          'ISBN buku tidak sesuai dengan reservation',
+        );
+      }
+
+      const copies =
+        await tx.orm.public.BookCopy
+          .where({
+            bookId: book.id,
+          })
+          .all();
+
+      const bookCopy =
+        copies.find(
+          (copy) =>
+            copy.status === 'AVAILABLE',
+        );
 
       if (!bookCopy) {
-        throw new NotFoundException(
-          'Barcode buku tidak ditemukan',
-        );
-      }
-
-      if (bookCopy.bookId !== reservation.bookId) {
         throw new BadRequestException(
-          'Barcode buku tidak sesuai dengan reservation',
-        );
-      }
-
-      if (bookCopy.status !== 'AVAILABLE') {
-        throw new BadRequestException(
-          'Copy buku sudah tidak tersedia',
+          'Tidak ada copy buku yang tersedia',
         );
       }
 
@@ -872,11 +969,6 @@ export class ReservationsService {
         );
       }
 
-      const book =
-        await tx.orm.public.Book.where({
-          id: bookCopy.bookId,
-        }).first();
-
       return {
         message:
           'Reservation berhasil diambil dan peminjaman berhasil dibuat',
@@ -923,6 +1015,20 @@ export class ReservationsService {
         expiredBookId,
       );
 
+      if (
+        expiredReservationId !== null &&
+        expiredReservationUserId !== null
+      ) {
+        await this.auditLogService.create({
+          userId: expiredReservationUserId,
+          action: 'RESERVATION_EXPIRED',
+          entity: 'Reservation',
+          entityId: expiredReservationId,
+          description: `Reservation #${expiredReservationId} kedaluwarsa`,
+          details: `Reservation tidak diambil dalam batas waktu pickup`,
+        });
+      }
+
       throw new BadRequestException(
         'Reservation sudah kedaluwarsa',
       );
@@ -934,33 +1040,30 @@ export class ReservationsService {
       );
     }
 
+    // =========================
+    // AUDIT LOG
+    // =========================
+    if (result) {
+      await this.auditLogService.create({
+        userId: staffUserId,
+        action: 'RESERVATION_PICKED_UP',
+        entity: 'Reservation',
+        entityId: result.reservation.id,
+        description: `Reservation #${result.reservation.id} diambil dan Loan #${result.loan.id} dibuat`,
+        details: `User: ${result.loan.userId} | BookCopy: ${result.loan.bookCopyId} | Status: ${result.loan.status}`,
+      });
+
+      await this.auditLogService.create({
+        userId: staffUserId,
+        action: 'LOAN_CREATED',
+        entity: 'Loan',
+        entityId: result.loan.id,
+        description: `Loan #${result.loan.id} dibuat dari Reservation #${result.reservation.id}`,
+        details: `User: ${result.loan.userId} | BookCopy: ${result.loan.bookCopyId} | Status: ${result.loan.status}`,
+      });
+    }
+
     return result;
-  }
-
-
-  // =========================
-  // PICKUP WITH MEMBER QR
-  // =========================
-  async pickupQr(
-    id: number,
-    staffUserId: number,
-    memberQrToken: string,
-    barcode: string,
-  ) {
-    const qrResult =
-      await this.memberQrService.validateQr(
-        memberQrToken,
-      );
-
-    const userId =
-      qrResult.member.userId;
-
-    return this.pickup(
-      id,
-      staffUserId,
-      userId,
-      barcode,
-    );
   }
 
 
@@ -1197,6 +1300,17 @@ export class ReservationsService {
       await this.promoteNextReservation(
         reservation.bookId,
       );
+
+    await this.auditLogService.create({
+      userId: reservation.userId,
+      action: 'RESERVATION_EXPIRED',
+      entity: 'Reservation',
+      entityId: updated.id,
+      description: `Reservation #${updated.id} kedaluwarsa`,
+      details: nextReservation
+        ? `Reservation berikutnya #${nextReservation.id} dipromosikan`
+        : 'Tidak ada reservation berikutnya yang dipromosikan',
+    });
 
     return {
       message:

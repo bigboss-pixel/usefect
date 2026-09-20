@@ -154,6 +154,15 @@ export class UsersService {
       );
     }
 
+    // SUPER_ADMIN hanya boleh diberikan melalui
+    // Admin Management agar seluruh aturan khusus
+    // SUPER_ADMIN tetap terpusat di satu jalur.
+    if (role.name === 'SUPER_ADMIN') {
+      throw new BadRequestException(
+        'Role SUPER_ADMIN hanya dapat diberikan melalui Admin Management',
+      );
+    }
+
     // Cek apakah user sudah memiliki role
     const existingUserRole =
       await db.orm.public.UserRole
@@ -238,6 +247,13 @@ export class UsersService {
   if (!userRole) {
     throw new NotFoundException(
       'Role tidak dimiliki oleh user',
+    );
+  }
+
+  // Lindungi SUPER_ADMIN
+  if (role.name === 'SUPER_ADMIN') {
+    throw new BadRequestException(
+      'Role SUPER_ADMIN tidak dapat dicabut melalui endpoint ini',
     );
   }
 

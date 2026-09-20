@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ab7fde4983b4938dd400b5718c4b86bb874f70489d824f8560be39a38b26abe4'>;
+  StorageHashBase<'41ab1435d1472e340447b4c406cedfb6fb5dfabb82527262251a50463f63123a'>;
 export type ExecutionHash =
   ExecutionHashBase<'036c8e9f2157d78a913924685c129b1a5e9ad020b1909b60994a9f9436d6ccab'>;
 export type ProfileHash =
@@ -242,6 +242,16 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
+    readonly AuditLog: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly action: CodecTypes['pg/text@1']['output'];
+      readonly entity: CodecTypes['pg/text@1']['output'];
+      readonly entityId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly details: CodecTypes['pg/text@1']['output'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
     readonly Book: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly isbn: CodecTypes['pg/text@1']['output'];
@@ -399,6 +409,16 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
+    readonly AuditLog: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly action: CodecTypes['pg/text@1']['input'];
+      readonly entity: CodecTypes['pg/text@1']['input'];
+      readonly entityId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly details: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
     readonly Book: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly isbn: CodecTypes['pg/text@1']['input'];
@@ -556,6 +576,16 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
+    readonly auditLog: {
+      readonly action: CodecTypes['pg/text@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly description: CodecTypes['pg/text@1']['output'] | null;
+      readonly details: CodecTypes['pg/text@1']['output'] | null;
+      readonly entity: CodecTypes['pg/text@1']['output'];
+      readonly entityId: CodecTypes['pg/int4@1']['output'] | null;
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly userId: CodecTypes['pg/int4@1']['output'] | null;
+    };
     readonly book: {
       readonly author: CodecTypes['pg/text@1']['output'];
       readonly categoryId: CodecTypes['pg/int4@1']['output'];
@@ -713,6 +743,16 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
+    readonly auditLog: {
+      readonly action: CodecTypes['pg/text@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly description: CodecTypes['pg/text@1']['input'] | null;
+      readonly details: CodecTypes['pg/text@1']['input'] | null;
+      readonly entity: CodecTypes['pg/text@1']['input'];
+      readonly entityId: CodecTypes['pg/int4@1']['input'] | null;
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly userId: CodecTypes['pg/int4@1']['input'] | null;
+    };
     readonly book: {
       readonly author: CodecTypes['pg/text@1']['input'];
       readonly categoryId: CodecTypes['pg/int4@1']['input'];
@@ -881,6 +921,7 @@ export namespace Models {
     isActive: CodecTypes['pg/bool@1']['output'];
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    auditLogs: public_AuditLog[];
     lecturerProfile: public_LecturerProfile | null;
     loans: public_Loan[];
     memberQr: public_MemberQr | null;
@@ -890,6 +931,7 @@ export namespace Models {
     roles: public_UserRole[];
     studentProfile: public_StudentProfile | null;
     readonly [RelationKeys]?:
+      | 'auditLogs'
       | 'lecturerProfile'
       | 'loans'
       | 'memberQr'
@@ -1079,6 +1121,18 @@ export namespace Models {
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     readonly [RelationKeys]?: never;
   };
+  export type public_AuditLog = {
+    id: CodecTypes['pg/int4@1']['output'];
+    userId: CodecTypes['pg/int4@1']['output'] | null;
+    action: CodecTypes['pg/text@1']['output'];
+    entity: CodecTypes['pg/text@1']['output'];
+    entityId: CodecTypes['pg/int4@1']['output'] | null;
+    description: CodecTypes['pg/text@1']['output'] | null;
+    details: CodecTypes['pg/text@1']['output'] | null;
+    createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    user: public_User | null;
+    readonly [RelationKeys]?: 'user';
+  };
 }
 
 export declare const models: {
@@ -1099,6 +1153,7 @@ export declare const models: {
     PasswordReset: Models.public_PasswordReset;
     MemberQr: Models.public_MemberQr;
     LibrarySetting: Models.public_LibrarySetting;
+    AuditLog: Models.public_AuditLog;
   };
 };
 
@@ -1120,6 +1175,103 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
+            readonly auditLog: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly userId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly action: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly entity: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly entityId: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
+                readonly description: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly details: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'auditLog_userId_idx_a489d58a';
+                  readonly prefix: 'auditLog_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'auditLog_action_idx_cd0d2116';
+                  readonly prefix: 'auditLog_action_idx';
+                  readonly columns: readonly ['action'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'auditLog_entity_idx_9d26d53c';
+                  readonly prefix: 'auditLog_entity_idx';
+                  readonly columns: readonly ['entity'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'auditLog_entityId_idx_18814ca5';
+                  readonly prefix: 'auditLog_entityId_idx';
+                  readonly columns: readonly ['entityId'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'auditLog_createdAt_idx_9575dbd7';
+                  readonly prefix: 'auditLog_createdAt_idx';
+                  readonly columns: readonly ['createdAt'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'auditLog';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'user';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly book: {
               columns: {
                 readonly id: {
@@ -2371,11 +2523,76 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'LibrarySetting';
     };
+    readonly auditLog: { readonly namespace: 'public' & NamespaceId; readonly model: 'AuditLog' };
   };
   readonly domain: {
     readonly namespaces: {
       readonly public: {
         readonly models: {
+          readonly AuditLog: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly userId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly action: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly entity: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly entityId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly description: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly details: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+            };
+            readonly relations: {
+              readonly user: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
+                readonly cardinality: 'N:1';
+                readonly nullable: true;
+                readonly on: {
+                  readonly localFields: readonly ['userId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'auditLog';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly userId: { readonly column: 'userId' };
+                readonly action: { readonly column: 'action' };
+                readonly entity: { readonly column: 'entity' };
+                readonly entityId: { readonly column: 'entityId' };
+                readonly description: { readonly column: 'description' };
+                readonly details: { readonly column: 'details' };
+                readonly createdAt: { readonly column: 'createdAt' };
+              };
+            };
+          };
           readonly Book: {
             readonly fields: {
               readonly id: {
@@ -3457,6 +3674,17 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
+              readonly auditLogs: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'AuditLog';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['userId'];
+                };
+              };
               readonly lecturerProfile: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;

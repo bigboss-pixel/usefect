@@ -8,6 +8,9 @@ import { NotificationsModule }
 import { LibrarySettingsModule }
   from '../library-settings/library-settings.module.js';
 
+import { AuditLogModule }
+  from '../audit-log/audit-log.module.js';
+
 import { ReservationsController }
   from './reservations.controller.js';
 
@@ -20,6 +23,7 @@ import { ReservationsService }
     NotificationsModule,
     MemberQrModule,
     LibrarySettingsModule,
+    AuditLogModule,
   ],
 
   controllers: [

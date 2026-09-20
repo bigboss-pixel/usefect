@@ -1,0 +1,224 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Tags,
+  Package,
+  ClipboardList,
+  RotateCcw,
+  CalendarClock,
+  Users,
+  FileSearch,
+  Settings,
+  ShieldCheck,
+  ChevronRight,
+} from "lucide-react";
+import { apiFetch } from "../../lib/api";
+
+type CurrentUser = {
+  fullName?: string;
+  username?: string;
+  roles?: string[];
+};
+
+const sections = [
+  {
+    label: null,
+    items: [
+      {
+        label: "Dashboard",
+        href: "/admin",
+        icon: LayoutDashboard,
+      },
+    ],
+  },
+  {
+    label: "KOLEKSI",
+    items: [
+      {
+        label: "Manajemen Buku",
+        href: "/admin/buku",
+        icon: BookOpen,
+      },
+      {
+        label: "Kategori",
+        href: "/admin/kategori",
+        icon: Tags,
+      },
+      {
+        label: "Eksemplar",
+        href: "/admin/buku",
+        icon: Package,
+      },
+    ],
+  },
+  {
+    label: "TRANSAKSI",
+    items: [
+      {
+        label: "Peminjaman",
+        href: "/admin/peminjaman/kelola",
+        icon: ClipboardList,
+      },
+      {
+        label: "Pengembalian",
+        href: "/admin/peminjaman/kelola",
+        icon: RotateCcw,
+      },
+      {
+        label: "Reservasi",
+        href: "/admin/reservasi",
+        icon: CalendarClock,
+      },
+    ],
+  },
+  {
+    label: "PENGELOLAAN",
+    items: [
+      {
+        label: "Pengguna",
+        href: "/admin/pengguna",
+        icon: Users,
+      },
+      {
+        label: "Audit Log",
+        href: "/admin/audit-log",
+        icon: FileSearch,
+      },
+      {
+        label: "Pengaturan",
+        href: "/admin/pengaturan",
+        icon: Settings,
+      },
+    ],
+  },
+];
+
+export default function AdminSidebar() {
+  const pathname = usePathname();
+  const [user, setUser] = useState<CurrentUser | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadCurrentUser() {
+      try {
+        const response = await apiFetch("/auth/me");
+
+        if (!response.ok) {
+          throw new Error(
+            `Gagal memuat user (${response.status})`,
+          );
+        }
+
+        const data = await response.json();
+
+        if (!mounted) return;
+
+        setUser(data?.user ?? data ?? null);
+      } catch {
+        if (mounted) setUser(null);
+      }
+    }
+
+    loadCurrentUser();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const isSuperAdmin = user?.roles?.includes("SUPER_ADMIN");
+
+  return (
+    <aside className="admin-sidebar">
+      <div className="admin-sidebar-heading">
+        <div className="admin-sidebar-heading-icon">
+          <ShieldCheck size={18} strokeWidth={1.8} />
+        </div>
+
+        <div>
+          <strong>ADMIN WORKSPACE</strong>
+          <span>USEFECT</span>
+        </div>
+      </div>
+
+      <nav className="admin-sidebar-nav">
+        {sections.map((section, sectionIndex) => (
+          <div className="admin-sidebar-section" key={section.label ?? sectionIndex}>
+            {section.label && (
+              <div className="admin-sidebar-section-label">
+                {section.label}
+              </div>
+            )}
+
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              const active =
+                item.href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={`admin-sidebar-link ${active ? "active" : ""}`}
+                >
+                  <Icon size={18} strokeWidth={1.8} />
+                  <span>{item.label}</span>
+                  <ChevronRight
+                    className="admin-sidebar-link-arrow"
+                    size={15}
+                    strokeWidth={1.7}
+                  />
+                </a>
+              );
+            })}
+          </div>
+        ))}
+
+        {isSuperAdmin && (
+          <div className="admin-sidebar-section">
+            <div className="admin-sidebar-section-label">
+              SUPER ADMIN
+            </div>
+
+            <a
+              href="/admin/admins"
+              className={`admin-sidebar-link ${
+                pathname.startsWith("/admin/admins") ? "active" : ""
+              }`}
+            >
+              <ShieldCheck size={18} strokeWidth={1.8} />
+              <span>Manajemen Admin</span>
+              <ChevronRight
+                className="admin-sidebar-link-arrow"
+                size={15}
+                strokeWidth={1.7}
+              />
+            </a>
+          </div>
+        )}
+      </nav>
+
+      <div className="admin-sidebar-user">
+        <div className="admin-sidebar-avatar">
+          {(user?.fullName ?? user?.username ?? "A")
+            .charAt(0)
+            .toUpperCase()}
+        </div>
+
+        <div className="admin-sidebar-user-info">
+          <strong>{user?.fullName ?? user?.username ?? "Administrator"}</strong>
+          <span>
+            {isSuperAdmin ? "SUPER ADMIN" : "ADMINISTRATOR"}
+          </span>
+        </div>
+      </div>
+    </aside>
+  );
+}
