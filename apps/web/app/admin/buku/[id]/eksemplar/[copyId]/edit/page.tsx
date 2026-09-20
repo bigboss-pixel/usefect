@@ -236,7 +236,7 @@ export default function EditEksemplarPage() {
 
             <p>
               Perbarui informasi eksemplar fisik
-              koleksi buku perpustakaan UMA.
+              koleksi buku USEFECT.
             </p>
           </div>
 

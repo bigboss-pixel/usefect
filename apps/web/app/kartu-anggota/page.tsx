@@ -117,18 +117,38 @@ export default function KartuAnggotaPage() {
           <div className="member-eyebrow">DIGITAL MEMBER ID</div>
           <h1>Kartu Anggota</h1>
           <p>
-            Kartu anggota digital UMA Library untuk akses layanan
-            perpustakaan.
+            Kartu anggota digital USEFECT untuk akses layanan
+            Knowledge Hub.
           </p>
         </div>
 
         <section className="member-card">
           <div className="member-card-top">
             <div className="member-brand">
-              <div className="member-brand-mark">U</div>
+              <div className="member-brand-mark">
+                <svg viewBox="0 0 100 100" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="memberUsefectBlue" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#39d5ff" />
+                      <stop offset="50%" stopColor="#0b8ff5" />
+                      <stop offset="100%" stopColor="#075eea" />
+                    </linearGradient>
+                    <linearGradient id="memberUsefectGold" x1="0" y1="1" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#d28d22" />
+                      <stop offset="50%" stopColor="#f4b53f" />
+                      <stop offset="100%" stopColor="#ffe18a" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M31 14 C19 22 14 35 17 49 C20 63 30 75 46 86 L49 89 L49 68 C41 61 37 53 37 44 C37 34 41 25 48 18 C43 13 36 12 31 14Z" fill="url(#memberUsefectBlue)" />
+                  <path d="M69 17 C58 21 49 29 45 39 C40 51 41 66 49 88 C62 80 71 69 75 57 C79 44 77 28 69 17Z" fill="url(#memberUsefectBlue)" />
+                  <path d="M50 78 C51 64 55 52 63 43 C69 36 72 27 70 18 C60 21 52 28 48 37 C44 48 45 63 50 78Z" fill="url(#memberUsefectGold)" />
+                  <path d="M49 87 C48 72 49 59 53 49 C57 39 64 30 71 24" fill="none" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" opacity=".85" />
+                  <path d="M78 8 L80.5 14 L87 16.5 L80.5 19 L78 25 L75.5 19 L69 16.5 L75.5 14Z" fill="#f8c85b" />
+                </svg>
+              </div>
 
               <div>
-                <div className="member-brand-name">UMA LIBRARY</div>
+                <div className="member-brand-name">USEFECT</div>
                 <div className="member-brand-subtitle">
                   Digital Library Ecosystem
                 </div>
@@ -148,7 +168,7 @@ export default function KartuAnggotaPage() {
               <div>
                 <div className="member-label">NAMA ANGGOTA</div>
                 <h2>{profile.fullName}</h2>
-                <p>Mahasiswa Universitas Medan Area</p>
+                <p>Mahasiswa</p>
               </div>
             </div>
 
@@ -232,8 +252,8 @@ export default function KartuAnggotaPage() {
           </div>
 
           <div className="member-card-footer">
-            <span>PERPUSTAKAAN UNIVERSITAS MEDAN AREA</span>
-            <span>UMA LIBRARY</span>
+            <span>USEFECT · KNOWLEDGE HUB</span>
+            <span>USEFECT</span>
           </div>
         </section>
 
@@ -244,7 +264,7 @@ export default function KartuAnggotaPage() {
             <strong>Kartu anggota digital</strong>
             <p>
               Gunakan QR Code ini saat melakukan transaksi
-              layanan perpustakaan.
+              di USEFECT.
             </p>
           </div>
         </div>
@@ -407,14 +427,17 @@ export default function KartuAnggotaPage() {
           height: 48px;
           display: grid;
           place-items: center;
-          border-radius: 14px;
-          background: linear-gradient(145deg, #1677ff, #1355d8);
-          color: white;
-          font-size: 22px;
-          font-weight: 800;
-          box-shadow:
-            0 12px 26px rgba(30, 91, 214, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.35);
+          flex: 0 0 48px;
+          background: transparent;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+        }
+
+        .member-brand-mark svg {
+          width: 46px;
+          height: 46px;
+          display: block;
         }
 
         .member-brand-name {

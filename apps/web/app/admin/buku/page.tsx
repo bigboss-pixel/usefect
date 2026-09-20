@@ -117,7 +117,7 @@ export default function AdminBukuPage() {
 
             <p>
               Kelola koleksi buku dan
-              eksemplar perpustakaan UMA.
+              eksemplar USEFECT.
             </p>
           </div>
 

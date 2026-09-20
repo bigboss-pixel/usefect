@@ -1,5 +1,6 @@
 "use client";
 
+import SiteHeader from "../../components/SiteHeader";
 import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
@@ -216,39 +217,7 @@ export default function ReservasiPage() {
 
   return (
     <main className="library-page reservation-page">
-      <header className="top-header">
-        <div className="brand-area">
-          <a href="/" className="uma-logo">
-            UMA
-          </a>
-
-          <div className="brand-divider" />
-
-          <div className="library-brand">
-            <strong>Perpustakaan Digital</strong>
-            <small>Knowledge Today, A Better Tomorrow</small>
-          </div>
-        </div>
-
-        <nav className="desktop-nav">
-          <a href="/">Beranda</a>
-          <a href="/katalog">Katalog</a>
-          <a href="/peminjaman">Peminjaman</a>
-          <a href="/reservasi" className="active">
-            Reservasi
-          </a>
-        </nav>
-
-        <div className="header-actions">
-          <a
-            href="/reservasi"
-            className="profile-mini"
-            aria-label="Reservasi Saya"
-          >
-            <div className="avatar">RS</div>
-          </a>
-        </div>
-      </header>
+            <SiteHeader />
 
       <div className="content-container">
         <section className="reservation-header">

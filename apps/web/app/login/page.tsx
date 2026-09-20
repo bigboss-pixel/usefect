@@ -58,23 +58,103 @@ export default function LoginPage() {
 
       <section className="login-shell">
         <div className="login-brand">
-          <div className="login-brand-mark">U</div>
+          <svg
+            className="usefect-logo auth-usefect-logo"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient
+                id="authUsefectBlue"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0%" stopColor="#39d5ff" />
+                <stop offset="50%" stopColor="#0b8ff5" />
+                <stop offset="100%" stopColor="#075eea" />
+              </linearGradient>
 
-          <div>
-            <div className="login-brand-name">UMA LIBRARY</div>
-            <div className="login-brand-subtitle">
-              Digital Library Ecosystem
-            </div>
+              <linearGradient
+                id="authUsefectGold"
+                x1="0"
+                y1="1"
+                x2="1"
+                y2="0"
+              >
+                <stop offset="0%" stopColor="#d28d22" />
+                <stop offset="50%" stopColor="#f4b53f" />
+                <stop offset="100%" stopColor="#ffe18a" />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M31 14
+                 C19 22 14 35 17 49
+                 C20 63 30 75 46 86
+                 L49 89
+                 L49 68
+                 C41 61 37 53 37 44
+                 C37 34 41 25 48 18
+                 C43 13 36 12 31 14Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M69 17
+                 C58 21 49 29 45 39
+                 C40 51 41 66 49 88
+                 C62 80 71 69 75 57
+                 C79 44 77 28 69 17Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M50 78
+                 C51 64 55 52 63 43
+                 C69 36 72 27 70 18
+                 C60 21 52 28 48 37
+                 C44 48 45 63 50 78Z"
+              fill="url(#authUsefectGold)"
+            />
+
+            <path
+              d="M49 87
+                 C48 72 49 59 53 49
+                 C57 39 64 30 71 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              opacity=".85"
+            />
+
+            <path
+              d="M78 8
+                 L80.5 14
+                 L87 16.5
+                 L80.5 19
+                 L78 25
+                 L75.5 19
+                 L69 16.5
+                 L75.5 14Z"
+              fill="#f8c85b"
+            />
+          </svg>
+
+          <div className="auth-usefect-wordmark auth-usefect-wordmark-large">
+            <strong>USEFECT</strong>
+            <small>A SMARTER TOMORROW, TOGETHER.</small>
           </div>
         </div>
 
         <div className="login-card">
-          <div className="login-eyebrow">DIGITAL LIBRARY</div>
+          <div className="login-eyebrow">KNOWLEDGE HUB</div>
 
           <h1>
-            Welcome to UMA
-            <br />
-            Library
+            Welcome to
+            <em>USEFECT</em>
           </h1>
 
           <p className="login-description">
@@ -202,8 +282,8 @@ export default function LoginPage() {
               disabled={loading}
               className="login-button"
             >
-              {loading ? "Memproses..." : "Masuk ke UMA Library"}
-              <span>→</span>
+              {loading ? "Memproses..." : "Masuk ke USEFECT"}
+              
             </button>
           </form>
 
@@ -218,7 +298,7 @@ export default function LoginPage() {
         </div>
 
         <div className="login-footer">
-          Perpustakaan Universitas Medan Area
+          USEFECT · A SMARTER TOMORROW, TOGETHER.
         </div>
       </section>
 
@@ -328,20 +408,34 @@ export default function LoginPage() {
         }
 
         .login-eyebrow {
-          margin-bottom: 12px;
-          color: #4774bd;
+          margin-bottom: 14px;
+          color: #64748b;
           font-size: 10px;
+          line-height: 1.2;
           font-weight: 900;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          text-shadow: 0 1px 5px rgba(15, 39, 91, 0.08);
         }
 
         h1 {
           margin: 0;
-          color: #13233f;
+          color: #06184d;
           font-size: clamp(35px, 7vw, 48px);
-          line-height: 1.08;
-          letter-spacing: -0.045em;
-          font-weight: 800;
+          line-height: 0.98;
+          letter-spacing: -0.055em;
+          font-weight: 900;
+          text-shadow:
+            0 2px 4px rgba(15, 39, 91, 0.08),
+            0 6px 18px rgba(15, 39, 91, 0.07);
+        }
+
+        h1 em {
+          display: block;
+          margin-top: 2px;
+          color: #075eea;
+          font-style: normal;
+          text-shadow: 0 3px 10px rgba(7, 94, 234, 0.08);
         }
 
         .login-description {
@@ -542,6 +636,40 @@ export default function LoginPage() {
             border-radius: 14px;
           }
         }
+
+        .auth-usefect-wordmark-large {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          text-align: center;
+        }
+
+        .auth-usefect-wordmark-large strong {
+          display: block;
+          font-size: 30px;
+          line-height: 1;
+          letter-spacing: 0.16em;
+          font-weight: 800;
+          color: #17345f;
+        }
+
+        .auth-usefect-wordmark-large small {
+          display: block;
+          font-size: 8px;
+          line-height: 1.2;
+          letter-spacing: 0.24em;
+          font-weight: 600;
+          color: #8090a8;
+          white-space: nowrap;
+        }
+
+        .auth-usefect-logo {
+          width: 68px;
+          height: 68px;
+          flex-shrink: 0;
+        }
+
       `}</style>
     </main>
   );

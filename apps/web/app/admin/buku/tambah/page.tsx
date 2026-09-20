@@ -7,6 +7,8 @@ import {
   BookOpen,
   Save,
   RefreshCw,
+  Plus,
+  X,
 } from "lucide-react";
 
 import { apiFetch } from "../../../lib/api";
@@ -40,6 +42,21 @@ export default function TambahBukuPage() {
     useState(false);
 
   const [error, setError] =
+    useState("");
+
+  const [showCategoryForm, setShowCategoryForm] =
+    useState(false);
+
+  const [newCategoryName, setNewCategoryName] =
+    useState("");
+
+  const [newCategoryDescription, setNewCategoryDescription] =
+    useState("");
+
+  const [creatingCategory, setCreatingCategory] =
+    useState(false);
+
+  const [categoryError, setCategoryError] =
     useState("");
 
   const fetchCategories = async () => {
@@ -85,6 +102,91 @@ export default function TambahBukuPage() {
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  const handleCreateCategory = async () => {
+    const name = newCategoryName.trim();
+    const description = newCategoryDescription.trim();
+
+    if (!name) {
+      setCategoryError("Nama kategori wajib diisi.");
+      return;
+    }
+
+    try {
+      setCreatingCategory(true);
+      setCategoryError("");
+
+      const response = await apiFetch(
+        "/categories",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            description: description || null,
+          }),
+        },
+      );
+
+      const result =
+        await response.json().catch(
+          () => null,
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal membuat kategori",
+        );
+      }
+
+      const createdCategory =
+        result?.category ??
+        result?.data?.category ??
+        result?.data;
+
+      if (!createdCategory?.id) {
+        throw new Error(
+          "Kategori berhasil dibuat, tetapi data kategori tidak ditemukan.",
+        );
+      }
+
+      setCategories((current) => [
+        ...current,
+        createdCategory,
+      ]);
+
+      setForm((current) => ({
+        ...current,
+        categoryId: String(
+          createdCategory.id,
+        ),
+      }));
+
+      setNewCategoryName("");
+      setNewCategoryDescription("");
+      setShowCategoryForm(false);
+
+      alert(
+        result?.message ??
+          "Kategori berhasil dibuat.",
+      );
+    } catch (error: any) {
+      console.error(
+        "Gagal membuat kategori:",
+        error,
+      );
+
+      setCategoryError(
+        error?.message ??
+          "Gagal membuat kategori",
+      );
+    } finally {
+      setCreatingCategory(false);
+    }
+  };
 
   const handleChange = (
     field: string,
@@ -213,7 +315,7 @@ export default function TambahBukuPage() {
 
             <p>
               Tambahkan koleksi buku baru
-              ke perpustakaan UMA.
+              ke USEFECT.
             </p>
           </div>
 
@@ -370,6 +472,98 @@ export default function TambahBukuPage() {
                     ),
                   )}
                 </select>
+
+                <button
+                  type="button"
+                  className="admin-book-create-category-button"
+                  onClick={() => {
+                    setCategoryError("");
+                    setShowCategoryForm(
+                      (current) => !current,
+                    );
+                  }}
+                >
+                  <Plus size={15} />
+                  Buat kategori baru
+                </button>
+
+                {showCategoryForm && (
+                  <div className="admin-book-category-creator">
+                    <div className="admin-book-category-creator-header">
+                      <div>
+                        <strong>
+                          Buat kategori baru
+                        </strong>
+                        <small>
+                          Tambahkan kategori sesuai kebutuhan koleksi.
+                        </small>
+                      </div>
+
+                      <button
+                        type="button"
+                        aria-label="Tutup form kategori"
+                        onClick={() => {
+                          setShowCategoryForm(false);
+                          setCategoryError("");
+                        }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(event) =>
+                        setNewCategoryName(
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Nama kategori"
+                      disabled={creatingCategory}
+                    />
+
+                    <textarea
+                      rows={3}
+                      value={newCategoryDescription}
+                      onChange={(event) =>
+                        setNewCategoryDescription(
+                          event.target.value,
+                        )
+                      }
+                      placeholder="Deskripsi kategori (opsional)"
+                      disabled={creatingCategory}
+                    />
+
+                    {categoryError && (
+                      <small className="admin-book-category-error">
+                        {categoryError}
+                      </small>
+                    )}
+
+                    <button
+                      type="button"
+                      className="admin-book-save-category-button"
+                      onClick={handleCreateCategory}
+                      disabled={creatingCategory}
+                    >
+                      {creatingCategory ? (
+                        <>
+                          <RefreshCw
+                            size={14}
+                            className="admin-book-spin"
+                          />
+                          Membuat kategori...
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={14} />
+                          Simpan kategori
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
 
                 {loadingCategories && (
                   <small className="admin-book-form-loading">

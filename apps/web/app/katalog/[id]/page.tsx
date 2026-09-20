@@ -1,5 +1,6 @@
 "use client";
 
+import SiteHeader from "../../../components/SiteHeader";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, MapPin } from "lucide-react";
 import { apiFetch } from "../../lib/api";
@@ -156,26 +157,7 @@ export default function BookDetailPage({
 
   return (
     <main className="catalog-page">
-      <header className="catalog-header">
-        <div className="catalog-brand">
-          <a href="/" className="catalog-logo">
-            UMA
-          </a>
-
-          <div className="catalog-brand-divider" />
-
-          <div>
-            <strong>Perpustakaan Digital</strong>
-            <span>Universitas Medan Area</span>
-          </div>
-        </div>
-
-        <nav className="catalog-nav">
-          <a href="/">Beranda</a>
-          <a href="/katalog">Katalog</a>
-          <a href="/panduan">Panduan</a>
-        </nav>
-      </header>
+            <SiteHeader />
 
       <section className="catalog-content catalog-detail-content">
         <div className="book-detail-wrapper">

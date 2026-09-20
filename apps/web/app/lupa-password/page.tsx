@@ -185,13 +185,94 @@ export default function LupaPasswordPage() {
 
       <section className="forgot-shell">
         <div className="forgot-brand">
-          <div className="forgot-brand-mark">U</div>
+          <svg
+            className="usefect-logo auth-usefect-logo"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient
+                id="authUsefectBlue"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0%" stopColor="#39d5ff" />
+                <stop offset="50%" stopColor="#0b8ff5" />
+                <stop offset="100%" stopColor="#075eea" />
+              </linearGradient>
 
-          <div>
-            <div className="forgot-brand-name">UMA LIBRARY</div>
-            <div className="forgot-brand-subtitle">
-              Digital Library Ecosystem
-            </div>
+              <linearGradient
+                id="authUsefectGold"
+                x1="0"
+                y1="1"
+                x2="1"
+                y2="0"
+              >
+                <stop offset="0%" stopColor="#d28d22" />
+                <stop offset="50%" stopColor="#f4b53f" />
+                <stop offset="100%" stopColor="#ffe18a" />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M31 14
+                 C19 22 14 35 17 49
+                 C20 63 30 75 46 86
+                 L49 89
+                 L49 68
+                 C41 61 37 53 37 44
+                 C37 34 41 25 48 18
+                 C43 13 36 12 31 14Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M69 17
+                 C58 21 49 29 45 39
+                 C40 51 41 66 49 88
+                 C62 80 71 69 75 57
+                 C79 44 77 28 69 17Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M50 78
+                 C51 64 55 52 63 43
+                 C69 36 72 27 70 18
+                 C60 21 52 28 48 37
+                 C44 48 45 63 50 78Z"
+              fill="url(#authUsefectGold)"
+            />
+
+            <path
+              d="M49 87
+                 C48 72 49 59 53 49
+                 C57 39 64 30 71 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              opacity=".85"
+            />
+
+            <path
+              d="M78 8
+                 L80.5 14
+                 L87 16.5
+                 L80.5 19
+                 L78 25
+                 L75.5 19
+                 L69 16.5
+                 L75.5 14Z"
+              fill="#f8c85b"
+            />
+          </svg>
+
+          <div className="auth-usefect-wordmark auth-usefect-wordmark-large">
+            <strong>USEFECT</strong>
+            <small>A SMARTER TOMORROW, TOGETHER.</small>
           </div>
         </div>
 
@@ -206,13 +287,13 @@ export default function LupaPasswordPage() {
 
           <p className="forgot-description">
             {step === "npm" &&
-              "Masukkan NPM Anda untuk memulai proses pemulihan password akun UMA Library."}
+              "Masukkan NPM Anda untuk memulai proses pemulihan password akun USEFECT."}
 
             {step === "otp" &&
               "Masukkan kode OTP 6 digit yang telah dikirimkan untuk memverifikasi akun Anda."}
 
             {step === "password" &&
-              "Buat password baru untuk mengamankan kembali akun UMA Library Anda."}
+              "Buat password baru untuk mengamankan kembali akun USEFECT Anda."}
 
             {step === "success" &&
               "Password akun Anda telah berhasil diperbarui."}
@@ -248,7 +329,7 @@ export default function LupaPasswordPage() {
                 disabled={loading}
               >
                 {loading ? "Memproses..." : "Lanjutkan"}
-                {!loading && <span>→</span>}
+                
               </button>
             </form>
           )}
@@ -286,7 +367,7 @@ export default function LupaPasswordPage() {
                 disabled={loading}
               >
                 {loading ? "Memverifikasi..." : "Verifikasi OTP"}
-                {!loading && <span>→</span>}
+                
               </button>
 
               <button
@@ -444,7 +525,7 @@ export default function LupaPasswordPage() {
                 disabled={loading}
               >
                 {loading ? "Menyimpan..." : "Ubah Password"}
-                {!loading && <span>→</span>}
+                
               </button>
 
               <button
@@ -476,7 +557,7 @@ export default function LupaPasswordPage() {
                 onClick={() => router.push("/login")}
               >
                 Kembali ke Login
-                <span>→</span>
+                
               </button>
             </div>
           )}
@@ -496,7 +577,7 @@ export default function LupaPasswordPage() {
         </div>
 
         <div className="forgot-footer">
-          Perpustakaan Universitas Medan Area
+          USEFECT · A SMARTER TOMORROW, TOGETHER.
         </div>
       </section>
 
@@ -893,6 +974,40 @@ export default function LupaPasswordPage() {
             border-radius: 14px;
           }
         }
+
+        .auth-usefect-wordmark-large {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          text-align: center;
+        }
+
+        .auth-usefect-wordmark-large strong {
+          display: block;
+          font-size: 30px;
+          line-height: 1;
+          letter-spacing: 0.16em;
+          font-weight: 800;
+          color: #17345f;
+        }
+
+        .auth-usefect-wordmark-large small {
+          display: block;
+          font-size: 8px;
+          line-height: 1.2;
+          letter-spacing: 0.24em;
+          font-weight: 600;
+          color: #8090a8;
+          white-space: nowrap;
+        }
+
+        .auth-usefect-logo {
+          width: 68px;
+          height: 68px;
+          flex-shrink: 0;
+        }
+
       `}</style>
     </main>
   );

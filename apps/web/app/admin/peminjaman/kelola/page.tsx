@@ -299,7 +299,7 @@ export default function AdminKelolaPeminjamanPage() {
             if (mode === "QR") {
               if (!value.startsWith("UMAQR1.")) {
                 setScannerError(
-                  "QR terbaca, tetapi bukan QR anggota UMA.",
+                  "QR terbaca, tetapi bukan QR anggota USEFECT.",
                 );
                 return;
               }

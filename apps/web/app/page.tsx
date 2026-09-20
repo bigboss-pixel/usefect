@@ -1,5 +1,6 @@
 "use client";
 
+import SiteHeader from "../components/SiteHeader";
 import { useEffect, useState } from "react";
 import { apiFetch } from "./lib/api";
 import Image from "next/image";
@@ -247,190 +248,7 @@ const handleLogout = async () => {
 
       {/* ================= HEADER ================= */}
 
-      <header className="top-header">
-
-        <div className="brand-area">
-
-          <div className="uma-logo">
-            <span>UMA</span>
-          </div>
-
-          <div className="brand-divider" />
-
-          <div>
-            <div className="university-name">
-              UNIVERSITAS
-              <br />
-              MEDAN AREA
-            </div>
-          </div>
-
-          <div className="brand-divider second" />
-
-          <div className="library-brand">
-            <strong>Perpustakaan Digital</strong>
-            <small>Knowledge Today, A Better Tomorrow</small>
-          </div>
-
-        </div>
-
-        {/* ================= NAVIGATION ================= */}
-
-        <nav className="desktop-nav">
-
-          <a className="active" href="/">
-            <House size={16} strokeWidth={2} />
-            Beranda
-          </a>
-
-          <a href="/katalog">
-            <Search size={16} strokeWidth={2} />
-            Katalog
-          </a>
-          <a href="/reservasi">
-            <BookOpen size={16} strokeWidth={2} />
-            Reservasi
-          </a>
-
-          <a href="#">
-            <Newspaper size={16} strokeWidth={2} />
-            Jurnal
-          </a>
-
-          <a href="#">
-            <FlaskConical size={16} strokeWidth={2} />
-            Penelitian
-          </a>
-
-          <a href="#">
-            <BookOpen size={16} strokeWidth={2} />
-            E-Book
-          </a>
-
-<a href="/peminjaman">
-  <Grid2X2 size={16} strokeWidth={2} />
-  Layanan
-</a>
-
-          <a href="#">
-            <Info size={16} strokeWidth={2} />
-            Tentang
-          </a>
-
-        </nav>
-
-        {/* ================= HEADER ACTIONS ================= */}
-
-        <div className="header-actions">
-
-          <button
-            className="icon-button"
-            aria-label="Cari"
-          >
-            <Search size={19} strokeWidth={2} />
-          </button>
-
-          <a
-            href="/notifikasi"
-            className="icon-button notification"
-            aria-label="Notifikasi"
-          >
-            <Bell size={19} strokeWidth={2} />
-
-            {unreadNotificationCount > 0 && (
-              <span className="notification-badge">
-                {unreadNotificationCount > 9
-                  ? "9+"
-                  : unreadNotificationCount}
-              </span>
-            )}
-          </a>
-
-<div className="profile-menu-wrapper">
-  <button
-    className="profile-mini"
-    onClick={() => {
-      setProfileMenuOpen(!profileMenuOpen);
-    }}
-  >
-    <div className="avatar">
-      DH
-    </div>
-
-    <div className="profile-text">
-      <strong>
-        {profileLoading
-          ? "Memuat..."
-          : profile?.fullName ?? "Tamu"}
-      </strong>
-
-      <small>
-        {profileLoading
-          ? "Memuat..."
-          : profile?.studentProfile?.studyProgram
-            ? `Mahasiswa · ${profile.studentProfile.studyProgram}`
-            : profile?.roles?.join(" · ") ?? "Pengguna"}
-      </small>
-    </div>
-
-    <ChevronDown
-      size={16}
-      className={
-        profileMenuOpen
-          ? "profile-chevron-open"
-          : ""
-      }
-    />
-  </button>
-
-  {profileMenuOpen && (
-    <div className="profile-dropdown">
-
-      <button
-        onClick={() => {
-          window.location.href = "/profil";
-        }}
-      >
-        <User size={17} />
-        <span>Profil Saya</span>
-      </button>
-
-      <button
-        onClick={() => {
-          alert("Pengaturan akan tersedia pada tahap berikutnya.");
-        }}
-      >
-        <Settings size={17} />
-        <span>Pengaturan</span>
-      </button>
-
-      <div className="profile-dropdown-divider" />
-
-      <button
-        className="logout-button"
-        onClick={handleLogout}
-        disabled={loggingOut}
-      >
-        <LogOut size={17} />
-        <span>
-          {loggingOut ? "Keluar..." : "Keluar"}
-        </span>
-      </button>
-
-    </div>
-  )}
-</div>
-
-          <button
-            className="mobile-menu"
-            aria-label="Menu"
-          >
-            <Menu size={21} />
-          </button>
-
-        </div>
-
-      </header>
+            <SiteHeader />
 
 
       {/* ================= HERO ================= */}
@@ -440,7 +258,7 @@ const handleLogout = async () => {
         <div className="hero-background">
 
           <Image
-            src="/library-building-3.jpeg"
+            src="/unexa2.jpeg"
             alt="Gedung Perpustakaan Universitas Medan Area"
             fill
             priority
@@ -456,19 +274,16 @@ const handleLogout = async () => {
           <div className="hero-copy">
 
             <div className="eyebrow">
-              <span />
-              PERPUSTAKAAN DIGITAL UMA
+              CONNECTED TODAY
+              <span>A BRIGHTER TOMORROW</span>
             </div>
 
             <h1>
-              Satu Akses
-              <br />
-              Untuk <em>Semua Ilmu</em>
+              Building a smarter <em>future</em>
             </h1>
 
             <p>
-              Temukan buku, jurnal, penelitian, dan sumber akademik
-              Universitas Medan Area dalam satu ekosistem digital.
+              through connected knowledge, intelligent technology, and limitless opportunities.
             </p>
 
             <div className="hero-stats">
@@ -497,33 +312,6 @@ const handleLogout = async () => {
 
           </div>
 
-
-          {/* ================= HERO CARD ================= */}
-
-          <div className="hero-card">
-
-            <div className="hero-card-glow" />
-
-            <div className="hero-card-label">
-              DIGITAL LIBRARY
-            </div>
-
-            <strong>
-              Perpustakaan
-              <br />
-              UMA
-            </strong>
-
-            <p>
-              Knowledge connects people with the future.
-            </p>
-
-            <button>
-              Jelajahi
-              <Arrow />
-            </button>
-
-          </div>
 
         </div>
 
@@ -722,7 +510,7 @@ const handleLogout = async () => {
                     <div className="book-cover cover-operations">
 
                       <small>
-                        UNIVERSITAS MEDAN AREA
+                        KNOWLEDGE HUB
                       </small>
 
                       <strong>
@@ -788,7 +576,7 @@ const handleLogout = async () => {
                 <div>
 
                   <small>
-                    FASILITAS UMA
+                    USEFECT SPACE
                   </small>
 
                   <h3>
@@ -815,7 +603,7 @@ const handleLogout = async () => {
                 <div>
 
                   <small>
-                    UMA LIBRARY APP
+                    USEFECT APP
                   </small>
 
                   <h3>
@@ -825,7 +613,7 @@ const handleLogout = async () => {
                   </h3>
 
                   <p>
-                    Gunakan aplikasi mobile UMA Library
+                    Access USEFECT anywhere through the mobile experience
                     untuk pengalaman lebih baik.
                   </p>
 

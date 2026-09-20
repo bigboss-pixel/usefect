@@ -1,5 +1,6 @@
 "use client";
 
+import SiteHeader from "../../components/SiteHeader";
 import { useState, useEffect } from "react";
 import {
   Search,
@@ -11,6 +12,16 @@ import {
   Heart,
   LibraryBig,
   CheckCircle2,
+  House,
+  Newspaper,
+  FlaskConical,
+  Grid2X2,
+  Info,
+  Bell,
+  Menu,
+  User,
+  Settings,
+  LogOut,
 } from "lucide-react";
 
 type Book = {
@@ -43,6 +54,12 @@ export default function KatalogPage() {
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -115,6 +132,105 @@ export default function KatalogPage() {
     ]);
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/auth/me",
+          {
+            credentials: "include",
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Gagal mengambil profil");
+        }
+
+        const data = await response.json();
+        setProfile(data);
+      } catch (error) {
+        console.error("Gagal mengambil profil:", error);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchUnreadNotificationCount = async () => {
+      try {
+        const response = await fetch(
+          "http://localhost:3001/notifications/unread-count",
+          {
+            credentials: "include",
+          },
+        );
+
+        if (!response.ok) {
+          return;
+        }
+
+        const result = await response.json();
+
+        if (!mounted) {
+          return;
+        }
+
+        const count =
+          typeof result === "number"
+            ? result
+            : Number(
+                result?.count ??
+                  result?.unreadCount ??
+                  result?.data?.count ??
+                  0,
+              );
+
+        setUnreadNotificationCount(
+          Number.isFinite(count) ? count : 0,
+        );
+      } catch (error) {
+        console.error(
+          "Gagal mengambil jumlah notifikasi:",
+          error,
+        );
+      }
+    };
+
+    fetchUnreadNotificationCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+
+    try {
+      const response = await fetch(
+        "http://localhost:3001/auth/logout",
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Logout gagal");
+      }
+
+      window.location.href = "/login";
+    } catch (error) {
+      console.error("Logout gagal:", error);
+      setLoggingOut(false);
+    }
+  };
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const initialSearch = params.get("search");
 
@@ -151,70 +267,7 @@ export default function KatalogPage() {
 
       {/* ================= HEADER ================= */}
 
-      <header className="catalog-header">
-
-        <div className="catalog-brand">
-
-          <a href="/" className="catalog-logo">
-            UMA
-          </a>
-
-          <div className="catalog-brand-divider" />
-
-          <div>
-            <strong>Perpustakaan Digital</strong>
-            <span>Universitas Medan Area</span>
-          </div>
-
-        </div>
-
-        <nav className="catalog-nav">
-
-          <a href="/">
-            Beranda
-          </a>
-
-          <a href="/katalog" className="active">
-            Katalog
-          </a>
-          <a href="/reservasi">
-            Reservasi
-          </a>
-
-          <a href="#">
-            Jurnal
-          </a>
-
-          <a href="#">
-            Penelitian
-          </a>
-
-          <a href="#">
-            E-Book
-          </a>
-
-          <a href="#">
-            Layanan
-          </a>
-
-        </nav>
-
-        <div className="catalog-user">
-
-          <div className="catalog-avatar">
-            DH
-          </div>
-
-          <div>
-            <strong>Dedi Halawa</strong>
-            <span>Mahasiswa</span>
-          </div>
-
-          <ChevronDown size={16} />
-
-        </div>
-
-      </header>
+            <SiteHeader />
 
 
       {/* ================= PAGE INTRO ================= */}
@@ -231,12 +284,12 @@ export default function KatalogPage() {
           <h1>
             Temukan Koleksi
             <br />
-            <em>Perpustakaan UMA</em>
+            <em>USEFECT</em>
           </h1>
 
           <p>
             Jelajahi koleksi buku, referensi akademik, dan
-            sumber pengetahuan Universitas Medan Area.
+            sumber pengetahuan yang membantu Anda menemukan ide, wawasan, dan peluang baru.
           </p>
 
         </div>
@@ -404,7 +457,7 @@ export default function KatalogPage() {
 
             <div>
               <strong>
-                Koleksi UMA
+                Koleksi USEFECT
               </strong>
 
               <span>
@@ -536,9 +589,7 @@ export default function KatalogPage() {
                   >
 
                     <small>
-                      UNIVERSITAS
-                      <br />
-                      MEDAN AREA
+                      KNOWLEDGE HUB
                     </small>
 
                     <strong>

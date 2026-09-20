@@ -115,15 +115,94 @@ export default function RegisterPage() {
 
       <section className="register-shell">
         <div className="register-brand">
-          <div className="register-brand-mark">U</div>
+          <svg
+            className="usefect-logo auth-usefect-logo"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <linearGradient
+                id="authUsefectBlue"
+                x1="0"
+                y1="0"
+                x2="1"
+                y2="1"
+              >
+                <stop offset="0%" stopColor="#39d5ff" />
+                <stop offset="50%" stopColor="#0b8ff5" />
+                <stop offset="100%" stopColor="#075eea" />
+              </linearGradient>
 
-          <div>
-            <div className="register-brand-name">
-              UMA LIBRARY
-            </div>
-            <div className="register-brand-subtitle">
-              Digital Library Ecosystem
-            </div>
+              <linearGradient
+                id="authUsefectGold"
+                x1="0"
+                y1="1"
+                x2="1"
+                y2="0"
+              >
+                <stop offset="0%" stopColor="#d28d22" />
+                <stop offset="50%" stopColor="#f4b53f" />
+                <stop offset="100%" stopColor="#ffe18a" />
+              </linearGradient>
+            </defs>
+
+            <path
+              d="M31 14
+                 C19 22 14 35 17 49
+                 C20 63 30 75 46 86
+                 L49 89
+                 L49 68
+                 C41 61 37 53 37 44
+                 C37 34 41 25 48 18
+                 C43 13 36 12 31 14Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M69 17
+                 C58 21 49 29 45 39
+                 C40 51 41 66 49 88
+                 C62 80 71 69 75 57
+                 C79 44 77 28 69 17Z"
+              fill="url(#authUsefectBlue)"
+            />
+
+            <path
+              d="M50 78
+                 C51 64 55 52 63 43
+                 C69 36 72 27 70 18
+                 C60 21 52 28 48 37
+                 C44 48 45 63 50 78Z"
+              fill="url(#authUsefectGold)"
+            />
+
+            <path
+              d="M49 87
+                 C48 72 49 59 53 49
+                 C57 39 64 30 71 24"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="2"
+              strokeLinecap="round"
+              opacity=".85"
+            />
+
+            <path
+              d="M78 8
+                 L80.5 14
+                 L87 16.5
+                 L80.5 19
+                 L78 25
+                 L75.5 19
+                 L69 16.5
+                 L75.5 14Z"
+              fill="#f8c85b"
+            />
+          </svg>
+
+          <div className="auth-usefect-wordmark auth-usefect-wordmark-large">
+            <strong>USEFECT</strong>
+            <small>A SMARTER TOMORROW, TOGETHER.</small>
           </div>
         </div>
 
@@ -135,12 +214,12 @@ export default function RegisterPage() {
           <h1>
             Create Your
             <br />
-            Library Account
+            <em>USEFECT Account</em>
           </h1>
 
           <p className="register-description">
-            Daftarkan diri Anda sebagai anggota Perpustakaan
-            Universitas Medan Area.
+            Create your account and connect with knowledge,
+            resources, and opportunities.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -383,7 +462,7 @@ export default function RegisterPage() {
               {loading
                 ? "Mendaftarkan..."
                 : "Daftar sebagai Anggota"}
-              <span>→</span>
+              
             </button>
           </form>
 
@@ -398,7 +477,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="register-footer">
-          Perpustakaan Universitas Medan Area
+          USEFECT · A SMARTER TOMORROW, TOGETHER.
         </div>
       </section>
 
@@ -535,27 +614,40 @@ export default function RegisterPage() {
         }
 
         .register-eyebrow {
-          margin-bottom: 12px;
-          color: #4774bd;
+          margin-bottom: 14px;
+          color: #64748b;
           font-size: 10px;
+          line-height: 1.2;
           font-weight: 900;
-          letter-spacing: 0.18em;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
         }
 
         h1 {
           margin: 0;
-          color: #13233f;
-          font-size: clamp(34px, 6vw, 46px);
-          line-height: 1.08;
-          letter-spacing: -0.045em;
-          font-weight: 800;
+          max-width: 620px;
+          color: #06184d;
+          font-size: clamp(42px, 6vw, 58px);
+          line-height: 0.98;
+          letter-spacing: -0.055em;
+          font-weight: 900;
+          text-shadow: 0 3px 14px rgba(15, 39, 91, 0.08);
+        }
+
+        h1 em {
+          display: block;
+          color: #075eea;
+          font-style: normal;
         }
 
         .register-description {
-          margin: 16px 0 30px;
-          color: #7b8ba3;
-          font-size: 14px;
-          line-height: 1.7;
+          max-width: 520px;
+          margin: 18px 0 30px;
+          color: #405782;
+          font-size: 15px;
+          line-height: 1.6;
+          font-weight: 500;
+          text-shadow: 0 1px 5px rgba(15, 39, 91, 0.05);
         }
 
         .register-section-title {
@@ -731,6 +823,40 @@ export default function RegisterPage() {
             border-radius: 14px;
           }
         }
+
+        .auth-usefect-wordmark-large {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 4px;
+          text-align: center;
+        }
+
+        .auth-usefect-wordmark-large strong {
+          display: block;
+          font-size: 30px;
+          line-height: 1;
+          letter-spacing: 0.16em;
+          font-weight: 800;
+          color: #17345f;
+        }
+
+        .auth-usefect-wordmark-large small {
+          display: block;
+          font-size: 8px;
+          line-height: 1.2;
+          letter-spacing: 0.24em;
+          font-weight: 600;
+          color: #8090a8;
+          white-space: nowrap;
+        }
+
+        .auth-usefect-logo {
+          width: 68px;
+          height: 68px;
+          flex-shrink: 0;
+        }
+
       `}</style>
     </main>
   );

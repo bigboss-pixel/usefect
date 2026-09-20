@@ -253,7 +253,7 @@ export default function EditBukuPage() {
 
             <p>
               Perbarui informasi koleksi buku
-              perpustakaan UMA.
+              USEFECT.
             </p>
           </div>
 

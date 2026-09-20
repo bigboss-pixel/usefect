@@ -227,7 +227,7 @@ export default function PeminjamanPage() {
         <section className="loan-header">
           <div>
             <span className="loan-eyebrow">
-              PERPUSTAKAAN DIGITAL UMA
+              USEFECT DIGITAL LIBRARY
             </span>
 
             <h1>Peminjaman Saya</h1>

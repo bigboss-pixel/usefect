@@ -285,7 +285,7 @@ export default function TambahEksemplarPage() {
             <p>
               Tambahkan beberapa eksemplar fisik
               sekaligus untuk koleksi buku
-              perpustakaan UMA.
+              USEFECT.
             </p>
           </div>
 

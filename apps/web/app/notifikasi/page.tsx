@@ -1,5 +1,6 @@
 "use client";
 
+import SiteHeader from "../../components/SiteHeader";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bell,
@@ -206,61 +207,7 @@ export default function NotifikasiPage() {
 
   return (
     <main className="library-page notification-page">
-      <header className="top-header">
-        <div className="brand-area">
-          <a href="/" className="uma-logo">
-            UMA
-          </a>
-
-          <div className="brand-divider" />
-
-          <div className="library-brand">
-            <strong>Perpustakaan Digital</strong>
-            <small>Knowledge Today, A Better Tomorrow</small>
-          </div>
-        </div>
-
-        <nav className="desktop-nav">
-          <a href="/">Beranda</a>
-          <a href="/katalog">Katalog</a>
-          <a href="/reservasi">Reservasi</a>
-          <a href="#">Jurnal</a>
-          <a href="#">Penelitian</a>
-          <a href="#">E-Book</a>
-          <a href="/peminjaman">Layanan</a>
-          <a href="#">Tentang</a>
-        </nav>
-
-        <div className="header-actions">
-          <button
-            className="icon-button"
-            aria-label="Cari"
-          >
-            <Info size={19} strokeWidth={2} />
-          </button>
-
-          <a
-            href="/notifikasi"
-            className="icon-button notification active"
-            aria-label="Notifikasi"
-          >
-            <Bell size={19} strokeWidth={2} />
-            {unreadCount > 0 && (
-              <span className="notification-badge">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </a>
-
-          <a
-            href="/profil"
-            className="profile-mini"
-            aria-label="Profil"
-          >
-            <div className="avatar">DH</div>
-          </a>
-        </div>
-      </header>
+            <SiteHeader />
 
       <div className="content-container">
         <section className="notification-header">
