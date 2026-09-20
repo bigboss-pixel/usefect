@@ -14889,3 +14889,110 @@ a {
     padding: 18px;
   }
 }
+
+
+/* ===== TAMBAH BUKU — JUMLAH EKSEMPLAR ===== */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  width: 180px;
+  height: 46px;
+  border: 1px solid #dce3ee;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.quantity-button {
+  width: 46px;
+  height: 100%;
+  border: 0;
+  background: #f5f8fc;
+  color: #1769d2;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s ease, color .2s ease;
+}
+
+.quantity-button:hover {
+  background: #eaf2ff;
+  color: #0d56b3;
+}
+
+.quantity-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: #fff;
+  color: #172033;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.form-hint {
+  margin: 7px 0 0;
+  color: #7b8798;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ===== TAMBAH BUKU — JUMLAH EKSEMPLAR ===== */
+.admin-book-quantity-control {
+  display: flex;
+  align-items: center;
+  width: 180px;
+  height: 46px;
+  border: 1px solid #dce3ee;
+  border-radius: 12px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.admin-book-quantity-control input {
+  flex: 1;
+  min-width: 0;
+  width: 70px;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: #ffffff;
+  color: #172033;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  appearance: textfield;
+}
+
+.admin-book-quantity-control input::-webkit-inner-spin-button,
+.admin-book-quantity-control input::-webkit-outer-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.admin-book-quantity-button {
+  width: 46px;
+  height: 100%;
+  border: 0;
+  background: #f5f8fc;
+  color: #1769d2;
+  font-size: 22px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-book-quantity-button:hover {
+  background: #eaf2ff;
+}
+
+.admin-book-form-hint {
+  display: block;
+  margin-top: 7px;
+  color: #7b8798;
+  font-size: 12px;
+  line-height: 1.5;
+}

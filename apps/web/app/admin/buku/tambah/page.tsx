@@ -35,6 +35,8 @@ export default function TambahBukuPage() {
   const [categories, setCategories] =
     useState<Category[]>([]);
 
+  const [quantity, setQuantity] = useState(1);
+
   const [loadingCategories, setLoadingCategories] =
     useState(true);
 
@@ -218,9 +220,20 @@ export default function TambahBukuPage() {
       return;
     }
 
+    if (quantity < 1) {
+      setError(
+        "Jumlah eksemplar minimal 1.",
+      );
+
+      return;
+    }
+
     try {
       setLoading(true);
 
+      // =====================================================
+      // 1. BUAT DATA BUKU
+      // =====================================================
       const response = await apiFetch(
         "/books",
         {
@@ -267,12 +280,62 @@ export default function TambahBukuPage() {
         );
       }
 
-      alert(
-        result?.message ??
-          "Buku berhasil ditambahkan",
+      // =====================================================
+      // 2. AMBIL ID BUKU YANG BARU DIBUAT
+      // =====================================================
+      const createdBook =
+        result?.book ??
+        result?.data?.book ??
+        result?.data ??
+        result;
+
+      const bookId = Number(
+        createdBook?.id,
       );
 
-      router.push("/admin/buku");
+      if (!bookId) {
+        throw new Error(
+          "Buku berhasil dibuat, tetapi ID buku tidak ditemukan.",
+        );
+      }
+
+      // =====================================================
+      // 3. BUAT BOOK COPY SESUAI JUMLAH EKSEMPLAR
+      // =====================================================
+      const copyResponse =
+        await apiFetch(
+          `/book-copies/bulk/${bookId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              quantity,
+            }),
+          },
+        );
+
+      const copyResult =
+        await copyResponse.json().catch(
+          () => null,
+        );
+
+      if (!copyResponse.ok) {
+        throw new Error(
+          copyResult?.message ??
+            `Buku berhasil dibuat, tetapi ${quantity} eksemplar gagal dibuat.`,
+        );
+      }
+
+      alert(
+        `Buku berhasil ditambahkan dengan ${quantity} eksemplar.`,
+      );
+
+      router.push(
+        `/admin/buku/${bookId}`,
+      );
     } catch (error: any) {
       console.error(
         "Gagal menambahkan buku:",
@@ -581,6 +644,58 @@ export default function TambahBukuPage() {
                       tersedia.
                     </small>
                   )}
+              </div>
+
+              <div className="admin-book-form-field">
+                <label htmlFor="quantity">
+                  Jumlah Eksemplar
+                </label>
+
+                <div className="admin-book-quantity-control">
+                  <button
+                    type="button"
+                    className="admin-book-quantity-button"
+                    onClick={() =>
+                      setQuantity((current) =>
+                        Math.max(1, current - 1),
+                      )
+                    }
+                    aria-label="Kurangi jumlah eksemplar"
+                  >
+                    −
+                  </button>
+
+                  <input
+                    id="quantity"
+                    type="number"
+                    min="1"
+                    value={quantity}
+                    onChange={(event) => {
+                      const value = Number(event.target.value);
+
+                      setQuantity(
+                        Number.isFinite(value)
+                          ? Math.max(1, value)
+                          : 1,
+                      );
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    className="admin-book-quantity-button"
+                    onClick={() =>
+                      setQuantity((current) => current + 1)
+                    }
+                    aria-label="Tambah jumlah eksemplar"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <small className="admin-book-form-hint">
+                  Jumlah salinan buku yang akan dibuat.
+                </small>
               </div>
 
               <div className="admin-book-form-field admin-book-form-field-full">

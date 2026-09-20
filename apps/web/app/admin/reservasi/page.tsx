@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   ArrowRight,
   Bell,
   BookOpen,
+  ScanLine,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
@@ -145,11 +151,23 @@ export default function AdminReservasiPage() {
   const [pickupReservation, setPickupReservation] =
     useState<Reservation | null>(null);
 
-  const [userId, setUserId] =
+  const [memberQrToken, setMemberQrToken] =
     useState("");
 
-  const [barcode, setBarcode] =
+  const [isbn, setIsbn] =
     useState("");
+
+  const [scannerOpen, setScannerOpen] =
+    useState(false);
+
+  const [scannerMode, setScannerMode] =
+    useState<"QR" | "ISBN" | null>(null);
+
+  const scannerVideoRef =
+    useRef<HTMLVideoElement | null>(null);
+
+  const scannerControlsRef =
+    useRef<{ stop: () => void } | null>(null);
 
   const fetchReservations = async () => {
     try {
@@ -344,6 +362,129 @@ export default function AdminReservasiPage() {
     }
   };
 
+  const stopScanner = () => {
+    scannerControlsRef.current?.stop();
+    scannerControlsRef.current = null;
+
+    const video =
+      scannerVideoRef.current;
+
+    if (video?.srcObject) {
+      const stream =
+        video.srcObject as MediaStream;
+
+      stream
+        .getTracks()
+        .forEach((track) => track.stop());
+
+      video.srcObject = null;
+    }
+
+    setScannerOpen(false);
+    setScannerMode(null);
+  };
+
+  const startScanner = (
+    mode: "QR" | "ISBN",
+  ) => {
+    stopScanner();
+    setScannerMode(mode);
+    setScannerOpen(true);
+  };
+
+  useEffect(() => {
+    if (
+      !scannerOpen ||
+      !scannerMode
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const startScanLine = async () => {
+      try {
+        const {
+          BrowserMultiFormatReader,
+        } = await import(
+          "@zxing/browser"
+        );
+
+        if (
+          cancelled ||
+          !scannerVideoRef.current
+        ) {
+          return;
+        }
+
+        const reader =
+          new BrowserMultiFormatReader();
+
+        scannerControlsRef.current =
+          await reader.decodeFromVideoDevice(
+            undefined,
+            scannerVideoRef.current,
+            (result) => {
+              if (
+                cancelled ||
+                !result
+              ) {
+                return;
+              }
+
+              const value =
+                result.getText().trim();
+
+              if (!value) {
+                return;
+              }
+
+              if (
+                scannerMode === "QR"
+              ) {
+                setMemberQrToken(
+                  value,
+                );
+              } else {
+                setIsbn(value);
+              }
+
+              stopScanner();
+            },
+          );
+      } catch (error) {
+        console.error(
+          "Scanner error:",
+          error,
+        );
+
+        alert(
+          "Kamera tidak dapat digunakan. Pastikan izin kamera diberikan.",
+        );
+
+        stopScanner();
+      }
+    };
+
+    startScanLine();
+
+    return () => {
+      cancelled = true;
+      scannerControlsRef.current?.stop();
+      scannerControlsRef.current =
+        null;
+    };
+  }, [
+    scannerOpen,
+    scannerMode,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      scannerControlsRef.current?.stop();
+    };
+  }, []);
+
   const openPickupModal = (
     reservation: Reservation,
   ) => {
@@ -351,17 +492,16 @@ export default function AdminReservasiPage() {
       reservation,
     );
 
-    setUserId(
-      String(reservation.userId),
-    );
-
-    setBarcode("");
+    stopScanner();
+    setMemberQrToken("");
+    setIsbn("");
   };
 
   const closePickupModal = () => {
+    stopScanner();
     setPickupReservation(null);
-    setUserId("");
-    setBarcode("");
+    setMemberQrToken("");
+    setIsbn("");
   };
 
   const handlePickup = async () => {
@@ -369,24 +509,16 @@ export default function AdminReservasiPage() {
       return;
     }
 
-    const parsedUserId =
-      Number(userId);
-
-    if (
-      !Number.isInteger(
-        parsedUserId,
-      ) ||
-      parsedUserId <= 0
-    ) {
+    if (!memberQrToken.trim()) {
       alert(
-        "KTM / User ID tidak valid.",
+        "QR pengguna wajib dipindai.",
       );
       return;
     }
 
-    if (!barcode.trim()) {
+    if (!isbn.trim()) {
       alert(
-        "Barcode buku wajib diisi.",
+        "ISBN buku wajib dipindai.",
       );
       return;
     }
@@ -406,10 +538,10 @@ export default function AdminReservasiPage() {
                 "application/json",
             },
             body: JSON.stringify({
-              userId:
-                parsedUserId,
-              barcode:
-                barcode.trim(),
+              memberQrToken:
+                memberQrToken.trim(),
+              isbn:
+                isbn.trim(),
             }),
           },
         );
@@ -1729,6 +1861,215 @@ export default function AdminReservasiPage() {
           }}
         >
 
+          {scannerOpen && (
+            <div
+              style={{
+                position:
+                  "fixed",
+                inset: 0,
+                zIndex: 1000,
+                display:
+                  "flex",
+                alignItems:
+                  "center",
+                justifyContent:
+                  "center",
+                padding:
+                  "20px",
+                background:
+                  "rgba(4,16,42,.78)",
+              }}
+            >
+              <div
+                style={{
+                  width:
+                    "min(440px, 100%)",
+                  borderRadius:
+                    "22px",
+                  padding:
+                    "18px",
+                  background:
+                    "#fff",
+                  boxShadow:
+                    "0 24px 70px rgba(0,0,0,.28)",
+                }}
+              >
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    alignItems:
+                      "center",
+                    justifyContent:
+                      "space-between",
+                    marginBottom:
+                      "14px",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        color:
+                          "#075eea",
+                        fontSize:
+                          "10px",
+                        fontWeight:
+                          800,
+                        letterSpacing:
+                          "2px",
+                      }}
+                    >
+                      CAMERA SCANNER
+                    </div>
+
+                    <div
+                      style={{
+                        marginTop:
+                          "4px",
+                        color:
+                          "#06184d",
+                        fontSize:
+                          "19px",
+                        fontWeight:
+                          850,
+                      }}
+                    >
+                      {scannerMode ===
+                      "QR"
+                        ? "Scan QR Pengguna"
+                        : "Scan ISBN Buku"}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={
+                      stopScanner
+                    }
+                    style={{
+                      width:
+                        "38px",
+                      height:
+                        "38px",
+                      border:
+                        "1px solid #e2e8f0",
+                      borderRadius:
+                        "10px",
+                      background:
+                        "#f8fafc",
+                      color:
+                        "#64748b",
+                      display:
+                        "grid",
+                      placeItems:
+                        "center",
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    position:
+                      "relative",
+                    overflow:
+                      "hidden",
+                    borderRadius:
+                      "16px",
+                    background:
+                      "#07152f",
+                    aspectRatio:
+                      "4 / 3",
+                  }}
+                >
+                  <video
+                    ref={
+                      scannerVideoRef
+                    }
+                    autoPlay
+                    muted
+                    playsInline
+                    style={{
+                      width:
+                        "100%",
+                      height:
+                        "100%",
+                      objectFit:
+                        "cover",
+                    }}
+                  />
+
+                  <div
+                    style={{
+                      position:
+                        "absolute",
+                      inset:
+                        "14%",
+                      border:
+                        "2px solid rgba(255,255,255,.9)",
+                      borderRadius:
+                        "18px",
+                      pointerEvents:
+                        "none",
+                    }}
+                  />
+                </div>
+
+                <p
+                  style={{
+                    margin:
+                      "12px 2px 0",
+                    color:
+                      "#667085",
+                    fontSize:
+                      "12px",
+                    lineHeight:
+                      1.5,
+                  }}
+                >
+                  Arahkan kamera ke{" "}
+                  {scannerMode ===
+                  "QR"
+                    ? "QR Code anggota"
+                    : "barcode ISBN buku"}{" "}
+                  sampai terbaca otomatis.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={
+                    stopScanner
+                  }
+                  style={{
+                    width:
+                      "100%",
+                    marginTop:
+                      "14px",
+                    border:
+                      "1px solid #dbe4f0",
+                    borderRadius:
+                      "12px",
+                    padding:
+                      "11px 14px",
+                    background:
+                      "#f8fafc",
+                    color:
+                      "#344054",
+                    fontWeight:
+                      750,
+                    cursor:
+                      "pointer",
+                  }}
+                >
+                  Tutup Kamera
+                </button>
+              </div>
+            </div>
+          )}
+
           <div
             style={{
               width:
@@ -1970,44 +2311,105 @@ export default function AdminReservasiPage() {
                         800,
                     }}
                   >
-                    KTM / USER ID
+                    QR PENGGUNA
                   </span>
 
-                  <input
-                    value={userId}
-                    onChange={(
-                      event,
-                    ) =>
-                      setUserId(
-                        event.target.value.replace(
-                          /\D/g,
-                          "",
-                        ),
-                      )
-                    }
-                    inputMode="numeric"
-                    placeholder="Scan KTM atau masukkan User ID"
+                  <div
                     style={{
-                      width:
-                        "100%",
-                      boxSizing:
-                        "border-box",
-                      border:
-                        "1px solid #dfe5ec",
-                      borderRadius:
-                        "12px",
-                      padding:
-                        "12px 14px",
-                      background:
-                        "#f8fafc",
-                      outline:
-                        "none",
-                      color:
-                        "#344054",
-                      fontSize:
-                        "13px",
+                      display:
+                        "flex",
+                      gap:
+                        "8px",
                     }}
-                  />
+                  >
+                    <input
+                      id="reservation-pickup-qr"
+                      value={
+                        memberQrToken
+                      }
+                      onChange={(
+                        event,
+                      ) =>
+                        setMemberQrToken(
+                          event.target.value,
+                        )
+                      }
+                      onKeyDown={(
+                        event,
+                      ) => {
+                        if (
+                          event.key ===
+                          "Enter"
+                        ) {
+                          event.preventDefault();
+
+                          document
+                            .getElementById(
+                              "reservation-pickup-isbn",
+                            )
+                            ?.focus();
+                        }
+                      }}
+                      placeholder="Ketik atau scan QR pengguna"
+                      autoFocus
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        boxSizing:
+                          "border-box",
+                        border:
+                          "1px solid #dfe5ec",
+                        borderRadius:
+                          "12px",
+                        padding:
+                          "12px 14px",
+                        background:
+                          "#f8fafc",
+                        outline:
+                          "none",
+                        color:
+                          "#344054",
+                        fontSize:
+                          "13px",
+                        fontWeight:
+                          600,
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startScanner(
+                          "QR",
+                        )
+                      }
+                      title="Scan QR pengguna dengan kamera"
+                      style={{
+                        width:
+                          "48px",
+                        minWidth:
+                          "48px",
+                        border:
+                          "1px solid #dbe4f0",
+                        borderRadius:
+                          "12px",
+                        background:
+                          "#eef5ff",
+                        color:
+                          "#075eea",
+                        display:
+                          "grid",
+                        placeItems:
+                          "center",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+                      <ScanLine
+                        size={18}
+                      />
+                    </button>
+                  </div>
                 </label>
 
 
@@ -2026,53 +2428,97 @@ export default function AdminReservasiPage() {
                         800,
                     }}
                   >
-                    BARCODE BUKU
+                    ISBN BUKU
                   </span>
 
-                  <input
-                    value={barcode}
-                    onChange={(
-                      event,
-                    ) =>
-                      setBarcode(
-                        event.target.value,
-                      )
-                    }
-                    onKeyDown={(
-                      event,
-                    ) => {
-                      if (
-                        event.key ===
-                        "Enter"
-                      ) {
-                        handlePickup();
-                      }
-                    }}
-                    placeholder="Scan barcode buku"
-                    autoFocus
+                  <div
                     style={{
-                      width:
-                        "100%",
-                      boxSizing:
-                        "border-box",
-                      border:
-                        "1px solid #dfe5ec",
-                      borderRadius:
-                        "12px",
-                      padding:
-                        "12px 14px",
-                      background:
-                        "#f8fafc",
-                      outline:
-                        "none",
-                      color:
-                        "#344054",
-                      fontSize:
-                        "13px",
-                      fontWeight:
-                        600,
+                      display:
+                        "flex",
+                      gap:
+                        "8px",
                     }}
-                  />
+                  >
+                    <input
+                      id="reservation-pickup-isbn"
+                      value={isbn}
+                      onChange={(
+                        event,
+                      ) =>
+                        setIsbn(
+                          event.target.value,
+                        )
+                      }
+                      onKeyDown={(
+                        event,
+                      ) => {
+                        if (
+                          event.key ===
+                          "Enter"
+                        ) {
+                          handlePickup();
+                        }
+                      }}
+                      placeholder="Ketik atau scan ISBN buku"
+                      inputMode="numeric"
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        boxSizing:
+                          "border-box",
+                        border:
+                          "1px solid #dfe5ec",
+                        borderRadius:
+                          "12px",
+                        padding:
+                          "12px 14px",
+                        background:
+                          "#f8fafc",
+                        outline:
+                          "none",
+                        color:
+                          "#344054",
+                        fontSize:
+                          "13px",
+                        fontWeight:
+                          600,
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startScanner(
+                          "ISBN",
+                        )
+                      }
+                      title="Scan ISBN buku dengan kamera"
+                      style={{
+                        width:
+                          "48px",
+                        minWidth:
+                          "48px",
+                        border:
+                          "1px solid #dbe4f0",
+                        borderRadius:
+                          "12px",
+                        background:
+                          "#eef5ff",
+                        color:
+                          "#075eea",
+                        display:
+                          "grid",
+                        placeItems:
+                          "center",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+                      <ScanLine
+                        size={18}
+                      />
+                    </button>
+                  </div>
                 </label>
 
               </div>
