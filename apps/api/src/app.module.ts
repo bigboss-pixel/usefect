@@ -12,6 +12,7 @@ import { BookCopiesModule } from './book-copies/book-copies.module.js';
 import { LoansModule } from './loans/loans.module.js';
 import { RolesModule } from './roles/roles.module.js';
 import { AdminManagementModule } from './admin-management/admin-management.module.js';
+import { MembersModule } from './members/members.module.js';
 import { PermissionsModule } from './permissions/permissions.module.js';
 import { ReservationsModule } from './reservations/reservations.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
@@ -39,6 +40,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     LoansModule,
     RolesModule,
     AdminManagementModule,
+    MembersModule,
     PermissionsModule,
     ReservationsModule,
     NotificationsModule,

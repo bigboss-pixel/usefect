@@ -119,6 +119,14 @@ const managementItems: SidebarItem[] = [
   },
 ];
 
+const memberManagementItems: SidebarItem[] = [
+  {
+    label: "Manajemen Anggota",
+    href: "/admin/anggota",
+    icon: Users,
+  },
+];
+
 const superAdminItems: SidebarItem[] = [
   {
     label: "Manajemen Admin",
@@ -148,6 +156,10 @@ export default function SiteSidebar({
     roles.includes("SUPER_ADMIN");
 
   const isSuperAdmin = roles.includes("SUPER_ADMIN");
+
+  const canManageMembers =
+    roles.includes("ADMIN") ||
+    roles.includes("SUPER_ADMIN");
 
   useEffect(() => {
     setMounted(true);
@@ -354,7 +366,7 @@ export default function SiteSidebar({
           </svg>
             </div>
 
-            <div>
+            <div className="usefect-sidebar-brand-text">
               <strong>USEFECT</strong>
               <span>KNOWLEDGE HUB</span>
             </div>
@@ -389,6 +401,18 @@ export default function SiteSidebar({
 
               <nav className="usefect-sidebar-nav">
                 {managementItems.map(renderItem)}
+              </nav>
+            </section>
+          )}
+
+          {canManageMembers && (
+            <section className="usefect-sidebar-section">
+              <div className="usefect-sidebar-section-label">
+                ANGGOTA
+              </div>
+
+              <nav className="usefect-sidebar-nav">
+                {memberManagementItems.map(renderItem)}
               </nav>
             </section>
           )}

@@ -1,0 +1,383 @@
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { db } from '../prisma/db.js';
+
+@Injectable()
+export class MembersService {
+  private async getMemberData(id: number) {
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    const studentProfile =
+      await db.orm.public.StudentProfile
+        .where({ userId: id })
+        .first();
+
+    const lecturerProfile =
+      await db.orm.public.LecturerProfile
+        .where({ userId: id })
+        .first();
+
+    const userRoles =
+      await db.orm.public.UserRole
+        .where({ userId: id })
+        .all();
+
+    const roles: string[] = [];
+
+    for (const userRole of userRoles) {
+      const role =
+        await db.orm.public.Role
+          .where({ id: userRole.roleId })
+          .first();
+
+      if (role) {
+        roles.push(role.name);
+      }
+    }
+
+    return {
+      user,
+      studentProfile,
+      lecturerProfile,
+      roles,
+    };
+  }
+
+  private isAdministrativeRole(
+    roles: string[],
+  ) {
+    return (
+      roles.includes('ADMIN') ||
+      roles.includes('SUPER_ADMIN')
+    );
+  }
+
+  async findAll() {
+    const users =
+      await db.orm.public.User.all();
+
+    const members = [];
+
+    for (const user of users) {
+      const data =
+        await this.getMemberData(user.id);
+
+      if (
+        this.isAdministrativeRole(data.roles)
+      ) {
+        continue;
+      }
+
+      const type =
+        data.studentProfile
+          ? 'MAHASISWA'
+          : data.lecturerProfile
+            ? 'DOSEN'
+            : 'ANGGOTA';
+
+      members.push({
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username,
+        phone: user.phone,
+        isActive: user.isActive,
+        type,
+        npm:
+          data.studentProfile?.npm ?? null,
+        lecturerNumber:
+          data.lecturerProfile
+            ?.lecturerNumber ?? null,
+        faculty:
+          data.studentProfile?.faculty ??
+          data.lecturerProfile?.faculty ??
+          null,
+        studyProgram:
+          data.studentProfile?.studyProgram ??
+          data.lecturerProfile?.studyProgram ??
+          null,
+        enrollmentYear:
+          data.studentProfile?.enrollmentYear ??
+          null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+    }
+
+    return members;
+  }
+
+  async findOne(id: number) {
+    const data = await this.getMemberData(id);
+
+    if (
+      this.isAdministrativeRole(data.roles)
+    ) {
+      throw new BadRequestException(
+        'Akun administratif bukan anggota',
+      );
+    }
+
+    const activeLoans =
+      await db.orm.public.Loan
+        .where({
+          userId: id,
+          status: 'ACTIVE',
+        })
+        .all();
+
+    const overdueLoans =
+      await db.orm.public.Loan
+        .where({
+          userId: id,
+          status: 'OVERDUE',
+        })
+        .all();
+
+    return {
+      id: data.user.id,
+      fullName: data.user.fullName,
+      email: data.user.email,
+      username: data.user.username,
+      phone: data.user.phone,
+      isActive: data.user.isActive,
+
+      type:
+        data.studentProfile
+          ? 'MAHASISWA'
+          : data.lecturerProfile
+            ? 'DOSEN'
+            : 'ANGGOTA',
+
+      npm:
+        data.studentProfile?.npm ?? null,
+
+      lecturerNumber:
+        data.lecturerProfile
+          ?.lecturerNumber ?? null,
+
+      faculty:
+        data.studentProfile?.faculty ??
+        data.lecturerProfile?.faculty ??
+        null,
+
+      studyProgram:
+        data.studentProfile?.studyProgram ??
+        data.lecturerProfile?.studyProgram ??
+        null,
+
+      enrollmentYear:
+        data.studentProfile?.enrollmentYear ??
+        null,
+
+      roles: data.roles,
+
+      statistics: {
+        activeLoans: activeLoans.length,
+        overdueLoans: overdueLoans.length,
+      },
+
+      createdAt: data.user.createdAt,
+      updatedAt: data.user.updatedAt,
+    };
+  }
+
+  async update(
+    id: number,
+    data: {
+      fullName?: string;
+      email?: string;
+      username?: string;
+      phone?: string;
+    },
+  ) {
+    const member = await this.getMemberData(id);
+
+    if (
+      this.isAdministrativeRole(member.roles)
+    ) {
+      throw new BadRequestException(
+        'Akun administratif tidak dapat dikelola melalui Manajemen Anggota',
+      );
+    }
+
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    const updated =
+      await db.orm.public.User
+        .where({ id })
+        .update({
+          ...(data.fullName !== undefined
+            ? { fullName: data.fullName }
+            : {}),
+          ...(data.email !== undefined
+            ? { email: data.email }
+            : {}),
+          ...(data.username !== undefined
+            ? { username: data.username }
+            : {}),
+          ...(data.phone !== undefined
+            ? { phone: data.phone }
+            : {}),
+        });
+
+    return {
+      message:
+        'Data anggota berhasil diperbarui',
+      member: updated,
+    };
+  }
+
+  async delete(id: number) {
+    const member = await this.getMemberData(id);
+
+    if (
+      this.isAdministrativeRole(member.roles)
+    ) {
+      throw new BadRequestException(
+        'Akun administratif tidak dapat dihapus melalui Manajemen Anggota',
+      );
+    }
+
+    const activeLoans =
+      await db.orm.public.Loan
+        .where({
+          userId: id,
+          status: 'ACTIVE',
+        })
+        .all();
+
+    const overdueLoans =
+      await db.orm.public.Loan
+        .where({
+          userId: id,
+          status: 'OVERDUE',
+        })
+        .all();
+
+    if (
+      activeLoans.length > 0 ||
+      overdueLoans.length > 0
+    ) {
+      throw new BadRequestException(
+        'Anggota tidak dapat dihapus karena masih memiliki peminjaman aktif atau terlambat',
+      );
+    }
+
+    const reservations =
+      await db.orm.public.Reservation
+        .where({
+          userId: id,
+        })
+        .all();
+
+    const activeReservationStatuses = [
+      'PENDING',
+      'APPROVED',
+      'READY_FOR_PICKUP',
+    ];
+
+    const activeReservations =
+      reservations.filter((reservation) =>
+        activeReservationStatuses.includes(
+          reservation.status,
+        ),
+      );
+
+    if (activeReservations.length > 0) {
+      throw new BadRequestException(
+        'Anggota tidak dapat dihapus karena masih memiliki reservasi aktif',
+      );
+    }
+
+    await db.orm.public.StudentProfile
+      .where({ userId: id })
+      .delete();
+
+    await db.orm.public.LecturerProfile
+      .where({ userId: id })
+      .delete();
+
+    await db.orm.public.UserRole
+      .where({ userId: id })
+      .delete();
+
+    const deleted =
+      await db.orm.public.User
+        .where({ id })
+        .delete();
+
+    if (!deleted) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    return {
+      message:
+        'Anggota berhasil dihapus',
+      id,
+    };
+  }
+
+  async updateStatus(
+    id: number,
+    isActive: boolean,
+  ) {
+    const member = await this.getMemberData(id);
+
+    if (
+      this.isAdministrativeRole(member.roles)
+    ) {
+      throw new BadRequestException(
+        'Akun administratif tidak dapat dikelola melalui Manajemen Anggota',
+      );
+    }
+
+    const updated =
+      await db.orm.public.User
+        .where({ id })
+        .update({
+          isActive,
+        });
+
+    if (!updated) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    return {
+      message: isActive
+        ? 'Anggota berhasil diaktifkan'
+        : 'Anggota berhasil dinonaktifkan',
+      member: {
+        id: updated.id,
+        fullName: updated.fullName,
+        isActive: updated.isActive,
+      },
+    };
+  }
+}

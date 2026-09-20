@@ -16290,3 +16290,180 @@ a {
   height: 100%;
   display: block;
 }
+
+
+/* =========================================================
+   USEFECT SIDEBAR — ACADEMIC BLUE
+   ========================================================= */
+
+.usefect-sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      #0b2a4a 0%,
+      #0e355a 48%,
+      #123e68 100%
+    ) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 12px 0 40px rgba(11, 42, 74, 0.16);
+}
+
+.usefect-sidebar-header {
+  border-bottom-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.usefect-sidebar-close {
+  color: #b8c9da !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.usefect-sidebar-close:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.usefect-sidebar-logo {
+  color: #ffffff;
+}
+
+.usefect-sidebar-section-title {
+  color: #8faac3 !important;
+}
+
+.usefect-sidebar-link {
+  color: #d9e5f0 !important;
+}
+
+.usefect-sidebar-link:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.075) !important;
+}
+
+.usefect-sidebar-link.active {
+  color: #ffffff !important;
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb 0%,
+      #1976d2 100%
+    ) !important;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
+}
+
+.usefect-sidebar-icon {
+  opacity: 0.9;
+}
+
+.usefect-sidebar-link.active .usefect-sidebar-icon {
+  color: #ffffff !important;
+  opacity: 1;
+}
+
+.usefect-sidebar-nav {
+  scrollbar-color: rgba(255, 255, 255, 0.20) transparent;
+}
+
+.usefect-sidebar-footer {
+  border-top-color: rgba(255, 255, 255, 0.10) !important;
+}
+
+.usefect-sidebar-footer-name {
+  color: #ffffff !important;
+}
+
+.usefect-sidebar-footer-role {
+  color: #9fb5c9 !important;
+}
+
+.usefect-sidebar-logout {
+  color: #c6d5e3 !important;
+}
+
+.usefect-sidebar-logout:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+
+/* USEFECT sidebar logo visibility */
+.usefect-sidebar .usefect-sidebar-logo,
+.usefect-sidebar .usefect-sidebar-logo text,
+.usefect-sidebar .usefect-sidebar-logo tspan {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.usefect-sidebar .usefect-sidebar-logo .usefect-brand-word {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+}
+
+.usefect-sidebar .usefect-sidebar-logo .usefect-brand-tagline {
+  color: #e8f1fa !important;
+  fill: #e8f1fa !important;
+}
+
+
+/* =========================================================
+   USEFECT SIDEBAR BRAND TEXT
+   ========================================================= */
+
+.usefect-sidebar-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.usefect-sidebar-brand-text strong {
+  color: #ffffff !important;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.usefect-sidebar-brand-text span {
+  color: #e8f1fa !important;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+}
+
+/* =========================================================
+   MEMBER DETAIL DELETE ACTION
+   ========================================================= */
+
+.member-delete-button {
+  display: block;
+  grid-column: 1 / -1;
+  width: 100%;
+  min-height: 38px;
+  margin: 10px 0 0;
+  padding: 0 20px;
+  box-sizing: border-box;
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.07);
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.member-delete-button:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.member-delete-button:active {
+  transform: translateY(0);
+}
