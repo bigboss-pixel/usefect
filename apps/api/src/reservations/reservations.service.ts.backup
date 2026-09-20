@@ -13,9 +13,6 @@ import { CreateReservationDto } from './dto/create-reservation.dto.js';
 import { NotificationsService }
   from '../notifications/notifications.service.js';
 
-import { LibrarySettingsService }
-  from '../library-settings/library-settings.service.js';
-
 @Injectable()
 export class ReservationsService {
 
@@ -25,9 +22,6 @@ export class ReservationsService {
 
     private readonly memberQrService:
       MemberQrService,
-
-    private readonly librarySettingsService:
-      LibrarySettingsService,
   ) {}
 
   // =========================
@@ -179,7 +173,7 @@ export class ReservationsService {
         }
 
         // =========================
-        // CEK BOOK COPY
+        // CEK COPY TERSEDIA
         // =========================
         const copies =
           await tx.orm.public.BookCopy
@@ -188,20 +182,21 @@ export class ReservationsService {
             })
             .all();
 
-        // Buku harus memiliki minimal satu copy
-        // agar dapat di-reservation.
-        if (copies.length === 0) {
+        const availableCopies =
+          copies.filter(
+            (copy) =>
+              copy.status === 'AVAILABLE',
+          );
+
+        if (availableCopies.length === 0) {
           throw new BadRequestException(
-            'Buku belum memiliki copy yang dapat di-reservation',
+            'Tidak ada copy buku yang tersedia saat ini',
           );
         }
 
         // =========================
         // CEK RESERVATION AKTIF
         // =========================
-        // Reservation menggunakan sistem FIFO.
-        // User tetap dapat masuk antrean meskipun
-        // seluruh copy sedang dipinjam.
         const allReservations =
           await tx.orm.public.Reservation
             .where({
@@ -217,22 +212,26 @@ export class ReservationsService {
               reservation.status === 'READY_FOR_PICKUP',
           );
 
-        // =========================
-        // INFORMASI ANTREAN
-        // =========================
-        const queuePosition =
-          activeReservations.filter(
-            (reservation) =>
-              reservation.status === 'PENDING',
-          ).length + 1;
+        if (
+          activeReservations.length >=
+          availableCopies.length
+        ) {
+          throw new BadRequestException(
+            'Seluruh copy buku yang tersedia sudah memiliki reservation',
+          );
+        }
 
         // =========================
         // MASA BERLAKU RESERVATION
         // =========================
-        // PENDING tidak memiliki expiry pickup.
-        // Masa berlaku pickup ditentukan ketika
-        // reservation berubah menjadi READY_FOR_PICKUP.
-        const expiresAt = null;
+        const expiresAt =
+          new Date();
+
+        // Reservation pending memiliki
+        // batas waktu 24 jam untuk diproses.
+        expiresAt.setHours(
+          expiresAt.getHours() + 24,
+        );
 
         // =========================
         // BUAT RESERVATION
@@ -243,13 +242,13 @@ export class ReservationsService {
               userId,
               bookId: dto.bookId,
               status: 'PENDING',
-              expiresAt,
+              expiresAt:
+                expiresAt.toISOString(),
             });
 
         return {
           reservation,
           book,
-          queuePosition,
         };
       });
 
@@ -446,109 +445,36 @@ export class ReservationsService {
       );
     }
 
-    // =========================
-    // CEK FIFO QUEUE
-    // =========================
-    const reservations =
+    if (
+      reservation.expiresAt &&
+      new Date(reservation.expiresAt) <=
+        new Date()
+    ) {
       await db.orm.public.Reservation
-        .where({
-          bookId: reservation.bookId,
-        })
-        .all();
-
-    const earlierPendingReservations =
-      reservations.filter(
-        (item) =>
-          item.status === 'PENDING' &&
-          (
-            new Date(item.createdAt).getTime() <
-              new Date(reservation.createdAt).getTime() ||
-            (
-              new Date(item.createdAt).getTime() ===
-                new Date(reservation.createdAt).getTime() &&
-              item.id < reservation.id
-            )
-          ),
-      );
-
-    if (earlierPendingReservations.length > 0) {
-      throw new BadRequestException(
-        'Reservation belum dapat diproses karena masih ada reservation sebelumnya dalam antrean',
-      );
-    }
-
-    // =========================
-    // CEK BOOK COPY
-    // =========================
-    const copies =
-      await db.orm.public.BookCopy
-        .where({
-          bookId: reservation.bookId,
-        })
-        .all();
-
-    const availableCopies =
-      copies.filter(
-        (copy) =>
-          copy.status === 'AVAILABLE',
-      );
-
-    if (availableCopies.length === 0) {
-      throw new BadRequestException(
-        'Belum ada copy buku yang tersedia untuk reservation ini',
-      );
-    }
-
-    // =========================
-    // MASA PICKUP
-    // =========================
-    // Masa berlaku dimulai
-    // setelah reservation siap diambil.
-    const reservationExpiryHours =
-      await this.librarySettingsService.getReservationExpiryHours();
-
-    const now = new Date();
-
-    const expiresAt =
-      new Date(now);
-
-    expiresAt.setHours(
-      expiresAt.getHours() + reservationExpiryHours,
-    );
-
-    const nowString =
-      now.toISOString();
-
-    const expiresAtString =
-      expiresAt.toISOString();
-
-    // =========================
-    // READY FOR PICKUP
-    // =========================
-    const updated =
-      await db.orm.public.Reservation
-        .where({
-          id,
-          status: 'PENDING',
-        })
+        .where({ id })
         .update({
-          status: 'READY_FOR_PICKUP',
-          approvedAt: nowString,
-          expiresAt: expiresAtString,
-          updatedAt: nowString,
+          status: 'EXPIRED',
         });
 
-    if (!updated) {
       throw new BadRequestException(
-        'Reservation gagal diproses',
+        'Reservation sudah kedaluwarsa',
       );
     }
+
+    const updated =
+      await db.orm.public.Reservation
+        .where({ id })
+        .update({
+          status: 'READY_FOR_PICKUP',
+          approvedAt:
+            new Date().toISOString(),
+        });
 
     await this.notificationsService.create(
       reservation.userId,
       'RESERVATION_APPROVED',
       'Reservasi Disetujui',
-      `Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan. Reservation berlaku selama ${reservationExpiryHours} jam.`, 
+      'Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan.',
     );
 
     return {
@@ -596,8 +522,6 @@ export class ReservationsService {
         .where({ id })
         .update({
           status: 'REJECTED',
-          updatedAt:
-            new Date().toISOString(),
         });
 
     await this.notificationsService.create(
@@ -607,18 +531,10 @@ export class ReservationsService {
       'Reservasi buku Anda ditolak oleh perpustakaan.',
     );
 
-    const nextReservation =
-      await this.promoteNextReservation(
-        reservation.bookId,
-      );
-
     return {
       message:
-        nextReservation
-          ? 'Reservation ditolak dan reservation berikutnya siap diambil'
-          : 'Reservation ditolak',
+        'Reservation ditolak',
       reservation: updated,
-      nextReservation,
     };
   }
 
@@ -670,29 +586,19 @@ export class ReservationsService {
           status: 'CANCELLED',
           cancelledAt:
             new Date().toISOString(),
-          updatedAt:
-            new Date().toISOString(),
         });
 
     await this.notificationsService.create(
-      reservation.userId,
-      'RESERVATION_CANCELLED',
-      'Reservasi Dibatalkan',
-      'Reservasi buku Anda telah dibatalkan.',
-    );
+    reservation.userId,
+    'RESERVATION_CANCELLED',
+    'Reservasi Dibatalkan',
+    'Reservasi buku Anda telah dibatalkan.',
+  );
 
-    const nextReservation =
-      await this.promoteNextReservation(
-        reservation.bookId,
-      );
-
-    return {
+  return {
       message:
-        nextReservation
-          ? 'Reservation dibatalkan dan reservation berikutnya siap diambil'
-          : 'Reservation dibatalkan',
+        'Reservation dibatalkan',
       reservation: updated,
-      nextReservation,
     };
   }
 
@@ -712,10 +618,7 @@ export class ReservationsService {
       );
     }
 
-    let expiredBookId: number | null = null;
-
-    const result =
-      await db.transaction(async (tx) => {
+    return db.transaction(async (tx) => {
       const reservation =
         await tx.orm.public.Reservation.where({ id }).first();
 
@@ -733,17 +636,12 @@ export class ReservationsService {
         reservation.expiresAt &&
         new Date(reservation.expiresAt) <= new Date()
       ) {
-        await tx.orm.public.Reservation.where({
-          id,
-          status: 'READY_FOR_PICKUP',
-        }).update({
+        await tx.orm.public.Reservation.where({ id }).update({
           status: 'EXPIRED',
           updatedAt: new Date().toISOString(),
         });
 
-        expiredBookId = reservation.bookId;
-
-        return null;
+        throw new BadRequestException('Reservation sudah kedaluwarsa');
       }
 
       if (reservation.userId !== userId) {
@@ -771,12 +669,9 @@ export class ReservationsService {
           loan.status === 'OVERDUE',
       );
 
-      const maxActiveLoans =
-        await this.librarySettingsService.getMaxActiveLoans();
-
-      if (activeLoans.length >= maxActiveLoans) {
+      if (activeLoans.length >= 3) {
         throw new BadRequestException(
-          `Maksimal ${maxActiveLoans} buku dapat dipinjam`,
+          'Maksimal 3 buku dapat dipinjam',
         );
       }
 
@@ -821,13 +716,8 @@ export class ReservationsService {
         );
       }
 
-      const loanDurationDays =
-        await this.librarySettingsService.getLoanDurationDays();
-
       const dueDate = new Date();
-      dueDate.setDate(
-        dueDate.getDate() + loanDurationDays,
-      );
+      dueDate.setDate(dueDate.getDate() + 7);
 
       const dueDateString = dueDate.toISOString();
       const now = new Date().toISOString();
@@ -917,24 +807,6 @@ export class ReservationsService {
           : null,
       };
     });
-
-    if (expiredBookId !== null) {
-      await this.promoteNextReservation(
-        expiredBookId,
-      );
-
-      throw new BadRequestException(
-        'Reservation sudah kedaluwarsa',
-      );
-    }
-
-    if (result?.book?.id) {
-      await this.promoteNextReservation(
-        result.book.id,
-      );
-    }
-
-    return result;
   }
 
 
@@ -964,173 +836,6 @@ export class ReservationsService {
   }
 
 
-  // =========================
-  // PROMOTE NEXT RESERVATION
-  // =========================
-  public async promoteNextReservation(
-    bookId: number,
-  ) {
-
-    const copies =
-      await db.orm.public.BookCopy
-        .where({
-          bookId,
-        })
-        .all();
-
-    const availableCopies =
-      copies.filter(
-        (copy) =>
-          copy.status === 'AVAILABLE',
-      );
-
-    const reservations =
-      await db.orm.public.Reservation
-        .where({
-          bookId,
-        })
-        .all();
-
-    // =========================
-    // LAZY EXPIRY
-    // =========================
-    const now =
-      new Date();
-
-    const nowString =
-      now.toISOString();
-
-    const expiredReservations =
-      reservations.filter(
-        (reservation) =>
-          reservation.status === 'READY_FOR_PICKUP' &&
-          reservation.expiresAt &&
-          new Date(reservation.expiresAt).getTime() <= now.getTime(),
-      );
-
-    for (
-      const expiredReservation
-      of expiredReservations
-    ) {
-      await db.orm.public.Reservation
-        .where({
-          id: expiredReservation.id,
-          status: 'READY_FOR_PICKUP',
-        })
-        .update({
-          status: 'EXPIRED',
-          updatedAt: nowString,
-        });
-    }
-
-    // =========================
-    // REFRESH RESERVATIONS
-    // =========================
-    const refreshedReservations =
-      await db.orm.public.Reservation
-        .where({
-          bookId,
-        })
-        .all();
-
-    const readyReservations =
-      refreshedReservations.filter(
-        (reservation) =>
-          reservation.status === 'READY_FOR_PICKUP' &&
-          reservation.expiresAt &&
-          new Date(reservation.expiresAt).getTime() > now.getTime(),
-      );
-
-    // =========================
-    // AVAILABLE CAPACITY
-    // =========================
-    const availableCapacity =
-      availableCopies.length -
-      readyReservations.length;
-
-    if (availableCapacity <= 0) {
-      return null;
-    }
-
-    // =========================
-    // FIFO QUEUE
-    // =========================
-    const pendingReservations =
-      refreshedReservations
-        .filter(
-          (reservation) =>
-            reservation.status === 'PENDING',
-        )
-        .sort(
-          (a, b) => {
-            const timeDifference =
-              new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime();
-
-            if (timeDifference !== 0) {
-              return timeDifference;
-            }
-
-            return a.id - b.id;
-          },
-        );
-
-    const nextReservation =
-      pendingReservations[0];
-
-    if (!nextReservation) {
-      return null;
-    }
-
-    // =========================
-    // PICKUP WINDOW
-    // =========================
-    const reservationExpiryHours =
-      await this.librarySettingsService.getReservationExpiryHours();
-
-    const expiresAt =
-      new Date(now);
-
-    expiresAt.setHours(
-      expiresAt.getHours() + reservationExpiryHours,
-    );
-
-    const expiresAtString =
-      expiresAt.toISOString();
-
-    // =========================
-    // PROMOTE
-    // =========================
-    const updated =
-      await db.orm.public.Reservation
-        .where({
-          id: nextReservation.id,
-          status: 'PENDING',
-        })
-        .update({
-          status: 'READY_FOR_PICKUP',
-          approvedAt: nowString,
-          expiresAt: expiresAtString,
-          updatedAt: nowString,
-        });
-
-    if (!updated) {
-      return null;
-    }
-
-    // =========================
-    // NOTIFICATION
-    // =========================
-    await this.notificationsService.create(
-      nextReservation.userId,
-      'RESERVATION_APPROVED',
-      'Reservasi Siap Diambil',
-      `Reservasi Anda sekarang siap diambil. Silakan datang ke perpustakaan dalam waktu ${reservationExpiryHours} jam.`, 
-    );
-
-    return updated;
-  }
-
   async expire(
     id: number,
     userId: number,
@@ -1156,55 +861,26 @@ export class ReservationsService {
     }
 
     if (
+      reservation.status !== 'PENDING' &&
+      reservation.status !== 'APPROVED' &&
       reservation.status !== 'READY_FOR_PICKUP'
     ) {
       throw new BadRequestException(
-        'Hanya reservation READY_FOR_PICKUP yang dapat di-expire',
-      );
-    }
-
-    const now =
-      new Date();
-
-    if (
-      !reservation.expiresAt ||
-      new Date(reservation.expiresAt) > now
-    ) {
-      throw new BadRequestException(
-        'Reservation belum melewati masa berlaku pickup',
+        'Reservation tidak dapat di-expire dari status saat ini',
       );
     }
 
     const updated =
       await db.orm.public.Reservation
-        .where({
-          id,
-          status: 'READY_FOR_PICKUP',
-        })
+        .where({ id })
         .update({
           status: 'EXPIRED',
-          updatedAt:
-            now.toISOString(),
         });
-
-    if (!updated) {
-      throw new BadRequestException(
-        'Reservation gagal di-expire',
-      );
-    }
-
-    const nextReservation =
-      await this.promoteNextReservation(
-        reservation.bookId,
-      );
 
     return {
       message:
-        nextReservation
-          ? 'Reservation berhasil di-expire dan reservation berikutnya siap diambil'
-          : 'Reservation berhasil di-expire',
+        'Reservation berhasil di-expire',
       reservation: updated,
-      nextReservation,
     };
   }
 }

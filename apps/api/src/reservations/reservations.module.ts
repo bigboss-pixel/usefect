@@ -5,6 +5,9 @@ import { MemberQrModule } from '../member-qr/member-qr.module.js';
 import { NotificationsModule }
   from '../notifications/notifications.module.js';
 
+import { LibrarySettingsModule }
+  from '../library-settings/library-settings.module.js';
+
 import { ReservationsController }
   from './reservations.controller.js';
 
@@ -16,6 +19,7 @@ import { ReservationsService }
     AuthModule,
     NotificationsModule,
     MemberQrModule,
+    LibrarySettingsModule,
   ],
 
   controllers: [

@@ -15,6 +15,7 @@ import { PermissionsModule } from './permissions/permissions.module.js';
 import { ReservationsModule } from './reservations/reservations.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { MemberQrModule } from './member-qr/member-qr.module.js';
+import { LibrarySettingsModule } from './library-settings/library-settings.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -40,6 +41,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ReservationsModule,
     NotificationsModule,
     MemberQrModule,
+    LibrarySettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

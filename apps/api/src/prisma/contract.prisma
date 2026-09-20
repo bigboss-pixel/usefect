@@ -278,3 +278,15 @@ model MemberQr {
   createdAt       TimestamptzString @default(now())
   updatedAt       temporal.updatedAtString()
 }
+
+model LibrarySetting {
+  id                     Int @id @default(autoincrement())
+  maxActiveLoans         Int @default(3)
+  loanDurationDays       Int @default(7)
+  maxRenewals            Int @default(2)
+  renewalDurationDays    Int @default(7)
+  finePerDay             Int @default(1000)
+  reservationExpiryHours Int @default(24)
+  createdAt              TimestamptzString @default(now())
+  updatedAt              TimestamptzString @default(now())
+}

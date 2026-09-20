@@ -13,9 +13,6 @@ import { CreateReservationDto } from './dto/create-reservation.dto.js';
 import { NotificationsService }
   from '../notifications/notifications.service.js';
 
-import { LibrarySettingsService }
-  from '../library-settings/library-settings.service.js';
-
 @Injectable()
 export class ReservationsService {
 
@@ -25,9 +22,6 @@ export class ReservationsService {
 
     private readonly memberQrService:
       MemberQrService,
-
-    private readonly librarySettingsService:
-      LibrarySettingsService,
   ) {}
 
   // =========================
@@ -230,7 +224,7 @@ export class ReservationsService {
         // MASA BERLAKU RESERVATION
         // =========================
         // PENDING tidak memiliki expiry pickup.
-        // Masa berlaku pickup ditentukan ketika
+        // Masa berlaku 24 jam dimulai ketika
         // reservation berubah menjadi READY_FOR_PICKUP.
         const expiresAt = null;
 
@@ -502,18 +496,15 @@ export class ReservationsService {
     // =========================
     // MASA PICKUP
     // =========================
-    // Masa berlaku dimulai
+    // Masa berlaku 24 jam dimulai
     // setelah reservation siap diambil.
-    const reservationExpiryHours =
-      await this.librarySettingsService.getReservationExpiryHours();
-
     const now = new Date();
 
     const expiresAt =
       new Date(now);
 
     expiresAt.setHours(
-      expiresAt.getHours() + reservationExpiryHours,
+      expiresAt.getHours() + 24,
     );
 
     const nowString =
@@ -548,7 +539,7 @@ export class ReservationsService {
       reservation.userId,
       'RESERVATION_APPROVED',
       'Reservasi Disetujui',
-      `Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan. Reservation berlaku selama ${reservationExpiryHours} jam.`, 
+      'Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan. Reservation berlaku selama 24 jam.',
     );
 
     return {
@@ -596,8 +587,6 @@ export class ReservationsService {
         .where({ id })
         .update({
           status: 'REJECTED',
-          updatedAt:
-            new Date().toISOString(),
         });
 
     await this.notificationsService.create(
@@ -607,18 +596,10 @@ export class ReservationsService {
       'Reservasi buku Anda ditolak oleh perpustakaan.',
     );
 
-    const nextReservation =
-      await this.promoteNextReservation(
-        reservation.bookId,
-      );
-
     return {
       message:
-        nextReservation
-          ? 'Reservation ditolak dan reservation berikutnya siap diambil'
-          : 'Reservation ditolak',
+        'Reservation ditolak',
       reservation: updated,
-      nextReservation,
     };
   }
 
@@ -712,10 +693,7 @@ export class ReservationsService {
       );
     }
 
-    let expiredBookId: number | null = null;
-
-    const result =
-      await db.transaction(async (tx) => {
+    return db.transaction(async (tx) => {
       const reservation =
         await tx.orm.public.Reservation.where({ id }).first();
 
@@ -733,17 +711,12 @@ export class ReservationsService {
         reservation.expiresAt &&
         new Date(reservation.expiresAt) <= new Date()
       ) {
-        await tx.orm.public.Reservation.where({
-          id,
-          status: 'READY_FOR_PICKUP',
-        }).update({
+        await tx.orm.public.Reservation.where({ id }).update({
           status: 'EXPIRED',
           updatedAt: new Date().toISOString(),
         });
 
-        expiredBookId = reservation.bookId;
-
-        return null;
+        throw new BadRequestException('Reservation sudah kedaluwarsa');
       }
 
       if (reservation.userId !== userId) {
@@ -771,12 +744,9 @@ export class ReservationsService {
           loan.status === 'OVERDUE',
       );
 
-      const maxActiveLoans =
-        await this.librarySettingsService.getMaxActiveLoans();
-
-      if (activeLoans.length >= maxActiveLoans) {
+      if (activeLoans.length >= 3) {
         throw new BadRequestException(
-          `Maksimal ${maxActiveLoans} buku dapat dipinjam`,
+          'Maksimal 3 buku dapat dipinjam',
         );
       }
 
@@ -821,13 +791,8 @@ export class ReservationsService {
         );
       }
 
-      const loanDurationDays =
-        await this.librarySettingsService.getLoanDurationDays();
-
       const dueDate = new Date();
-      dueDate.setDate(
-        dueDate.getDate() + loanDurationDays,
-      );
+      dueDate.setDate(dueDate.getDate() + 7);
 
       const dueDateString = dueDate.toISOString();
       const now = new Date().toISOString();
@@ -917,24 +882,6 @@ export class ReservationsService {
           : null,
       };
     });
-
-    if (expiredBookId !== null) {
-      await this.promoteNextReservation(
-        expiredBookId,
-      );
-
-      throw new BadRequestException(
-        'Reservation sudah kedaluwarsa',
-      );
-    }
-
-    if (result?.book?.id) {
-      await this.promoteNextReservation(
-        result.book.id,
-      );
-    }
-
-    return result;
   }
 
 
@@ -1083,16 +1030,13 @@ export class ReservationsService {
     }
 
     // =========================
-    // PICKUP WINDOW
+    // 24 HOUR PICKUP WINDOW
     // =========================
-    const reservationExpiryHours =
-      await this.librarySettingsService.getReservationExpiryHours();
-
     const expiresAt =
       new Date(now);
 
     expiresAt.setHours(
-      expiresAt.getHours() + reservationExpiryHours,
+      expiresAt.getHours() + 24,
     );
 
     const expiresAtString =
@@ -1125,7 +1069,7 @@ export class ReservationsService {
       nextReservation.userId,
       'RESERVATION_APPROVED',
       'Reservasi Siap Diambil',
-      `Reservasi Anda sekarang siap diambil. Silakan datang ke perpustakaan dalam waktu ${reservationExpiryHours} jam.`, 
+      'Reservasi Anda sekarang siap diambil. Silakan datang ke perpustakaan dalam waktu 24 jam.',
     );
 
     return updated;

@@ -9,6 +9,8 @@ import { db } from '../prisma/db.js';
 
 import { CreateLoanDto } from './dto/create-loan.dto.js';
 import { MemberQrService } from '../member-qr/member-qr.service.js';
+import { ReservationsService } from '../reservations/reservations.service.js';
+import { LibrarySettingsService } from '../library-settings/library-settings.service.js';
 
 @Injectable()
 
@@ -16,6 +18,8 @@ import { MemberQrService } from '../member-qr/member-qr.service.js';
 
   constructor(
     private readonly memberQrService: MemberQrService,
+    private readonly reservationsService: ReservationsService,
+    private readonly librarySettingsService: LibrarySettingsService,
   ) {}
 
 
@@ -196,14 +200,15 @@ import { MemberQrService } from '../member-qr/member-qr.service.js';
           activeLoans.length +
           pendingLoans.length;
 
-        const MAX_BORROWED_BOOKS = 3;
+        const maxActiveLoans =
+          await this.librarySettingsService.getMaxActiveLoans();
 
         if (
           totalBorrowedBooks >=
-          MAX_BORROWED_BOOKS
+          maxActiveLoans
         ) {
           throw new BadRequestException(
-            `Maksimal ${MAX_BORROWED_BOOKS} buku dapat dipinjam`,
+            `Maksimal ${maxActiveLoans} buku dapat dipinjam`,
           );
         }
 
@@ -359,8 +364,11 @@ import { MemberQrService } from '../member-qr/member-qr.service.js';
           0,
         );
 
+        const finePerDay =
+          await this.librarySettingsService.getFinePerDay();
+
         const fineAmount =
-          overdueDays * 1000;
+          overdueDays * finePerDay;
 
         await db.orm.public.Loan
           .where({
@@ -1024,11 +1032,15 @@ filteredLoans.sort(
           loan.status === 'OVERDUE',
       );
 
+    const maxActiveLoans =
+      await this.librarySettingsService.getMaxActiveLoans();
+
     if (
-      currentLoans.length >= 3
+      currentLoans.length >=
+      maxActiveLoans
     ) {
       throw new BadRequestException(
-        'Anggota sudah mencapai batas maksimal 3 buku yang sedang dipinjam',
+        `Anggota sudah mencapai batas maksimal ${maxActiveLoans} buku yang sedang dipinjam`,
       );
     }
 
@@ -1054,10 +1066,13 @@ filteredLoans.sort(
           a.id - b.id,
       )[0];
 
+    const loanDurationDays =
+      await this.librarySettingsService.getLoanDurationDays();
+
     const dueDate =
       new Date(
         Date.now() +
-        7 * 24 * 60 * 60 * 1000,
+        loanDurationDays * 24 * 60 * 60 * 1000,
       ).toISOString();
 
     const result =
@@ -1627,14 +1642,84 @@ filteredLoans.sort(
         // =========================
         // BATAS RENEWAL
         // =========================
-        const MAX_RENEWAL = 2;
+        const maxRenewals =
+          await this.librarySettingsService.getMaxRenewals();
 
         if (
           lockedLoan.renewalCount >=
-          MAX_RENEWAL
+          maxRenewals
         ) {
           throw new BadRequestException(
-            `Maksimal peminjaman dapat diperpanjang ${MAX_RENEWAL} kali`,
+            `Maksimal peminjaman dapat diperpanjang ${maxRenewals} kali`,
+          );
+        }
+
+        // =========================
+        // CEK RESERVATION CONFLICT
+        // =========================
+        const bookCopy =
+          await tx.orm.public.BookCopy
+            .where({
+              id: lockedLoan.bookCopyId,
+            })
+            .first();
+
+        if (!bookCopy) {
+          throw new NotFoundException(
+            'Copy buku dari peminjaman tidak ditemukan',
+          );
+        }
+
+        const reservations =
+          await tx.orm.public.Reservation
+            .where({
+              bookId: bookCopy.bookId,
+            })
+            .all();
+
+        const now =
+          new Date();
+
+        const conflictingReservation =
+          reservations.find(
+            (reservation) => {
+              if (
+                reservation.userId ===
+                lockedLoan.userId
+              ) {
+                return false;
+              }
+
+              if (
+                reservation.status ===
+                  'PENDING' ||
+                reservation.status ===
+                  'APPROVED'
+              ) {
+                return true;
+              }
+
+              if (
+                reservation.status ===
+                'READY_FOR_PICKUP'
+              ) {
+                return (
+                  reservation.expiresAt !==
+                    null &&
+                  new Date(
+                    reservation.expiresAt,
+                  ).getTime() >
+                    now.getTime()
+                );
+              }
+
+              return false;
+            },
+          );
+
+        if (conflictingReservation) {
+          throw new BadRequestException(
+            'Peminjaman tidak dapat diperpanjang karena buku sudah memiliki reservation aktif dari pengguna lain',
           );
         }
 
@@ -1646,11 +1731,14 @@ filteredLoans.sort(
             lockedLoan.dueDate,
           );
 
+        const renewalDurationDays =
+          await this.librarySettingsService.getRenewalDurationDays();
+
         const newDueDate =
           new Date(currentDueDate);
 
         newDueDate.setDate(
-          newDueDate.getDate() + 7,
+          newDueDate.getDate() + renewalDurationDays,
         );
 
         const updatedAt =
@@ -2053,8 +2141,11 @@ async returnBook(id: number) {
           0,
         );
 
+      const finePerDay =
+        await this.librarySettingsService.getFinePerDay();
+
       const fineAmount =
-        overdueDays * 1000;
+        overdueDays * finePerDay;
 
       // =========================
       // UPDATE LOAN
@@ -2101,11 +2192,33 @@ async returnBook(id: number) {
     });
 
   // =========================
+  // PROMOTE RESERVATION
+  // =========================
+  if (
+    result.updatedBookCopy.status ===
+    'AVAILABLE'
+  ) {
+    const bookCopy =
+      await db.orm.public.BookCopy
+        .where({
+          id: result.updatedBookCopy.id,
+        })
+        .first();
+
+    if (bookCopy) {
+      await this.reservationsService
+        .promoteNextReservation(
+          bookCopy.bookId,
+        );
+    }
+  }
+
+  // =========================
   // RESPONSE
   // =========================
   return {
     message:
-      'Buku berhasil dikembalikan',
+      'Buku berhasil dikembalikan', 
 
     loan: {
       id:
@@ -2613,8 +2726,11 @@ async staffReturnTransaction(
           0,
         );
 
+      const finePerDay =
+        await this.librarySettingsService.getFinePerDay();
+
       const fineAmount =
-        overdueDays * 1000;
+        overdueDays * finePerDay;
 
       const copyStatus =
         condition === 'GOOD'
@@ -2701,6 +2817,15 @@ async staffReturnTransaction(
         },
       };
     });
+
+  if (
+    result.bookCopy.status === 'AVAILABLE'
+  ) {
+    await this.reservationsService
+      .promoteNextReservation(
+        result.book.id,
+      );
+  }
 
   return result;
 }

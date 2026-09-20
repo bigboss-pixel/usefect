@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'c20d5ef3249e7b34cf47775e73b635f8e74029197d3157f78ac6b5dc4e05bd69'>;
+  StorageHashBase<'ab7fde4983b4938dd400b5718c4b86bb874f70489d824f8560be39a38b26abe4'>;
 export type ExecutionHash =
   ExecutionHashBase<'036c8e9f2157d78a913924685c129b1a5e9ad020b1909b60994a9f9436d6ccab'>;
 export type ProfileHash =
@@ -280,6 +280,17 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
+    readonly LibrarySetting: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly maxActiveLoans: CodecTypes['pg/int4@1']['output'];
+      readonly loanDurationDays: CodecTypes['pg/int4@1']['output'];
+      readonly maxRenewals: CodecTypes['pg/int4@1']['output'];
+      readonly renewalDurationDays: CodecTypes['pg/int4@1']['output'];
+      readonly finePerDay: CodecTypes['pg/int4@1']['output'];
+      readonly reservationExpiryHours: CodecTypes['pg/int4@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
     readonly Loan: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
@@ -423,6 +434,17 @@ export type FieldInputTypes = {
       readonly lecturerNumber: CodecTypes['pg/text@1']['input'];
       readonly faculty: CodecTypes['pg/text@1']['input'] | null;
       readonly studyProgram: CodecTypes['pg/text@1']['input'] | null;
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly LibrarySetting: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly maxActiveLoans: CodecTypes['pg/int4@1']['input'];
+      readonly loanDurationDays: CodecTypes['pg/int4@1']['input'];
+      readonly maxRenewals: CodecTypes['pg/int4@1']['input'];
+      readonly renewalDurationDays: CodecTypes['pg/int4@1']['input'];
+      readonly finePerDay: CodecTypes['pg/int4@1']['input'];
+      readonly reservationExpiryHours: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -572,6 +594,17 @@ export type StorageColumnTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
+    readonly librarySetting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly finePerDay: CodecTypes['pg/int4@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly loanDurationDays: CodecTypes['pg/int4@1']['output'];
+      readonly maxActiveLoans: CodecTypes['pg/int4@1']['output'];
+      readonly maxRenewals: CodecTypes['pg/int4@1']['output'];
+      readonly renewalDurationDays: CodecTypes['pg/int4@1']['output'];
+      readonly reservationExpiryHours: CodecTypes['pg/int4@1']['output'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
     readonly loan: {
       readonly bookCopyId: CodecTypes['pg/int4@1']['output'];
       readonly borrowedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -717,6 +750,17 @@ export type StorageColumnInputTypes = {
       readonly studyProgram: CodecTypes['pg/text@1']['input'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly userId: CodecTypes['pg/int4@1']['input'];
+    };
+    readonly librarySetting: {
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly finePerDay: CodecTypes['pg/int4@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly loanDurationDays: CodecTypes['pg/int4@1']['input'];
+      readonly maxActiveLoans: CodecTypes['pg/int4@1']['input'];
+      readonly maxRenewals: CodecTypes['pg/int4@1']['input'];
+      readonly renewalDurationDays: CodecTypes['pg/int4@1']['input'];
+      readonly reservationExpiryHours: CodecTypes['pg/int4@1']['input'];
+      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly loan: {
       readonly bookCopyId: CodecTypes['pg/int4@1']['input'];
@@ -1023,6 +1067,18 @@ export namespace Models {
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
+  export type public_LibrarySetting = {
+    id: CodecTypes['pg/int4@1']['output'];
+    maxActiveLoans: CodecTypes['pg/int4@1']['output'];
+    loanDurationDays: CodecTypes['pg/int4@1']['output'];
+    maxRenewals: CodecTypes['pg/int4@1']['output'];
+    renewalDurationDays: CodecTypes['pg/int4@1']['output'];
+    finePerDay: CodecTypes['pg/int4@1']['output'];
+    reservationExpiryHours: CodecTypes['pg/int4@1']['output'];
+    createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    readonly [RelationKeys]?: never;
+  };
 }
 
 export declare const models: {
@@ -1042,6 +1098,7 @@ export declare const models: {
     Notification: Models.public_Notification;
     PasswordReset: Models.public_PasswordReset;
     MemberQr: Models.public_MemberQr;
+    LibrarySetting: Models.public_LibrarySetting;
   };
 };
 
@@ -1324,6 +1381,89 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly librarySetting: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly maxActiveLoans: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 3>;
+                  };
+                };
+                readonly loanDurationDays: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 7>;
+                  };
+                };
+                readonly maxRenewals: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 2>;
+                  };
+                };
+                readonly renewalDurationDays: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 7>;
+                  };
+                };
+                readonly finePerDay: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 1000>;
+                  };
+                };
+                readonly reservationExpiryHours: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'literal';
+                    readonly value: DefaultLiteralValue<'pg/int4@1', 24>;
+                  };
+                };
+                readonly createdAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+                readonly updatedAt: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [];
             };
             readonly loan: {
               columns: {
@@ -2227,6 +2367,10 @@ type ContractBase = Omit<
       readonly model: 'PasswordReset';
     };
     readonly memberQr: { readonly namespace: 'public' & NamespaceId; readonly model: 'MemberQr' };
+    readonly librarySetting: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'LibrarySetting';
+    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -2517,6 +2661,68 @@ type ContractBase = Omit<
                 readonly lecturerNumber: { readonly column: 'lecturerNumber' };
                 readonly faculty: { readonly column: 'faculty' };
                 readonly studyProgram: { readonly column: 'studyProgram' };
+                readonly createdAt: { readonly column: 'createdAt' };
+                readonly updatedAt: { readonly column: 'updatedAt' };
+              };
+            };
+          };
+          readonly LibrarySetting: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly maxActiveLoans: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly loanDurationDays: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly maxRenewals: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly renewalDurationDays: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly finePerDay: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly reservationExpiryHours: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly updatedAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'librarySetting';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly maxActiveLoans: { readonly column: 'maxActiveLoans' };
+                readonly loanDurationDays: { readonly column: 'loanDurationDays' };
+                readonly maxRenewals: { readonly column: 'maxRenewals' };
+                readonly renewalDurationDays: { readonly column: 'renewalDurationDays' };
+                readonly finePerDay: { readonly column: 'finePerDay' };
+                readonly reservationExpiryHours: { readonly column: 'reservationExpiryHours' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };
