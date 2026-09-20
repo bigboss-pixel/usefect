@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import AdminSidebar from "../components/AdminSidebar";
 import SiteHeader from "../../../components/SiteHeader";
 import {
   Plus,
@@ -455,7 +454,6 @@ export default function AdminManagementPage() {
       <SiteHeader />
 
       <div className="admin-dashboard-shell">
-        <AdminSidebar />
 
         <main className="admin-dashboard-main admin-management-page">
           <section className="admin-management-header">

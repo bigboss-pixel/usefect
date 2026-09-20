@@ -17,7 +17,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { apiFetch } from "../app/lib/api";
-import SiteSidebar from "./SiteSidebar";
 
 export default function SiteHeader() {
   const pathname = usePathname();
@@ -128,31 +127,10 @@ export default function SiteHeader() {
     return pathname === path || pathname.startsWith(`${path}/`);
   };
 
-  const openSidebar = () => {
-    window.dispatchEvent(
-      new Event("usefect:open-sidebar"),
-    );
-  };
-
   return (
-    <>
-      <SiteSidebar
-        profile={profile}
-        onLogout={handleLogout}
-      />
-
-      <header className="top-header">
+    <header className="top-header">
 
       <div className="brand-area">
-
-        <button
-          type="button"
-          className="usefect-sidebar-trigger"
-          aria-label="Buka menu"
-          onClick={openSidebar}
-        >
-          <Menu size={21} strokeWidth={2} />
-        </button>
 
         <a className="usefect-brand" href="/">
 
@@ -405,10 +383,15 @@ export default function SiteHeader() {
 
         </div>
 
+        <button
+          className="mobile-menu"
+          aria-label="Menu"
+        >
+          <Menu size={21} />
+        </button>
 
       </div>
 
     </header>
-    </>
   );
 }

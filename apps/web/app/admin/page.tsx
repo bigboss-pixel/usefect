@@ -1,7 +1,6 @@
 "use client";
 
 import SiteHeader from "../../components/SiteHeader";
-import AdminSidebar from "./components/AdminSidebar";
 import {
   BookOpen,
   ClipboardList,
@@ -79,7 +78,6 @@ export default function AdminDashboardPage() {
       <SiteHeader />
 
       <div className="admin-dashboard-shell">
-        <AdminSidebar />
 
         <main className="admin-dashboard-main">
           <section className="admin-workspace-hero">

@@ -1,0 +1,448 @@
+import * as bcrypt from 'bcrypt';
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+
+import { db } from '../prisma/db.js';
+
+import {
+  UpdateUserDto,
+} from './dto/update-user.dto.js';
+
+import {
+  ChangePasswordDto,
+} from './dto/change-password.dto.js';
+
+import {
+  AssignRoleDto,
+} from './dto/assign-role.dto.js';
+
+@Injectable()
+export class UsersService {
+  async findAll() {
+    const users =
+      await db.orm.public.User.all();
+
+    return users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      fullName: user.fullName,
+      phone: user.phone,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
+  }
+
+  async findOne(id: number) {
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      fullName: user.fullName,
+      phone: user.phone,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  // =========================
+  // GET USER ROLES
+  // =========================
+  async getRoles(userId: number) {
+    const user =
+      await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    const userRoles =
+      await db.orm.public.UserRole
+        .where({
+          userId,
+        })
+        .all();
+
+    const roles = [];
+
+    for (const userRole of userRoles) {
+      const role =
+        await db.orm.public.Role
+          .where({
+            id: userRole.roleId,
+          })
+          .first();
+
+      if (role) {
+        roles.push({
+          id: role.id,
+          name: role.name,
+          description:
+            role.description,
+          createdAt:
+            role.createdAt,
+          updatedAt:
+            role.updatedAt,
+        });
+      }
+    }
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+      },
+
+      roles,
+    };
+  }
+
+  // =========================
+  // ASSIGN ROLE TO USER
+  // =========================
+  async assignRole(
+    userId: number,
+    assignRoleDto: AssignRoleDto,
+  ) {
+    const user =
+      await db.orm.public.User
+        .where({ id: userId })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    const {
+      roleId,
+    } = assignRoleDto;
+
+    const role =
+      await db.orm.public.Role
+        .where({ id: roleId })
+        .first();
+
+    if (!role) {
+      throw new NotFoundException(
+        'Role tidak ditemukan',
+      );
+    }
+
+    // Cek apakah user sudah memiliki role
+    const existingUserRole =
+      await db.orm.public.UserRole
+        .where({
+          userId,
+          roleId,
+        })
+        .first();
+
+    if (existingUserRole) {
+      throw new BadRequestException(
+        'User sudah memiliki role ini',
+      );
+    }
+
+    // Tambahkan role ke user
+    const userRole =
+      await db.orm.public.UserRole
+        .create({
+          userId,
+          roleId,
+        });
+
+    return {
+      message:
+        'Role berhasil diberikan kepada user',
+
+      userRole: {
+        id: userRole.id,
+        userId: userRole.userId,
+        roleId: userRole.roleId,
+        createdAt:
+          userRole.createdAt,
+      },
+
+      role: {
+        id: role.id,
+        name: role.name,
+        description:
+          role.description,
+      },
+    };
+  }
+
+  // =========================
+  // REMOVE ROLE FROM USER
+  // =========================
+      async removeRole(
+  userId: number,
+  roleId: number,
+) {
+  const user =
+    await db.orm.public.User
+      .where({ id: userId })
+      .first();
+
+  if (!user) {
+    throw new NotFoundException(
+      'User tidak ditemukan',
+    );
+  }
+
+  const role =
+    await db.orm.public.Role
+      .where({ id: roleId })
+      .first();
+
+  if (!role) {
+    throw new NotFoundException(
+      'Role tidak ditemukan',
+    );
+  }
+
+  const userRole =
+    await db.orm.public.UserRole
+      .where({
+        userId,
+        roleId,
+      })
+      .first();
+
+  if (!userRole) {
+    throw new NotFoundException(
+      'Role tidak dimiliki oleh user',
+    );
+  }
+
+  // Lindungi SUPER_ADMIN
+  if (role.name === 'SUPER_ADMIN') {
+    throw new BadRequestException(
+      'Role SUPER_ADMIN tidak dapat dicabut melalui endpoint ini',
+    );
+  }
+
+  // Lindungi ADMIN terakhir
+  if (role.name === 'ADMIN') {
+    const adminRole =
+      await db.orm.public.UserRole
+        .where({ roleId })
+        .all();
+
+    if (adminRole.length <= 1) {
+      throw new BadRequestException(
+        'ADMIN terakhir tidak dapat dicabut',
+      );
+    }
+  }
+
+  await db.orm.public.UserRole
+    .where({
+      id: userRole.id,
+    })
+    .delete();
+
+  return {
+    message:
+      'Role berhasil dihapus dari user',
+  };
+}
+
+  // =========================
+  // UPDATE USER
+  // =========================
+  async update(
+    id: number,
+    updateUserDto: UpdateUserDto,
+  ) {
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    const {
+      email,
+      fullName,
+      username,
+      phone,
+    } = updateUserDto;
+
+    // Cek email
+    if (
+      email &&
+      email !== user.email
+    ) {
+      const existingEmail =
+        await db.orm.public.User
+          .where({ email })
+          .first();
+
+      if (existingEmail) {
+        throw new BadRequestException(
+          'Email sudah digunakan',
+        );
+      }
+    }
+
+    // Cek username
+    if (
+      username &&
+      username !== user.username
+    ) {
+      const existingUsername =
+        await db.orm.public.User
+          .where({ username })
+          .first();
+
+      if (existingUsername) {
+        throw new BadRequestException(
+          'Username sudah digunakan',
+        );
+      }
+    }
+
+    const updatedUser =
+      await db.orm.public.User
+        .where({ id })
+        .update({
+          email:
+            email !== undefined
+              ? email
+              : user.email,
+
+          fullName:
+            fullName !== undefined
+              ? fullName
+              : user.fullName,
+
+          username:
+            username !== undefined
+              ? username
+              : user.username,
+
+          phone:
+            phone !== undefined
+              ? phone
+              : user.phone,
+
+          updatedAt:
+            new Date().toISOString(),
+        });
+
+    if (!updatedUser) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    return {
+      message:
+        'User berhasil diperbarui',
+
+      user: {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        username:
+          updatedUser.username,
+        fullName:
+          updatedUser.fullName,
+        phone:
+          updatedUser.phone,
+        isActive:
+          updatedUser.isActive,
+        createdAt:
+          updatedUser.createdAt,
+        updatedAt:
+          updatedUser.updatedAt,
+      },
+    };
+  }
+
+  // =========================
+  // CHANGE PASSWORD
+  // =========================
+  async changePassword(
+    id: number,
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    const {
+      currentPassword,
+      newPassword,
+    } = changePasswordDto;
+
+    const isPasswordValid =
+      await bcrypt.compare(
+        currentPassword,
+        user.passwordHash,
+      );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(
+        'Password lama salah',
+      );
+    }
+
+    const passwordHash =
+      await bcrypt.hash(
+        newPassword,
+        10,
+      );
+
+    await db.orm.public.User
+      .where({ id })
+      .update({
+        passwordHash,
+
+        updatedAt:
+          new Date().toISOString(),
+      });
+
+    return {
+      message:
+        'Password berhasil diubah',
+    };
+  }
+}

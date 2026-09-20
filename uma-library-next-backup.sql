@@ -1,0 +1,1845 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict nlAfsV6tCPq0ulSKO7X6kgcDQmPzzTYB3Mr8lFphdyy7QPtNDjjBOzdtfNkbUIN
+
+-- Dumped from database version 17.11 (Homebrew)
+-- Dumped by pg_dump version 17.11 (Homebrew)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: prisma_contract; Type: SCHEMA; Schema: -; Owner: dedihalawa
+--
+
+CREATE SCHEMA prisma_contract;
+
+
+ALTER SCHEMA prisma_contract OWNER TO dedihalawa;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: contract; Type: TABLE; Schema: prisma_contract; Owner: dedihalawa
+--
+
+CREATE TABLE prisma_contract.contract (
+    core_hash text NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    contract_json jsonb NOT NULL
+);
+
+
+ALTER TABLE prisma_contract.contract OWNER TO dedihalawa;
+
+--
+-- Name: ledger; Type: TABLE; Schema: prisma_contract; Owner: dedihalawa
+--
+
+CREATE TABLE prisma_contract.ledger (
+    id bigint NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    space text NOT NULL,
+    migration_name text NOT NULL,
+    migration_hash text NOT NULL,
+    origin_core_hash text,
+    origin_profile_hash text,
+    destination_core_hash text NOT NULL,
+    destination_profile_hash text,
+    operations jsonb NOT NULL
+);
+
+
+ALTER TABLE prisma_contract.ledger OWNER TO dedihalawa;
+
+--
+-- Name: ledger_id_seq; Type: SEQUENCE; Schema: prisma_contract; Owner: dedihalawa
+--
+
+CREATE SEQUENCE prisma_contract.ledger_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE prisma_contract.ledger_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: ledger_id_seq; Type: SEQUENCE OWNED BY; Schema: prisma_contract; Owner: dedihalawa
+--
+
+ALTER SEQUENCE prisma_contract.ledger_id_seq OWNED BY prisma_contract.ledger.id;
+
+
+--
+-- Name: marker; Type: TABLE; Schema: prisma_contract; Owner: dedihalawa
+--
+
+CREATE TABLE prisma_contract.marker (
+    space text DEFAULT 'app'::text NOT NULL,
+    core_hash text NOT NULL,
+    profile_hash text NOT NULL,
+    contract_json jsonb,
+    canonical_version integer,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    app_tag text,
+    meta jsonb DEFAULT '{}'::jsonb NOT NULL,
+    invariants text[] DEFAULT '{}'::text[] NOT NULL
+);
+
+
+ALTER TABLE prisma_contract.marker OWNER TO dedihalawa;
+
+--
+-- Name: book; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.book (
+    author text NOT NULL,
+    "categoryId" integer NOT NULL,
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    description text,
+    id integer NOT NULL,
+    isbn text NOT NULL,
+    "publicationYear" integer,
+    publisher text,
+    title text NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.book OWNER TO dedihalawa;
+
+--
+-- Name: bookCopy; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."bookCopy" (
+    barcode text NOT NULL,
+    "bookId" integer NOT NULL,
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    id integer NOT NULL,
+    "shelfLocation" text,
+    status text DEFAULT 'AVAILABLE'::text NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "homeLocation" text
+);
+
+
+ALTER TABLE public."bookCopy" OWNER TO dedihalawa;
+
+--
+-- Name: bookCopy_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."bookCopy_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."bookCopy_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: bookCopy_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."bookCopy_id_seq" OWNED BY public."bookCopy".id;
+
+
+--
+-- Name: book_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.book_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.book_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: book_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.book_id_seq OWNED BY public.book.id;
+
+
+--
+-- Name: category; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.category (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    description text,
+    id integer NOT NULL,
+    name text NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.category OWNER TO dedihalawa;
+
+--
+-- Name: category_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.category_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.category_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: category_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.category_id_seq OWNED BY public.category.id;
+
+
+--
+-- Name: lecturerProfile; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."lecturerProfile" (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    faculty text,
+    id integer NOT NULL,
+    "lecturerNumber" text NOT NULL,
+    "studyProgram" text,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "userId" integer NOT NULL
+);
+
+
+ALTER TABLE public."lecturerProfile" OWNER TO dedihalawa;
+
+--
+-- Name: lecturerProfile_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."lecturerProfile_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."lecturerProfile_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: lecturerProfile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."lecturerProfile_id_seq" OWNED BY public."lecturerProfile".id;
+
+
+--
+-- Name: loan; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.loan (
+    "bookCopyId" integer NOT NULL,
+    "borrowedAt" timestamp with time zone DEFAULT now() NOT NULL,
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    "dueDate" timestamp with time zone NOT NULL,
+    id integer NOT NULL,
+    "returnedAt" timestamp with time zone,
+    status text DEFAULT 'PENDING'::text NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "userId" integer NOT NULL,
+    "fineAmount" integer DEFAULT 0 NOT NULL,
+    "renewalCount" integer DEFAULT 0 NOT NULL,
+    "reservationId" integer,
+    "returnRequestedAt" timestamp with time zone,
+    "returnRequestStatus" text DEFAULT 'NONE'::text NOT NULL
+);
+
+
+ALTER TABLE public.loan OWNER TO dedihalawa;
+
+--
+-- Name: loan_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.loan_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.loan_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: loan_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.loan_id_seq OWNED BY public.loan.id;
+
+
+--
+-- Name: memberQr; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."memberQr" (
+    id integer NOT NULL,
+    "userId" integer NOT NULL,
+    "tokenHash" text NOT NULL,
+    "revokedAt" timestamp with time zone,
+    "createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "tokenEncrypted" text
+);
+
+
+ALTER TABLE public."memberQr" OWNER TO dedihalawa;
+
+--
+-- Name: memberQr_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."memberQr_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."memberQr_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: memberQr_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."memberQr_id_seq" OWNED BY public."memberQr".id;
+
+
+--
+-- Name: notification; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.notification (
+    id integer NOT NULL,
+    "userId" integer NOT NULL,
+    type text NOT NULL,
+    title text NOT NULL,
+    message text NOT NULL,
+    "isRead" boolean DEFAULT false NOT NULL,
+    "createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public.notification OWNER TO dedihalawa;
+
+--
+-- Name: notification_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.notification_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.notification_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.notification_id_seq OWNED BY public.notification.id;
+
+
+--
+-- Name: passwordReset; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."passwordReset" (
+    id integer NOT NULL,
+    "userId" integer NOT NULL,
+    "otpHash" text NOT NULL,
+    "expiresAt" timestamp with time zone NOT NULL,
+    attempts integer DEFAULT 0 NOT NULL,
+    "usedAt" timestamp with time zone,
+    "createdAt" timestamp with time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public."passwordReset" OWNER TO dedihalawa;
+
+--
+-- Name: passwordReset_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."passwordReset_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."passwordReset_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: passwordReset_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."passwordReset_id_seq" OWNED BY public."passwordReset".id;
+
+
+--
+-- Name: permission; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.permission (
+    code text NOT NULL,
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    description text,
+    id integer NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.permission OWNER TO dedihalawa;
+
+--
+-- Name: permission_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.permission_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.permission_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: permission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.permission_id_seq OWNED BY public.permission.id;
+
+
+--
+-- Name: reservation; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.reservation (
+    id integer NOT NULL,
+    "userId" integer NOT NULL,
+    "bookId" integer NOT NULL,
+    status text DEFAULT 'PENDING'::text NOT NULL,
+    "expiresAt" timestamp with time zone,
+    "approvedAt" timestamp with time zone,
+    "pickedUpAt" timestamp with time zone,
+    "cancelledAt" timestamp with time zone,
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.reservation OWNER TO dedihalawa;
+
+--
+-- Name: reservation_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.reservation_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.reservation_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: reservation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.reservation_id_seq OWNED BY public.reservation.id;
+
+
+--
+-- Name: role; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public.role (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    description text,
+    id integer NOT NULL,
+    name text NOT NULL,
+    "updatedAt" timestamp with time zone NOT NULL
+);
+
+
+ALTER TABLE public.role OWNER TO dedihalawa;
+
+--
+-- Name: rolePermission; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."rolePermission" (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    id integer NOT NULL,
+    "permissionId" integer NOT NULL,
+    "roleId" integer NOT NULL
+);
+
+
+ALTER TABLE public."rolePermission" OWNER TO dedihalawa;
+
+--
+-- Name: rolePermission_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."rolePermission_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."rolePermission_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: rolePermission_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."rolePermission_id_seq" OWNED BY public."rolePermission".id;
+
+
+--
+-- Name: role_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.role_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.role_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: role_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.role_id_seq OWNED BY public.role.id;
+
+
+--
+-- Name: studentProfile; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."studentProfile" (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    "enrollmentYear" integer,
+    faculty text,
+    id integer NOT NULL,
+    npm text NOT NULL,
+    "studyProgram" text,
+    "updatedAt" timestamp with time zone NOT NULL,
+    "userId" integer NOT NULL
+);
+
+
+ALTER TABLE public."studentProfile" OWNER TO dedihalawa;
+
+--
+-- Name: studentProfile_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."studentProfile_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."studentProfile_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: studentProfile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."studentProfile_id_seq" OWNED BY public."studentProfile".id;
+
+
+--
+-- Name: user; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."user" (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    email text NOT NULL,
+    "fullName" text NOT NULL,
+    id integer NOT NULL,
+    "isActive" boolean DEFAULT true NOT NULL,
+    "passwordHash" text NOT NULL,
+    phone text,
+    "updatedAt" timestamp with time zone NOT NULL,
+    username text,
+    "refreshTokenHash" text
+);
+
+
+ALTER TABLE public."user" OWNER TO dedihalawa;
+
+--
+-- Name: userRole; Type: TABLE; Schema: public; Owner: dedihalawa
+--
+
+CREATE TABLE public."userRole" (
+    "createdAt" timestamp with time zone DEFAULT now() NOT NULL,
+    id integer NOT NULL,
+    "roleId" integer NOT NULL,
+    "userId" integer NOT NULL
+);
+
+
+ALTER TABLE public."userRole" OWNER TO dedihalawa;
+
+--
+-- Name: userRole_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public."userRole_id_seq"
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public."userRole_id_seq" OWNER TO dedihalawa;
+
+--
+-- Name: userRole_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public."userRole_id_seq" OWNED BY public."userRole".id;
+
+
+--
+-- Name: user_id_seq; Type: SEQUENCE; Schema: public; Owner: dedihalawa
+--
+
+CREATE SEQUENCE public.user_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.user_id_seq OWNER TO dedihalawa;
+
+--
+-- Name: user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: dedihalawa
+--
+
+ALTER SEQUENCE public.user_id_seq OWNED BY public."user".id;
+
+
+--
+-- Name: ledger id; Type: DEFAULT; Schema: prisma_contract; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY prisma_contract.ledger ALTER COLUMN id SET DEFAULT nextval('prisma_contract.ledger_id_seq'::regclass);
+
+
+--
+-- Name: book id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.book ALTER COLUMN id SET DEFAULT nextval('public.book_id_seq'::regclass);
+
+
+--
+-- Name: bookCopy id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."bookCopy" ALTER COLUMN id SET DEFAULT nextval('public."bookCopy_id_seq"'::regclass);
+
+
+--
+-- Name: category id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.category ALTER COLUMN id SET DEFAULT nextval('public.category_id_seq'::regclass);
+
+
+--
+-- Name: lecturerProfile id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."lecturerProfile" ALTER COLUMN id SET DEFAULT nextval('public."lecturerProfile_id_seq"'::regclass);
+
+
+--
+-- Name: loan id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.loan ALTER COLUMN id SET DEFAULT nextval('public.loan_id_seq'::regclass);
+
+
+--
+-- Name: memberQr id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."memberQr" ALTER COLUMN id SET DEFAULT nextval('public."memberQr_id_seq"'::regclass);
+
+
+--
+-- Name: notification id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.notification ALTER COLUMN id SET DEFAULT nextval('public.notification_id_seq'::regclass);
+
+
+--
+-- Name: passwordReset id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."passwordReset" ALTER COLUMN id SET DEFAULT nextval('public."passwordReset_id_seq"'::regclass);
+
+
+--
+-- Name: permission id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.permission ALTER COLUMN id SET DEFAULT nextval('public.permission_id_seq'::regclass);
+
+
+--
+-- Name: reservation id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.reservation ALTER COLUMN id SET DEFAULT nextval('public.reservation_id_seq'::regclass);
+
+
+--
+-- Name: role id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.role ALTER COLUMN id SET DEFAULT nextval('public.role_id_seq'::regclass);
+
+
+--
+-- Name: rolePermission id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."rolePermission" ALTER COLUMN id SET DEFAULT nextval('public."rolePermission_id_seq"'::regclass);
+
+
+--
+-- Name: studentProfile id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."studentProfile" ALTER COLUMN id SET DEFAULT nextval('public."studentProfile_id_seq"'::regclass);
+
+
+--
+-- Name: user id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."user" ALTER COLUMN id SET DEFAULT nextval('public.user_id_seq'::regclass);
+
+
+--
+-- Name: userRole id; Type: DEFAULT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."userRole" ALTER COLUMN id SET DEFAULT nextval('public."userRole_id_seq"'::regclass);
+
+
+--
+-- Data for Name: contract; Type: TABLE DATA; Schema: prisma_contract; Owner: dedihalawa
+--
+
+COPY prisma_contract.contract (core_hash, created_at, contract_json) FROM stdin;
+8309a33b3ee5d5446d5d4be686acc960ebcdc9e2fb594c01fb5a455daf6bf8d4	2026-09-13 05:28:04.188646+07	{"meta": {}, "roots": {"role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "nim": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "nim": {"column": "nim"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "entries": {"table": {"role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "nim": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["nim"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "8309a33b3ee5d5446d5d4be686acc960ebcdc9e2fb594c01fb5a455daf6bf8d4"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "c2360f24466fb6cbc1d4a542ee19708ab30a845f4272f70e72e8163fcbd8faa5"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql"}
+ecd49632b438334ad484f091a38019463e962a8fb9a47a451c7d9be7c56e8cc3	2026-09-13 14:35:01.065709+07	{"meta": {}, "roots": {"book": {"model": "Book", "namespace": "public"}, "role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "bookCopy": {"model": "BookCopy", "namespace": "public"}, "category": {"model": "Category", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Book": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "isbn": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "title": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "author": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "publisher": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "categoryId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "publicationYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "book", "fields": {"id": {"column": "id"}, "isbn": {"column": "isbn"}, "title": {"column": "title"}, "author": {"column": "author"}, "createdAt": {"column": "createdAt"}, "publisher": {"column": "publisher"}, "updatedAt": {"column": "updatedAt"}, "categoryId": {"column": "categoryId"}, "description": {"column": "description"}, "publicationYear": {"column": "publicationYear"}}, "namespaceId": "public"}, "relations": {"copies": {"on": {"localFields": ["id"], "targetFields": ["bookId"]}, "to": {"model": "BookCopy", "namespace": "public"}, "cardinality": "1:N"}, "category": {"on": {"localFields": ["categoryId"], "targetFields": ["id"]}, "to": {"model": "Category", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "refreshTokenHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}, "refreshTokenHash": {"column": "refreshTokenHash"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "BookCopy": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "bookId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "barcode": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "shelfLocation": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "bookCopy", "fields": {"id": {"column": "id"}, "bookId": {"column": "bookId"}, "status": {"column": "status"}, "barcode": {"column": "barcode"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "shelfLocation": {"column": "shelfLocation"}}, "namespaceId": "public"}, "relations": {"book": {"on": {"localFields": ["bookId"], "targetFields": ["id"]}, "to": {"model": "Book", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Category": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "category", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"books": {"on": {"localFields": ["id"], "targetFields": ["categoryId"]}, "to": {"model": "Book", "namespace": "public"}, "cardinality": "1:N"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "npm": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "npm": {"column": "npm"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "entries": {"table": {"book": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "isbn": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "title": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "author": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "publisher": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "categoryId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "publicationYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [{"name": "book_categoryId_idx_15c304f2", "prefix": "book_categoryId_idx", "unique": false, "columns": ["categoryId"]}], "uniques": [{"columns": ["isbn"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["categoryId"], "tableName": "book", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "category", "namespaceId": "public"}}]}, "role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "refreshTokenHash": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "bookCopy": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "bookId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "AVAILABLE"}, "nullable": false, "nativeType": "text"}, "barcode": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "shelfLocation": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [{"name": "bookCopy_bookId_idx_3eec38a3", "prefix": "bookCopy_bookId_idx", "unique": false, "columns": ["bookId"]}], "uniques": [{"columns": ["barcode"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["bookId"], "tableName": "bookCopy", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "book", "namespaceId": "public"}}]}, "category": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "npm": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["npm"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "ecd49632b438334ad484f091a38019463e962a8fb9a47a451c7d9be7c56e8cc3"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "book", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "bookCopy", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "category", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "385dfd60eb183ee913d2dc5d79b7a99a153c9467c86aa5f465bfd59a80ed1fd3"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql"}
+b4bc47c43276c7a23d7d43dbc6ee48be44cda87f20ffaa75a9bcef4cb16f0f9d	2026-09-13 17:41:30.286721+07	{"meta": {}, "roots": {"book": {"model": "Book", "namespace": "public"}, "loan": {"model": "Loan", "namespace": "public"}, "role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "bookCopy": {"model": "BookCopy", "namespace": "public"}, "category": {"model": "Category", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Book": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "isbn": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "title": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "author": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "publisher": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "categoryId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "publicationYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "book", "fields": {"id": {"column": "id"}, "isbn": {"column": "isbn"}, "title": {"column": "title"}, "author": {"column": "author"}, "createdAt": {"column": "createdAt"}, "publisher": {"column": "publisher"}, "updatedAt": {"column": "updatedAt"}, "categoryId": {"column": "categoryId"}, "description": {"column": "description"}, "publicationYear": {"column": "publicationYear"}}, "namespaceId": "public"}, "relations": {"copies": {"on": {"localFields": ["id"], "targetFields": ["bookId"]}, "to": {"model": "BookCopy", "namespace": "public"}, "cardinality": "1:N"}, "category": {"on": {"localFields": ["categoryId"], "targetFields": ["id"]}, "to": {"model": "Category", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Loan": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "dueDate": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "bookCopyId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "borrowedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "returnedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": true}}, "storage": {"table": "loan", "fields": {"id": {"column": "id"}, "status": {"column": "status"}, "userId": {"column": "userId"}, "dueDate": {"column": "dueDate"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "bookCopyId": {"column": "bookCopyId"}, "borrowedAt": {"column": "borrowedAt"}, "returnedAt": {"column": "returnedAt"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "bookCopy": {"on": {"localFields": ["bookCopyId"], "targetFields": ["id"]}, "to": {"model": "BookCopy", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "refreshTokenHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}, "refreshTokenHash": {"column": "refreshTokenHash"}}, "namespaceId": "public"}, "relations": {"loans": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}, "roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "BookCopy": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "bookId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "barcode": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "shelfLocation": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "bookCopy", "fields": {"id": {"column": "id"}, "bookId": {"column": "bookId"}, "status": {"column": "status"}, "barcode": {"column": "barcode"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "shelfLocation": {"column": "shelfLocation"}}, "namespaceId": "public"}, "relations": {"book": {"on": {"localFields": ["bookId"], "targetFields": ["id"]}, "to": {"model": "Book", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "loans": {"on": {"localFields": ["id"], "targetFields": ["bookCopyId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}}}, "Category": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "category", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"books": {"on": {"localFields": ["id"], "targetFields": ["categoryId"]}, "to": {"model": "Book", "namespace": "public"}, "cardinality": "1:N"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "npm": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "npm": {"column": "npm"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "kind": "postgres-schema", "entries": {"table": {"book": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "isbn": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "title": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "author": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "publisher": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "categoryId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "publicationYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [{"name": "book_categoryId_idx_15c304f2", "prefix": "book_categoryId_idx", "unique": false, "columns": ["categoryId"]}], "uniques": [{"columns": ["isbn"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["categoryId"], "tableName": "book", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "category", "namespaceId": "public"}}]}, "loan": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "ACTIVE"}, "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "dueDate": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "bookCopyId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "borrowedAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "returnedAt": {"codecId": "pg/timestamptz-string@1", "nullable": true, "nativeType": "timestamptz"}}, "indexes": [{"name": "loan_bookCopyId_idx_ab16ce78", "prefix": "loan_bookCopyId_idx", "unique": false, "columns": ["bookCopyId"]}, {"name": "loan_status_idx_e98638ab", "prefix": "loan_status_idx", "unique": false, "columns": ["status"]}, {"name": "loan_userId_idx_a489d58a", "prefix": "loan_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["bookCopyId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "bookCopy", "namespaceId": "public"}}]}, "role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "refreshTokenHash": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "bookCopy": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "bookId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "AVAILABLE"}, "nullable": false, "nativeType": "text"}, "barcode": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "shelfLocation": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [{"name": "bookCopy_bookId_idx_3eec38a3", "prefix": "bookCopy_bookId_idx", "unique": false, "columns": ["bookId"]}], "uniques": [{"columns": ["barcode"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["bookId"], "tableName": "bookCopy", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "book", "namespaceId": "public"}}]}, "category": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "npm": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["npm"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "b4bc47c43276c7a23d7d43dbc6ee48be44cda87f20ffaa75a9bcef4cb16f0f9d"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "book", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "bookCopy", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "category", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "loan", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "ae487a3b611fe5e8500cc7aebb6fe6c18ca2b5f8a23467b4dc4cb01aa8ca6bc2"}, "_generated": {"message": "This file is automatically generated by \\"prisma contract emit\\".", "warning": "⚠️  GENERATED FILE - DO NOT EDIT", "regenerate": "To regenerate, run: prisma contract emit"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql", "schemaVersion": "1"}
+38e6109e21b18853c7c7e42e7082f545216db56978a0eb2f5011788abfae9e78	2026-09-13 19:36:12.004577+07	{"meta": {}, "roots": {"book": {"model": "Book", "namespace": "public"}, "loan": {"model": "Loan", "namespace": "public"}, "role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "bookCopy": {"model": "BookCopy", "namespace": "public"}, "category": {"model": "Category", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Book": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "isbn": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "title": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "author": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "publisher": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "categoryId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "publicationYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "book", "fields": {"id": {"column": "id"}, "isbn": {"column": "isbn"}, "title": {"column": "title"}, "author": {"column": "author"}, "createdAt": {"column": "createdAt"}, "publisher": {"column": "publisher"}, "updatedAt": {"column": "updatedAt"}, "categoryId": {"column": "categoryId"}, "description": {"column": "description"}, "publicationYear": {"column": "publicationYear"}}, "namespaceId": "public"}, "relations": {"copies": {"on": {"localFields": ["id"], "targetFields": ["bookId"]}, "to": {"model": "BookCopy", "namespace": "public"}, "cardinality": "1:N"}, "category": {"on": {"localFields": ["categoryId"], "targetFields": ["id"]}, "to": {"model": "Category", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Loan": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "dueDate": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "bookCopyId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "borrowedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "returnedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": true}}, "storage": {"table": "loan", "fields": {"id": {"column": "id"}, "status": {"column": "status"}, "userId": {"column": "userId"}, "dueDate": {"column": "dueDate"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "bookCopyId": {"column": "bookCopyId"}, "borrowedAt": {"column": "borrowedAt"}, "returnedAt": {"column": "returnedAt"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "bookCopy": {"on": {"localFields": ["bookCopyId"], "targetFields": ["id"]}, "to": {"model": "BookCopy", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "refreshTokenHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}, "refreshTokenHash": {"column": "refreshTokenHash"}}, "namespaceId": "public"}, "relations": {"loans": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}, "roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "BookCopy": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "bookId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "barcode": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "shelfLocation": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "bookCopy", "fields": {"id": {"column": "id"}, "bookId": {"column": "bookId"}, "status": {"column": "status"}, "barcode": {"column": "barcode"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "shelfLocation": {"column": "shelfLocation"}}, "namespaceId": "public"}, "relations": {"book": {"on": {"localFields": ["bookId"], "targetFields": ["id"]}, "to": {"model": "Book", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "loans": {"on": {"localFields": ["id"], "targetFields": ["bookCopyId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}}}, "Category": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "category", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"books": {"on": {"localFields": ["id"], "targetFields": ["categoryId"]}, "to": {"model": "Book", "namespace": "public"}, "cardinality": "1:N"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "npm": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "npm": {"column": "npm"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "kind": "postgres-schema", "entries": {"table": {"book": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "isbn": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "title": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "author": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "publisher": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "categoryId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "publicationYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [{"name": "book_categoryId_idx_15c304f2", "prefix": "book_categoryId_idx", "unique": false, "columns": ["categoryId"]}], "uniques": [{"columns": ["isbn"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["categoryId"], "tableName": "book", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "category", "namespaceId": "public"}}]}, "loan": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "PENDING"}, "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "dueDate": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "bookCopyId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "borrowedAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "returnedAt": {"codecId": "pg/timestamptz-string@1", "nullable": true, "nativeType": "timestamptz"}}, "indexes": [{"name": "loan_bookCopyId_idx_ab16ce78", "prefix": "loan_bookCopyId_idx", "unique": false, "columns": ["bookCopyId"]}, {"name": "loan_status_idx_e98638ab", "prefix": "loan_status_idx", "unique": false, "columns": ["status"]}, {"name": "loan_userId_idx_a489d58a", "prefix": "loan_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["bookCopyId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "bookCopy", "namespaceId": "public"}}]}, "role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "refreshTokenHash": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "bookCopy": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "bookId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "AVAILABLE"}, "nullable": false, "nativeType": "text"}, "barcode": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "shelfLocation": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [{"name": "bookCopy_bookId_idx_3eec38a3", "prefix": "bookCopy_bookId_idx", "unique": false, "columns": ["bookId"]}], "uniques": [{"columns": ["barcode"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["bookId"], "tableName": "bookCopy", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "book", "namespaceId": "public"}}]}, "category": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "npm": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["npm"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "38e6109e21b18853c7c7e42e7082f545216db56978a0eb2f5011788abfae9e78"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "book", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "bookCopy", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "category", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "loan", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "ae487a3b611fe5e8500cc7aebb6fe6c18ca2b5f8a23467b4dc4cb01aa8ca6bc2"}, "_generated": {"message": "This file is automatically generated by \\"prisma contract emit\\".", "warning": "⚠️  GENERATED FILE - DO NOT EDIT", "regenerate": "To regenerate, run: prisma contract emit"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql", "schemaVersion": "1"}
+8d55cf1b607fc9d39b2b77e209ff5a16c956163ace2facf411a088908c17f500	2026-09-15 14:44:57.029989+07	{"meta": {}, "roots": {"book": {"model": "Book", "namespace": "public"}, "loan": {"model": "Loan", "namespace": "public"}, "role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "bookCopy": {"model": "BookCopy", "namespace": "public"}, "category": {"model": "Category", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Book": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "isbn": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "title": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "author": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "publisher": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "categoryId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "publicationYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "book", "fields": {"id": {"column": "id"}, "isbn": {"column": "isbn"}, "title": {"column": "title"}, "author": {"column": "author"}, "createdAt": {"column": "createdAt"}, "publisher": {"column": "publisher"}, "updatedAt": {"column": "updatedAt"}, "categoryId": {"column": "categoryId"}, "description": {"column": "description"}, "publicationYear": {"column": "publicationYear"}}, "namespaceId": "public"}, "relations": {"copies": {"on": {"localFields": ["id"], "targetFields": ["bookId"]}, "to": {"model": "BookCopy", "namespace": "public"}, "cardinality": "1:N"}, "category": {"on": {"localFields": ["categoryId"], "targetFields": ["id"]}, "to": {"model": "Category", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Loan": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "dueDate": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "bookCopyId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "borrowedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "fineAmount": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "returnedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": true}}, "storage": {"table": "loan", "fields": {"id": {"column": "id"}, "status": {"column": "status"}, "userId": {"column": "userId"}, "dueDate": {"column": "dueDate"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "bookCopyId": {"column": "bookCopyId"}, "borrowedAt": {"column": "borrowedAt"}, "fineAmount": {"column": "fineAmount"}, "returnedAt": {"column": "returnedAt"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "bookCopy": {"on": {"localFields": ["bookCopyId"], "targetFields": ["id"]}, "to": {"model": "BookCopy", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "refreshTokenHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}, "refreshTokenHash": {"column": "refreshTokenHash"}}, "namespaceId": "public"}, "relations": {"loans": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}, "roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "BookCopy": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "bookId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "barcode": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "shelfLocation": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "bookCopy", "fields": {"id": {"column": "id"}, "bookId": {"column": "bookId"}, "status": {"column": "status"}, "barcode": {"column": "barcode"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "shelfLocation": {"column": "shelfLocation"}}, "namespaceId": "public"}, "relations": {"book": {"on": {"localFields": ["bookId"], "targetFields": ["id"]}, "to": {"model": "Book", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "loans": {"on": {"localFields": ["id"], "targetFields": ["bookCopyId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}}}, "Category": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "category", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"books": {"on": {"localFields": ["id"], "targetFields": ["categoryId"]}, "to": {"model": "Book", "namespace": "public"}, "cardinality": "1:N"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "npm": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "npm": {"column": "npm"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "kind": "postgres-schema", "entries": {"table": {"book": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "isbn": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "title": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "author": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "publisher": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "categoryId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "publicationYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [{"name": "book_categoryId_idx_15c304f2", "prefix": "book_categoryId_idx", "unique": false, "columns": ["categoryId"]}], "uniques": [{"columns": ["isbn"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["categoryId"], "tableName": "book", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "category", "namespaceId": "public"}}]}, "loan": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "PENDING"}, "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "dueDate": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "bookCopyId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "borrowedAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "fineAmount": {"codecId": "pg/int4@1", "default": {"kind": "literal", "value": 0}, "nullable": false, "nativeType": "int4"}, "returnedAt": {"codecId": "pg/timestamptz-string@1", "nullable": true, "nativeType": "timestamptz"}}, "indexes": [{"name": "loan_bookCopyId_idx_ab16ce78", "prefix": "loan_bookCopyId_idx", "unique": false, "columns": ["bookCopyId"]}, {"name": "loan_status_idx_e98638ab", "prefix": "loan_status_idx", "unique": false, "columns": ["status"]}, {"name": "loan_userId_idx_a489d58a", "prefix": "loan_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["bookCopyId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "bookCopy", "namespaceId": "public"}}]}, "role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "refreshTokenHash": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "bookCopy": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "bookId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "AVAILABLE"}, "nullable": false, "nativeType": "text"}, "barcode": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "shelfLocation": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [{"name": "bookCopy_bookId_idx_3eec38a3", "prefix": "bookCopy_bookId_idx", "unique": false, "columns": ["bookId"]}], "uniques": [{"columns": ["barcode"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["bookId"], "tableName": "bookCopy", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "book", "namespaceId": "public"}}]}, "category": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "npm": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["npm"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "8d55cf1b607fc9d39b2b77e209ff5a16c956163ace2facf411a088908c17f500"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "book", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "bookCopy", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "category", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "loan", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "ae487a3b611fe5e8500cc7aebb6fe6c18ca2b5f8a23467b4dc4cb01aa8ca6bc2"}, "_generated": {"message": "This file is automatically generated by \\"prisma contract emit\\".", "warning": "⚠️  GENERATED FILE - DO NOT EDIT", "regenerate": "To regenerate, run: prisma contract emit"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql", "schemaVersion": "1"}
+5de1855093b2eb511301cf26cd48c530b711cb098ff9e53ebde1ea1291a425d1	2026-09-16 23:37:47.651777+07	{"meta": {}, "roots": {"book": {"model": "Book", "namespace": "public"}, "loan": {"model": "Loan", "namespace": "public"}, "role": {"model": "Role", "namespace": "public"}, "user": {"model": "User", "namespace": "public"}, "bookCopy": {"model": "BookCopy", "namespace": "public"}, "category": {"model": "Category", "namespace": "public"}, "userRole": {"model": "UserRole", "namespace": "public"}, "permission": {"model": "Permission", "namespace": "public"}, "rolePermission": {"model": "RolePermission", "namespace": "public"}, "studentProfile": {"model": "StudentProfile", "namespace": "public"}, "lecturerProfile": {"model": "LecturerProfile", "namespace": "public"}}, "domain": {"namespaces": {"public": {"models": {"Book": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "isbn": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "title": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "author": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "publisher": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "categoryId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "publicationYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "book", "fields": {"id": {"column": "id"}, "isbn": {"column": "isbn"}, "title": {"column": "title"}, "author": {"column": "author"}, "createdAt": {"column": "createdAt"}, "publisher": {"column": "publisher"}, "updatedAt": {"column": "updatedAt"}, "categoryId": {"column": "categoryId"}, "description": {"column": "description"}, "publicationYear": {"column": "publicationYear"}}, "namespaceId": "public"}, "relations": {"copies": {"on": {"localFields": ["id"], "targetFields": ["bookId"]}, "to": {"model": "BookCopy", "namespace": "public"}, "cardinality": "1:N"}, "category": {"on": {"localFields": ["categoryId"], "targetFields": ["id"]}, "to": {"model": "Category", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Loan": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "dueDate": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "bookCopyId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "borrowedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "fineAmount": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "returnedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": true}, "renewalCount": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "loan", "fields": {"id": {"column": "id"}, "status": {"column": "status"}, "userId": {"column": "userId"}, "dueDate": {"column": "dueDate"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "bookCopyId": {"column": "bookCopyId"}, "borrowedAt": {"column": "borrowedAt"}, "fineAmount": {"column": "fineAmount"}, "returnedAt": {"column": "returnedAt"}, "renewalCount": {"column": "renewalCount"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "bookCopy": {"on": {"localFields": ["bookCopyId"], "targetFields": ["id"]}, "to": {"model": "BookCopy", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Role": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "role", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"users": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "permissions": {"on": {"localFields": ["id"], "targetFields": ["roleId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "User": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "email": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "phone": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "fullName": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "isActive": {"type": {"kind": "scalar", "codecId": "pg/bool@1"}, "nullable": false}, "username": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "passwordHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "refreshTokenHash": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "user", "fields": {"id": {"column": "id"}, "email": {"column": "email"}, "phone": {"column": "phone"}, "fullName": {"column": "fullName"}, "isActive": {"column": "isActive"}, "username": {"column": "username"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "passwordHash": {"column": "passwordHash"}, "refreshTokenHash": {"column": "refreshTokenHash"}}, "namespaceId": "public"}, "relations": {"loans": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}, "roles": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "UserRole", "namespace": "public"}, "cardinality": "1:N"}, "studentProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "StudentProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}, "lecturerProfile": {"on": {"localFields": ["id"], "targetFields": ["userId"]}, "to": {"model": "LecturerProfile", "namespace": "public"}, "nullable": true, "cardinality": "1:1"}}}, "BookCopy": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "bookId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "status": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "barcode": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "shelfLocation": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "bookCopy", "fields": {"id": {"column": "id"}, "bookId": {"column": "bookId"}, "status": {"column": "status"}, "barcode": {"column": "barcode"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "shelfLocation": {"column": "shelfLocation"}}, "namespaceId": "public"}, "relations": {"book": {"on": {"localFields": ["bookId"], "targetFields": ["id"]}, "to": {"model": "Book", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "loans": {"on": {"localFields": ["id"], "targetFields": ["bookCopyId"]}, "to": {"model": "Loan", "namespace": "public"}, "cardinality": "1:N"}}}, "Category": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "name": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "category", "fields": {"id": {"column": "id"}, "name": {"column": "name"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"books": {"on": {"localFields": ["id"], "targetFields": ["categoryId"]}, "to": {"model": "Book", "namespace": "public"}, "cardinality": "1:N"}}}, "UserRole": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}}, "storage": {"table": "userRole", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "userId": {"column": "userId"}, "createdAt": {"column": "createdAt"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "Permission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "code": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "description": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}}, "storage": {"table": "permission", "fields": {"id": {"column": "id"}, "code": {"column": "code"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "description": {"column": "description"}}, "namespaceId": "public"}, "relations": {"roles": {"on": {"localFields": ["id"], "targetFields": ["permissionId"]}, "to": {"model": "RolePermission", "namespace": "public"}, "cardinality": "1:N"}}}, "RolePermission": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "roleId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "permissionId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}}, "storage": {"table": "rolePermission", "fields": {"id": {"column": "id"}, "roleId": {"column": "roleId"}, "createdAt": {"column": "createdAt"}, "permissionId": {"column": "permissionId"}}, "namespaceId": "public"}, "relations": {"role": {"on": {"localFields": ["roleId"], "targetFields": ["id"]}, "to": {"model": "Role", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}, "permission": {"on": {"localFields": ["permissionId"], "targetFields": ["id"]}, "to": {"model": "Permission", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "StudentProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "npm": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "enrollmentYear": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": true}}, "storage": {"table": "studentProfile", "fields": {"id": {"column": "id"}, "npm": {"column": "npm"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "enrollmentYear": {"column": "enrollmentYear"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}, "LecturerProfile": {"fields": {"id": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "userId": {"type": {"kind": "scalar", "codecId": "pg/int4@1"}, "nullable": false}, "faculty": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "createdAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "updatedAt": {"type": {"kind": "scalar", "codecId": "pg/timestamptz-string@1"}, "nullable": false}, "studyProgram": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": true}, "lecturerNumber": {"type": {"kind": "scalar", "codecId": "pg/text@1"}, "nullable": false}}, "storage": {"table": "lecturerProfile", "fields": {"id": {"column": "id"}, "userId": {"column": "userId"}, "faculty": {"column": "faculty"}, "createdAt": {"column": "createdAt"}, "updatedAt": {"column": "updatedAt"}, "studyProgram": {"column": "studyProgram"}, "lecturerNumber": {"column": "lecturerNumber"}}, "namespaceId": "public"}, "relations": {"user": {"on": {"localFields": ["userId"], "targetFields": ["id"]}, "to": {"model": "User", "namespace": "public"}, "nullable": false, "cardinality": "N:1"}}}}}}}, "target": "postgres", "storage": {"namespaces": {"public": {"id": "public", "kind": "postgres-schema", "entries": {"table": {"book": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "isbn": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "title": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "author": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "publisher": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "categoryId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "publicationYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [{"name": "book_categoryId_idx_15c304f2", "prefix": "book_categoryId_idx", "unique": false, "columns": ["categoryId"]}], "uniques": [{"columns": ["isbn"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["categoryId"], "tableName": "book", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "category", "namespaceId": "public"}}]}, "loan": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "PENDING"}, "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "dueDate": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "bookCopyId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "borrowedAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "fineAmount": {"codecId": "pg/int4@1", "default": {"kind": "literal", "value": 0}, "nullable": false, "nativeType": "int4"}, "returnedAt": {"codecId": "pg/timestamptz-string@1", "nullable": true, "nativeType": "timestamptz"}, "renewalCount": {"codecId": "pg/int4@1", "default": {"kind": "literal", "value": 0}, "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "loan_bookCopyId_idx_ab16ce78", "prefix": "loan_bookCopyId_idx", "unique": false, "columns": ["bookCopyId"]}, {"name": "loan_status_idx_e98638ab", "prefix": "loan_status_idx", "unique": false, "columns": ["status"]}, {"name": "loan_userId_idx_a489d58a", "prefix": "loan_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["bookCopyId"], "tableName": "loan", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "bookCopy", "namespaceId": "public"}}]}, "role": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "user": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "email": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "phone": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "fullName": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "isActive": {"codecId": "pg/bool@1", "default": {"kind": "literal", "value": true}, "nullable": false, "nativeType": "bool"}, "username": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "passwordHash": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "refreshTokenHash": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["email"]}, {"columns": ["username"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "bookCopy": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "bookId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "status": {"codecId": "pg/text@1", "default": {"kind": "literal", "value": "AVAILABLE"}, "nullable": false, "nativeType": "text"}, "barcode": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "shelfLocation": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [{"name": "bookCopy_bookId_idx_3eec38a3", "prefix": "bookCopy_bookId_idx", "unique": false, "columns": ["bookId"]}], "uniques": [{"columns": ["barcode"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["bookId"], "tableName": "bookCopy", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "book", "namespaceId": "public"}}]}, "category": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "name": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["name"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "userRole": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}}, "indexes": [{"name": "userRole_roleId_idx_ffccc9a4", "prefix": "userRole_roleId_idx", "unique": false, "columns": ["roleId"]}, {"name": "userRole_userId_idx_a489d58a", "prefix": "userRole_userId_idx", "unique": false, "columns": ["userId"]}], "uniques": [{"columns": ["userId", "roleId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}, {"source": {"columns": ["roleId"], "tableName": "userRole", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}]}, "permission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "code": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "description": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["code"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": []}, "rolePermission": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "roleId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "permissionId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}}, "indexes": [{"name": "rolePermission_permissionId_idx_f46fcdf5", "prefix": "rolePermission_permissionId_idx", "unique": false, "columns": ["permissionId"]}, {"name": "rolePermission_roleId_idx_ffccc9a4", "prefix": "rolePermission_roleId_idx", "unique": false, "columns": ["roleId"]}], "uniques": [{"columns": ["roleId", "permissionId"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["roleId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "role", "namespaceId": "public"}}, {"source": {"columns": ["permissionId"], "tableName": "rolePermission", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "permission", "namespaceId": "public"}}]}, "studentProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "npm": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "enrollmentYear": {"codecId": "pg/int4@1", "nullable": true, "nativeType": "int4"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["npm"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "studentProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}, "lecturerProfile": {"columns": {"id": {"codecId": "pg/int4@1", "default": {"kind": "function", "expression": "autoincrement()"}, "nullable": false, "nativeType": "int4"}, "userId": {"codecId": "pg/int4@1", "nullable": false, "nativeType": "int4"}, "faculty": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "createdAt": {"codecId": "pg/timestamptz-string@1", "default": {"kind": "function", "expression": "now()"}, "nullable": false, "nativeType": "timestamptz"}, "updatedAt": {"codecId": "pg/timestamptz-string@1", "nullable": false, "nativeType": "timestamptz"}, "studyProgram": {"codecId": "pg/text@1", "nullable": true, "nativeType": "text"}, "lecturerNumber": {"codecId": "pg/text@1", "nullable": false, "nativeType": "text"}}, "indexes": [], "uniques": [{"columns": ["userId"]}, {"columns": ["lecturerNumber"]}], "primaryKey": {"columns": ["id"]}, "foreignKeys": [{"source": {"columns": ["userId"], "tableName": "lecturerProfile", "namespaceId": "public"}, "target": {"columns": ["id"], "tableName": "user", "namespaceId": "public"}}]}}}}}, "storageHash": "5de1855093b2eb511301cf26cd48c530b711cb098ff9e53ebde1ea1291a425d1"}, "execution": {"mutations": {"defaults": [{"ref": {"table": "book", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "bookCopy", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "category", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "lecturerProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "loan", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "permission", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "role", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "studentProfile", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}, {"ref": {"table": "user", "column": "updatedAt", "namespace": "public"}, "onCreate": {"id": "timestampNow", "kind": "generator"}, "onUpdate": {"id": "timestampNow", "kind": "generator"}}]}, "executionHash": "ae487a3b611fe5e8500cc7aebb6fe6c18ca2b5f8a23467b4dc4cb01aa8ca6bc2"}, "_generated": {"message": "This file is automatically generated by \\"prisma contract emit\\".", "warning": "⚠️  GENERATED FILE - DO NOT EDIT", "regenerate": "To regenerate, run: prisma contract emit"}, "extensions": {}, "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2", "capabilities": {"sql": {"enums": true, "lateral": true, "returning": true, "scalarList": true, "checkConstraint": true, "defaultInInsert": true}, "postgres": {"limit": true, "jsonAgg": true, "lateral": true, "orderBy": true, "returning": true, "distinctOn": true}}, "targetFamily": "sql", "schemaVersion": "1"}
+\.
+
+
+--
+-- Data for Name: ledger; Type: TABLE DATA; Schema: prisma_contract; Owner: dedihalawa
+--
+
+COPY prisma_contract.ledger (id, created_at, space, migration_name, migration_hash, origin_core_hash, origin_profile_hash, destination_core_hash, destination_profile_hash, operations) FROM stdin;
+1	2026-09-13 05:28:04.188646+07	app		8309a33b3ee5d5446d5d4be686acc960ebcdc9e2fb594c01fb5a455daf6bf8d4		\N	8309a33b3ee5d5446d5d4be686acc960ebcdc9e2fb594c01fb5a455daf6bf8d4	\N	[{"id": "table.lecturerProfile", "label": "Create table \\"lecturerProfile\\"", "target": {"id": "postgres", "details": {"name": "lecturerProfile", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"lecturerProfile\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"faculty\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"lecturerNumber\\" text NOT NULL,\\n  \\"studyProgram\\" text,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  \\"userId\\" int4 NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"lecturerProfile\\""}], "summary": "Creates table \\"lecturerProfile\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"lecturerProfile\\""], "description": "ensure table \\"lecturerProfile\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"lecturerProfile\\""], "description": "verify table \\"lecturerProfile\\" exists"}], "operationClass": "additive"}, {"id": "table.permission", "label": "Create table \\"permission\\"", "target": {"id": "postgres", "details": {"name": "permission", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"permission\\" (\\n  \\"code\\" text NOT NULL,\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"description\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"permission\\""}], "summary": "Creates table \\"permission\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"permission\\""], "description": "ensure table \\"permission\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"permission\\""], "description": "verify table \\"permission\\" exists"}], "operationClass": "additive"}, {"id": "table.role", "label": "Create table \\"role\\"", "target": {"id": "postgres", "details": {"name": "role", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"role\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"description\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"name\\" text NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"role\\""}], "summary": "Creates table \\"role\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"role\\""], "description": "ensure table \\"role\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"role\\""], "description": "verify table \\"role\\" exists"}], "operationClass": "additive"}, {"id": "table.rolePermission", "label": "Create table \\"rolePermission\\"", "target": {"id": "postgres", "details": {"name": "rolePermission", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"rolePermission\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"permissionId\\" int4 NOT NULL,\\n  \\"roleId\\" int4 NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"rolePermission\\""}], "summary": "Creates table \\"rolePermission\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission\\""], "description": "ensure table \\"rolePermission\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission\\""], "description": "verify table \\"rolePermission\\" exists"}], "operationClass": "additive"}, {"id": "table.studentProfile", "label": "Create table \\"studentProfile\\"", "target": {"id": "postgres", "details": {"name": "studentProfile", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"studentProfile\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"enrollmentYear\\" int4,\\n  \\"faculty\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"nim\\" text NOT NULL,\\n  \\"studyProgram\\" text,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  \\"userId\\" int4 NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"studentProfile\\""}], "summary": "Creates table \\"studentProfile\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"studentProfile\\""], "description": "ensure table \\"studentProfile\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"studentProfile\\""], "description": "verify table \\"studentProfile\\" exists"}], "operationClass": "additive"}, {"id": "table.user", "label": "Create table \\"user\\"", "target": {"id": "postgres", "details": {"name": "user", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"user\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"email\\" text NOT NULL,\\n  \\"fullName\\" text NOT NULL,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"isActive\\" bool DEFAULT true NOT NULL,\\n  \\"passwordHash\\" text NOT NULL,\\n  \\"phone\\" text,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  \\"username\\" text,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"user\\""}], "summary": "Creates table \\"user\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"user\\""], "description": "ensure table \\"user\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"user\\""], "description": "verify table \\"user\\" exists"}], "operationClass": "additive"}, {"id": "table.userRole", "label": "Create table \\"userRole\\"", "target": {"id": "postgres", "details": {"name": "userRole", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"userRole\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"roleId\\" int4 NOT NULL,\\n  \\"userId\\" int4 NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"userRole\\""}], "summary": "Creates table \\"userRole\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole\\""], "description": "ensure table \\"userRole\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole\\""], "description": "verify table \\"userRole\\" exists"}], "operationClass": "additive"}, {"id": "unique.lecturerProfile.lecturerProfile_userId_key", "label": "Add unique constraint on \\"lecturerProfile\\" (userId)", "target": {"id": "postgres", "details": {"name": "lecturerProfile_userId_key", "table": "lecturerProfile", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"lecturerProfile\\" ADD CONSTRAINT \\"lecturerProfile_userId_key\\" UNIQUE (\\"userId\\")", "description": "add unique constraint \\"lecturerProfile_userId_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_userId_key", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "ensure constraint \\"lecturerProfile_userId_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_userId_key", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "verify constraint \\"lecturerProfile_userId_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.lecturerProfile.lecturerProfile_lecturerNumber_key", "label": "Add unique constraint on \\"lecturerProfile\\" (lecturerNumber)", "target": {"id": "postgres", "details": {"name": "lecturerProfile_lecturerNumber_key", "table": "lecturerProfile", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"lecturerProfile\\" ADD CONSTRAINT \\"lecturerProfile_lecturerNumber_key\\" UNIQUE (\\"lecturerNumber\\")", "description": "add unique constraint \\"lecturerProfile_lecturerNumber_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_lecturerNumber_key", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "ensure constraint \\"lecturerProfile_lecturerNumber_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_lecturerNumber_key", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "verify constraint \\"lecturerProfile_lecturerNumber_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.permission.permission_code_key", "label": "Add unique constraint on \\"permission\\" (code)", "target": {"id": "postgres", "details": {"name": "permission_code_key", "table": "permission", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"permission\\" ADD CONSTRAINT \\"permission_code_key\\" UNIQUE (\\"code\\")", "description": "add unique constraint \\"permission_code_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["permission_code_key", "public", "\\"public\\".\\"permission\\""], "description": "ensure constraint \\"permission_code_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["permission_code_key", "public", "\\"public\\".\\"permission\\""], "description": "verify constraint \\"permission_code_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.role.role_name_key", "label": "Add unique constraint on \\"role\\" (name)", "target": {"id": "postgres", "details": {"name": "role_name_key", "table": "role", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"role\\" ADD CONSTRAINT \\"role_name_key\\" UNIQUE (\\"name\\")", "description": "add unique constraint \\"role_name_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["role_name_key", "public", "\\"public\\".\\"role\\""], "description": "ensure constraint \\"role_name_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["role_name_key", "public", "\\"public\\".\\"role\\""], "description": "verify constraint \\"role_name_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.rolePermission.rolePermission_roleId_permissionId_key", "label": "Add unique constraint on \\"rolePermission\\" (roleId, permissionId)", "target": {"id": "postgres", "details": {"name": "rolePermission_roleId_permissionId_key", "table": "rolePermission", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"rolePermission\\" ADD CONSTRAINT \\"rolePermission_roleId_permissionId_key\\" UNIQUE (\\"roleId\\", \\"permissionId\\")", "description": "add unique constraint \\"rolePermission_roleId_permissionId_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_roleId_permissionId_key", "public", "\\"public\\".\\"rolePermission\\""], "description": "ensure constraint \\"rolePermission_roleId_permissionId_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_roleId_permissionId_key", "public", "\\"public\\".\\"rolePermission\\""], "description": "verify constraint \\"rolePermission_roleId_permissionId_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.studentProfile.studentProfile_userId_key", "label": "Add unique constraint on \\"studentProfile\\" (userId)", "target": {"id": "postgres", "details": {"name": "studentProfile_userId_key", "table": "studentProfile", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"studentProfile\\" ADD CONSTRAINT \\"studentProfile_userId_key\\" UNIQUE (\\"userId\\")", "description": "add unique constraint \\"studentProfile_userId_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_userId_key", "public", "\\"public\\".\\"studentProfile\\""], "description": "ensure constraint \\"studentProfile_userId_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_userId_key", "public", "\\"public\\".\\"studentProfile\\""], "description": "verify constraint \\"studentProfile_userId_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.studentProfile.studentProfile_nim_key", "label": "Add unique constraint on \\"studentProfile\\" (nim)", "target": {"id": "postgres", "details": {"name": "studentProfile_nim_key", "table": "studentProfile", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"studentProfile\\" ADD CONSTRAINT \\"studentProfile_nim_key\\" UNIQUE (\\"nim\\")", "description": "add unique constraint \\"studentProfile_nim_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_nim_key", "public", "\\"public\\".\\"studentProfile\\""], "description": "ensure constraint \\"studentProfile_nim_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_nim_key", "public", "\\"public\\".\\"studentProfile\\""], "description": "verify constraint \\"studentProfile_nim_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.user.user_email_key", "label": "Add unique constraint on \\"user\\" (email)", "target": {"id": "postgres", "details": {"name": "user_email_key", "table": "user", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"user\\" ADD CONSTRAINT \\"user_email_key\\" UNIQUE (\\"email\\")", "description": "add unique constraint \\"user_email_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["user_email_key", "public", "\\"public\\".\\"user\\""], "description": "ensure constraint \\"user_email_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["user_email_key", "public", "\\"public\\".\\"user\\""], "description": "verify constraint \\"user_email_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.user.user_username_key", "label": "Add unique constraint on \\"user\\" (username)", "target": {"id": "postgres", "details": {"name": "user_username_key", "table": "user", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"user\\" ADD CONSTRAINT \\"user_username_key\\" UNIQUE (\\"username\\")", "description": "add unique constraint \\"user_username_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["user_username_key", "public", "\\"public\\".\\"user\\""], "description": "ensure constraint \\"user_username_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["user_username_key", "public", "\\"public\\".\\"user\\""], "description": "verify constraint \\"user_username_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.userRole.userRole_userId_roleId_key", "label": "Add unique constraint on \\"userRole\\" (userId, roleId)", "target": {"id": "postgres", "details": {"name": "userRole_userId_roleId_key", "table": "userRole", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"userRole\\" ADD CONSTRAINT \\"userRole_userId_roleId_key\\" UNIQUE (\\"userId\\", \\"roleId\\")", "description": "add unique constraint \\"userRole_userId_roleId_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_userId_roleId_key", "public", "\\"public\\".\\"userRole\\""], "description": "ensure constraint \\"userRole_userId_roleId_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_userId_roleId_key", "public", "\\"public\\".\\"userRole\\""], "description": "verify constraint \\"userRole_userId_roleId_key\\" exists"}], "operationClass": "additive"}, {"id": "index.rolePermission.rolePermission_permissionId_idx_f46fcdf5", "label": "Create index \\"rolePermission_permissionId_idx_f46fcdf5\\" on \\"rolePermission\\"", "target": {"id": "postgres", "details": {"name": "rolePermission_permissionId_idx_f46fcdf5", "table": "rolePermission", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"rolePermission_permissionId_idx_f46fcdf5\\" ON \\"public\\".\\"rolePermission\\" (\\"permissionId\\")", "params": [], "description": "create index \\"rolePermission_permissionId_idx_f46fcdf5\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission_permissionId_idx_f46fcdf5\\""], "description": "ensure index \\"rolePermission_permissionId_idx_f46fcdf5\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission_permissionId_idx_f46fcdf5\\""], "description": "verify index \\"rolePermission_permissionId_idx_f46fcdf5\\" exists"}], "operationClass": "additive"}, {"id": "index.rolePermission.rolePermission_roleId_idx_ffccc9a4", "label": "Create index \\"rolePermission_roleId_idx_ffccc9a4\\" on \\"rolePermission\\"", "target": {"id": "postgres", "details": {"name": "rolePermission_roleId_idx_ffccc9a4", "table": "rolePermission", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"rolePermission_roleId_idx_ffccc9a4\\" ON \\"public\\".\\"rolePermission\\" (\\"roleId\\")", "params": [], "description": "create index \\"rolePermission_roleId_idx_ffccc9a4\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission_roleId_idx_ffccc9a4\\""], "description": "ensure index \\"rolePermission_roleId_idx_ffccc9a4\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"rolePermission_roleId_idx_ffccc9a4\\""], "description": "verify index \\"rolePermission_roleId_idx_ffccc9a4\\" exists"}], "operationClass": "additive"}, {"id": "index.userRole.userRole_roleId_idx_ffccc9a4", "label": "Create index \\"userRole_roleId_idx_ffccc9a4\\" on \\"userRole\\"", "target": {"id": "postgres", "details": {"name": "userRole_roleId_idx_ffccc9a4", "table": "userRole", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"userRole_roleId_idx_ffccc9a4\\" ON \\"public\\".\\"userRole\\" (\\"roleId\\")", "params": [], "description": "create index \\"userRole_roleId_idx_ffccc9a4\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole_roleId_idx_ffccc9a4\\""], "description": "ensure index \\"userRole_roleId_idx_ffccc9a4\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole_roleId_idx_ffccc9a4\\""], "description": "verify index \\"userRole_roleId_idx_ffccc9a4\\" exists"}], "operationClass": "additive"}, {"id": "index.userRole.userRole_userId_idx_a489d58a", "label": "Create index \\"userRole_userId_idx_a489d58a\\" on \\"userRole\\"", "target": {"id": "postgres", "details": {"name": "userRole_userId_idx_a489d58a", "table": "userRole", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"userRole_userId_idx_a489d58a\\" ON \\"public\\".\\"userRole\\" (\\"userId\\")", "params": [], "description": "create index \\"userRole_userId_idx_a489d58a\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole_userId_idx_a489d58a\\""], "description": "ensure index \\"userRole_userId_idx_a489d58a\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"userRole_userId_idx_a489d58a\\""], "description": "verify index \\"userRole_userId_idx_a489d58a\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.lecturerProfile.lecturerProfile_userId_fkey", "label": "Add foreign key \\"lecturerProfile_userId_fkey\\" on \\"lecturerProfile\\"", "target": {"id": "postgres", "details": {"name": "lecturerProfile_userId_fkey", "table": "lecturerProfile", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"lecturerProfile\\"\\nADD CONSTRAINT \\"lecturerProfile_userId_fkey\\"\\nFOREIGN KEY (\\"userId\\")\\nREFERENCES \\"public\\".\\"user\\" (\\"id\\")", "description": "add FK \\"lecturerProfile_userId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_userId_fkey", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "ensure FK \\"lecturerProfile_userId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["lecturerProfile_userId_fkey", "public", "\\"public\\".\\"lecturerProfile\\""], "description": "verify FK \\"lecturerProfile_userId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.rolePermission.rolePermission_roleId_fkey", "label": "Add foreign key \\"rolePermission_roleId_fkey\\" on \\"rolePermission\\"", "target": {"id": "postgres", "details": {"name": "rolePermission_roleId_fkey", "table": "rolePermission", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"rolePermission\\"\\nADD CONSTRAINT \\"rolePermission_roleId_fkey\\"\\nFOREIGN KEY (\\"roleId\\")\\nREFERENCES \\"public\\".\\"role\\" (\\"id\\")", "description": "add FK \\"rolePermission_roleId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_roleId_fkey", "public", "\\"public\\".\\"rolePermission\\""], "description": "ensure FK \\"rolePermission_roleId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_roleId_fkey", "public", "\\"public\\".\\"rolePermission\\""], "description": "verify FK \\"rolePermission_roleId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.rolePermission.rolePermission_permissionId_fkey", "label": "Add foreign key \\"rolePermission_permissionId_fkey\\" on \\"rolePermission\\"", "target": {"id": "postgres", "details": {"name": "rolePermission_permissionId_fkey", "table": "rolePermission", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"rolePermission\\"\\nADD CONSTRAINT \\"rolePermission_permissionId_fkey\\"\\nFOREIGN KEY (\\"permissionId\\")\\nREFERENCES \\"public\\".\\"permission\\" (\\"id\\")", "description": "add FK \\"rolePermission_permissionId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_permissionId_fkey", "public", "\\"public\\".\\"rolePermission\\""], "description": "ensure FK \\"rolePermission_permissionId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["rolePermission_permissionId_fkey", "public", "\\"public\\".\\"rolePermission\\""], "description": "verify FK \\"rolePermission_permissionId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.studentProfile.studentProfile_userId_fkey", "label": "Add foreign key \\"studentProfile_userId_fkey\\" on \\"studentProfile\\"", "target": {"id": "postgres", "details": {"name": "studentProfile_userId_fkey", "table": "studentProfile", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"studentProfile\\"\\nADD CONSTRAINT \\"studentProfile_userId_fkey\\"\\nFOREIGN KEY (\\"userId\\")\\nREFERENCES \\"public\\".\\"user\\" (\\"id\\")", "description": "add FK \\"studentProfile_userId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_userId_fkey", "public", "\\"public\\".\\"studentProfile\\""], "description": "ensure FK \\"studentProfile_userId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["studentProfile_userId_fkey", "public", "\\"public\\".\\"studentProfile\\""], "description": "verify FK \\"studentProfile_userId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.userRole.userRole_userId_fkey", "label": "Add foreign key \\"userRole_userId_fkey\\" on \\"userRole\\"", "target": {"id": "postgres", "details": {"name": "userRole_userId_fkey", "table": "userRole", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"userRole\\"\\nADD CONSTRAINT \\"userRole_userId_fkey\\"\\nFOREIGN KEY (\\"userId\\")\\nREFERENCES \\"public\\".\\"user\\" (\\"id\\")", "description": "add FK \\"userRole_userId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_userId_fkey", "public", "\\"public\\".\\"userRole\\""], "description": "ensure FK \\"userRole_userId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_userId_fkey", "public", "\\"public\\".\\"userRole\\""], "description": "verify FK \\"userRole_userId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.userRole.userRole_roleId_fkey", "label": "Add foreign key \\"userRole_roleId_fkey\\" on \\"userRole\\"", "target": {"id": "postgres", "details": {"name": "userRole_roleId_fkey", "table": "userRole", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"userRole\\"\\nADD CONSTRAINT \\"userRole_roleId_fkey\\"\\nFOREIGN KEY (\\"roleId\\")\\nREFERENCES \\"public\\".\\"role\\" (\\"id\\")", "description": "add FK \\"userRole_roleId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_roleId_fkey", "public", "\\"public\\".\\"userRole\\""], "description": "ensure FK \\"userRole_roleId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["userRole_roleId_fkey", "public", "\\"public\\".\\"userRole\\""], "description": "verify FK \\"userRole_roleId_fkey\\" exists"}], "operationClass": "additive"}]
+2	2026-09-13 14:35:01.065709+07	app		ecd49632b438334ad484f091a38019463e962a8fb9a47a451c7d9be7c56e8cc3	8309a33b3ee5d5446d5d4be686acc960ebcdc9e2fb594c01fb5a455daf6bf8d4	\N	ecd49632b438334ad484f091a38019463e962a8fb9a47a451c7d9be7c56e8cc3	\N	[{"id": "table.book", "label": "Create table \\"book\\"", "target": {"id": "postgres", "details": {"name": "book", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"book\\" (\\n  \\"author\\" text NOT NULL,\\n  \\"categoryId\\" int4 NOT NULL,\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"description\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"isbn\\" text NOT NULL,\\n  \\"publicationYear\\" int4,\\n  \\"publisher\\" text,\\n  \\"title\\" text NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"book\\""}], "summary": "Creates table \\"book\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"book\\""], "description": "ensure table \\"book\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"book\\""], "description": "verify table \\"book\\" exists"}], "operationClass": "additive"}, {"id": "table.bookCopy", "label": "Create table \\"bookCopy\\"", "target": {"id": "postgres", "details": {"name": "bookCopy", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"bookCopy\\" (\\n  \\"barcode\\" text NOT NULL,\\n  \\"bookId\\" int4 NOT NULL,\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"shelfLocation\\" text,\\n  \\"status\\" text DEFAULT 'AVAILABLE' NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"bookCopy\\""}], "summary": "Creates table \\"bookCopy\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"bookCopy\\""], "description": "ensure table \\"bookCopy\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"bookCopy\\""], "description": "verify table \\"bookCopy\\" exists"}], "operationClass": "additive"}, {"id": "table.category", "label": "Create table \\"category\\"", "target": {"id": "postgres", "details": {"name": "category", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"category\\" (\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"description\\" text,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"name\\" text NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"category\\""}], "summary": "Creates table \\"category\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"category\\""], "description": "ensure table \\"category\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"category\\""], "description": "verify table \\"category\\" exists"}], "operationClass": "additive"}, {"id": "unique.book.book_isbn_key", "label": "Add unique constraint on \\"book\\" (isbn)", "target": {"id": "postgres", "details": {"name": "book_isbn_key", "table": "book", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"book\\" ADD CONSTRAINT \\"book_isbn_key\\" UNIQUE (\\"isbn\\")", "description": "add unique constraint \\"book_isbn_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["book_isbn_key", "public", "\\"public\\".\\"book\\""], "description": "ensure constraint \\"book_isbn_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["book_isbn_key", "public", "\\"public\\".\\"book\\""], "description": "verify constraint \\"book_isbn_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.bookCopy.bookCopy_barcode_key", "label": "Add unique constraint on \\"bookCopy\\" (barcode)", "target": {"id": "postgres", "details": {"name": "bookCopy_barcode_key", "table": "bookCopy", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"bookCopy\\" ADD CONSTRAINT \\"bookCopy_barcode_key\\" UNIQUE (\\"barcode\\")", "description": "add unique constraint \\"bookCopy_barcode_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["bookCopy_barcode_key", "public", "\\"public\\".\\"bookCopy\\""], "description": "ensure constraint \\"bookCopy_barcode_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["bookCopy_barcode_key", "public", "\\"public\\".\\"bookCopy\\""], "description": "verify constraint \\"bookCopy_barcode_key\\" exists"}], "operationClass": "additive"}, {"id": "unique.category.category_name_key", "label": "Add unique constraint on \\"category\\" (name)", "target": {"id": "postgres", "details": {"name": "category_name_key", "table": "category", "schema": "public", "objectType": "unique"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"category\\" ADD CONSTRAINT \\"category_name_key\\" UNIQUE (\\"name\\")", "description": "add unique constraint \\"category_name_key\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["category_name_key", "public", "\\"public\\".\\"category\\""], "description": "ensure constraint \\"category_name_key\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["category_name_key", "public", "\\"public\\".\\"category\\""], "description": "verify constraint \\"category_name_key\\" exists"}], "operationClass": "additive"}, {"id": "index.book.book_categoryId_idx_15c304f2", "label": "Create index \\"book_categoryId_idx_15c304f2\\" on \\"book\\"", "target": {"id": "postgres", "details": {"name": "book_categoryId_idx_15c304f2", "table": "book", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"book_categoryId_idx_15c304f2\\" ON \\"public\\".\\"book\\" (\\"categoryId\\")", "params": [], "description": "create index \\"book_categoryId_idx_15c304f2\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"book_categoryId_idx_15c304f2\\""], "description": "ensure index \\"book_categoryId_idx_15c304f2\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"book_categoryId_idx_15c304f2\\""], "description": "verify index \\"book_categoryId_idx_15c304f2\\" exists"}], "operationClass": "additive"}, {"id": "index.bookCopy.bookCopy_bookId_idx_3eec38a3", "label": "Create index \\"bookCopy_bookId_idx_3eec38a3\\" on \\"bookCopy\\"", "target": {"id": "postgres", "details": {"name": "bookCopy_bookId_idx_3eec38a3", "table": "bookCopy", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"bookCopy_bookId_idx_3eec38a3\\" ON \\"public\\".\\"bookCopy\\" (\\"bookId\\")", "params": [], "description": "create index \\"bookCopy_bookId_idx_3eec38a3\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"bookCopy_bookId_idx_3eec38a3\\""], "description": "ensure index \\"bookCopy_bookId_idx_3eec38a3\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"bookCopy_bookId_idx_3eec38a3\\""], "description": "verify index \\"bookCopy_bookId_idx_3eec38a3\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.book.book_categoryId_fkey", "label": "Add foreign key \\"book_categoryId_fkey\\" on \\"book\\"", "target": {"id": "postgres", "details": {"name": "book_categoryId_fkey", "table": "book", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"book\\"\\nADD CONSTRAINT \\"book_categoryId_fkey\\"\\nFOREIGN KEY (\\"categoryId\\")\\nREFERENCES \\"public\\".\\"category\\" (\\"id\\")", "description": "add FK \\"book_categoryId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["book_categoryId_fkey", "public", "\\"public\\".\\"book\\""], "description": "ensure FK \\"book_categoryId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["book_categoryId_fkey", "public", "\\"public\\".\\"book\\""], "description": "verify FK \\"book_categoryId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.bookCopy.bookCopy_bookId_fkey", "label": "Add foreign key \\"bookCopy_bookId_fkey\\" on \\"bookCopy\\"", "target": {"id": "postgres", "details": {"name": "bookCopy_bookId_fkey", "table": "bookCopy", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"bookCopy\\"\\nADD CONSTRAINT \\"bookCopy_bookId_fkey\\"\\nFOREIGN KEY (\\"bookId\\")\\nREFERENCES \\"public\\".\\"book\\" (\\"id\\")", "description": "add FK \\"bookCopy_bookId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["bookCopy_bookId_fkey", "public", "\\"public\\".\\"bookCopy\\""], "description": "ensure FK \\"bookCopy_bookId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["bookCopy_bookId_fkey", "public", "\\"public\\".\\"bookCopy\\""], "description": "verify FK \\"bookCopy_bookId_fkey\\" exists"}], "operationClass": "additive"}]
+3	2026-09-13 17:41:30.286721+07	app	20260913T1040_add_loan	c58a3837f04b3599737bbe03700d078d6a9da44026469a79428623e915fb5b66	ecd49632b438334ad484f091a38019463e962a8fb9a47a451c7d9be7c56e8cc3	\N	b4bc47c43276c7a23d7d43dbc6ee48be44cda87f20ffaa75a9bcef4cb16f0f9d	\N	[{"id": "table.loan", "label": "Create table \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan", "schema": "public", "objectType": "table"}}, "execute": [{"sql": "CREATE TABLE \\"public\\".\\"loan\\" (\\n  \\"bookCopyId\\" int4 NOT NULL,\\n  \\"borrowedAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"createdAt\\" timestamptz DEFAULT (now()) NOT NULL,\\n  \\"dueDate\\" timestamptz NOT NULL,\\n  \\"id\\" SERIAL NOT NULL,\\n  \\"returnedAt\\" timestamptz,\\n  \\"status\\" text DEFAULT 'ACTIVE' NOT NULL,\\n  \\"updatedAt\\" timestamptz NOT NULL,\\n  \\"userId\\" int4 NOT NULL,\\n  PRIMARY KEY (\\"id\\")\\n)", "params": [], "description": "create table \\"loan\\""}], "summary": "Creates table \\"loan\\"", "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan\\""], "description": "ensure table \\"loan\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan\\""], "description": "verify table \\"loan\\" exists"}], "operationClass": "additive"}, {"id": "index.loan.loan_bookCopyId_idx_ab16ce78", "label": "Create index \\"loan_bookCopyId_idx_ab16ce78\\" on \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan_bookCopyId_idx_ab16ce78", "table": "loan", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"loan_bookCopyId_idx_ab16ce78\\" ON \\"public\\".\\"loan\\" (\\"bookCopyId\\")", "params": [], "description": "create index \\"loan_bookCopyId_idx_ab16ce78\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_bookCopyId_idx_ab16ce78\\""], "description": "ensure index \\"loan_bookCopyId_idx_ab16ce78\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_bookCopyId_idx_ab16ce78\\""], "description": "verify index \\"loan_bookCopyId_idx_ab16ce78\\" exists"}], "operationClass": "additive"}, {"id": "index.loan.loan_status_idx_e98638ab", "label": "Create index \\"loan_status_idx_e98638ab\\" on \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan_status_idx_e98638ab", "table": "loan", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"loan_status_idx_e98638ab\\" ON \\"public\\".\\"loan\\" (\\"status\\")", "params": [], "description": "create index \\"loan_status_idx_e98638ab\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_status_idx_e98638ab\\""], "description": "ensure index \\"loan_status_idx_e98638ab\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_status_idx_e98638ab\\""], "description": "verify index \\"loan_status_idx_e98638ab\\" exists"}], "operationClass": "additive"}, {"id": "index.loan.loan_userId_idx_a489d58a", "label": "Create index \\"loan_userId_idx_a489d58a\\" on \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan_userId_idx_a489d58a", "table": "loan", "schema": "public", "objectType": "index"}}, "execute": [{"sql": "CREATE INDEX \\"loan_userId_idx_a489d58a\\" ON \\"public\\".\\"loan\\" (\\"userId\\")", "params": [], "description": "create index \\"loan_userId_idx_a489d58a\\""}], "precheck": [{"sql": "SELECT (to_regclass($1)) IS NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_userId_idx_a489d58a\\""], "description": "ensure index \\"loan_userId_idx_a489d58a\\" does not exist"}], "postcheck": [{"sql": "SELECT (to_regclass($1)) IS NOT NULL AS \\"result\\"", "params": ["\\"public\\".\\"loan_userId_idx_a489d58a\\""], "description": "verify index \\"loan_userId_idx_a489d58a\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.loan.loan_userId_fkey", "label": "Add foreign key \\"loan_userId_fkey\\" on \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan_userId_fkey", "table": "loan", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"loan\\"\\nADD CONSTRAINT \\"loan_userId_fkey\\"\\nFOREIGN KEY (\\"userId\\")\\nREFERENCES \\"public\\".\\"user\\" (\\"id\\")", "description": "add FK \\"loan_userId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["loan_userId_fkey", "public", "\\"public\\".\\"loan\\""], "description": "ensure FK \\"loan_userId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["loan_userId_fkey", "public", "\\"public\\".\\"loan\\""], "description": "verify FK \\"loan_userId_fkey\\" exists"}], "operationClass": "additive"}, {"id": "foreignKey.loan.loan_bookCopyId_fkey", "label": "Add foreign key \\"loan_bookCopyId_fkey\\" on \\"loan\\"", "target": {"id": "postgres", "details": {"name": "loan_bookCopyId_fkey", "table": "loan", "schema": "public", "objectType": "foreignKey"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"loan\\"\\nADD CONSTRAINT \\"loan_bookCopyId_fkey\\"\\nFOREIGN KEY (\\"bookCopyId\\")\\nREFERENCES \\"public\\".\\"bookCopy\\" (\\"id\\")", "description": "add FK \\"loan_bookCopyId_fkey\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["loan_bookCopyId_fkey", "public", "\\"public\\".\\"loan\\""], "description": "ensure FK \\"loan_bookCopyId_fkey\\" does not exist"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"pg_constraint\\" AS \\"c\\" INNER JOIN \\"pg_namespace\\" AS \\"n\\" ON \\"n\\".\\"oid\\" = \\"c\\".\\"connamespace\\" WHERE (\\"c\\".\\"conname\\" = $1 AND \\"n\\".\\"nspname\\" = $2 AND \\"c\\".\\"conrelid\\" = to_regclass($3))) AS \\"result\\"", "params": ["loan_bookCopyId_fkey", "public", "\\"public\\".\\"loan\\""], "description": "verify FK \\"loan_bookCopyId_fkey\\" exists"}], "operationClass": "additive"}]
+4	2026-09-13 19:36:12.004577+07	app	20260913T1202_change_loan_default_status_to_pending	bb7f8360c73c2dc10c900f6496b8b5615b482ced84965b2143362b6a2d7aed06	b4bc47c43276c7a23d7d43dbc6ee48be44cda87f20ffaa75a9bcef4cb16f0f9d	\N	38e6109e21b18853c7c7e42e7082f545216db56978a0eb2f5011788abfae9e78	\N	[{"id": "setDefault.loan.status", "meta": {"runner": {"reason": "postcheck_pre_satisfied", "skipped": true}}, "label": "Set default on \\"loan\\".\\"status\\"", "target": {"id": "postgres", "details": {"name": "status", "table": "loan", "schema": "public", "objectType": "column"}}, "execute": [], "precheck": [], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"information_schema\\".\\"columns\\" WHERE (\\"table_schema\\" = $1 AND \\"table_name\\" = $2 AND \\"column_name\\" = $3 AND \\"column_default\\" IS NOT NULL)) AS \\"result\\"", "params": ["public", "loan", "status"], "description": "verify column \\"status\\" has a default"}], "operationClass": "widening"}]
+5	2026-09-15 14:44:57.029989+07	app	20260915T0738_add_loan_fine_amount	490b3e24467cfabf296b530c8d903b80dd4b456eeaf248cb2455bad1bd02e637	38e6109e21b18853c7c7e42e7082f545216db56978a0eb2f5011788abfae9e78	\N	8d55cf1b607fc9d39b2b77e209ff5a16c956163ace2facf411a088908c17f500	\N	[{"id": "column.public.loan.fineAmount", "label": "Add column \\"fineAmount\\" to \\"loan\\"", "target": {"id": "postgres", "details": {"name": "fineAmount", "table": "loan", "schema": "public", "objectType": "column"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"loan\\" ADD COLUMN \\"fineAmount\\" int4 DEFAULT 0 NOT NULL", "description": "add column \\"fineAmount\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"information_schema\\".\\"columns\\" WHERE (\\"table_schema\\" = $1 AND \\"table_name\\" = $2 AND \\"column_name\\" = $3)) AS \\"result\\"", "params": ["public", "loan", "fineAmount"], "description": "ensure column \\"fineAmount\\" is missing"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"information_schema\\".\\"columns\\" WHERE (\\"table_schema\\" = $1 AND \\"table_name\\" = $2 AND \\"column_name\\" = $3)) AS \\"result\\"", "params": ["public", "loan", "fineAmount"], "description": "verify column \\"fineAmount\\" exists"}], "operationClass": "additive"}]
+6	2026-09-16 23:37:47.651777+07	app	20260916T1636_add_loan_renewal_count	598fc16cc4cb2377aaaf9ad1aa46b55d35556bbb0651d92b06d27293e2f3ec39	8d55cf1b607fc9d39b2b77e209ff5a16c956163ace2facf411a088908c17f500	\N	5de1855093b2eb511301cf26cd48c530b711cb098ff9e53ebde1ea1291a425d1	\N	[{"id": "column.public.loan.renewalCount", "label": "Add column \\"renewalCount\\" to \\"loan\\"", "target": {"id": "postgres", "details": {"name": "renewalCount", "table": "loan", "schema": "public", "objectType": "column"}}, "execute": [{"sql": "ALTER TABLE \\"public\\".\\"loan\\" ADD COLUMN \\"renewalCount\\" int4 DEFAULT 0 NOT NULL", "description": "add column \\"renewalCount\\""}], "precheck": [{"sql": "SELECT NOT EXISTS (SELECT 1 AS \\"one\\" FROM \\"information_schema\\".\\"columns\\" WHERE (\\"table_schema\\" = $1 AND \\"table_name\\" = $2 AND \\"column_name\\" = $3)) AS \\"result\\"", "params": ["public", "loan", "renewalCount"], "description": "ensure column \\"renewalCount\\" is missing"}], "postcheck": [{"sql": "SELECT EXISTS (SELECT 1 AS \\"one\\" FROM \\"information_schema\\".\\"columns\\" WHERE (\\"table_schema\\" = $1 AND \\"table_name\\" = $2 AND \\"column_name\\" = $3)) AS \\"result\\"", "params": ["public", "loan", "renewalCount"], "description": "verify column \\"renewalCount\\" exists"}], "operationClass": "additive"}]
+\.
+
+
+--
+-- Data for Name: marker; Type: TABLE DATA; Schema: prisma_contract; Owner: dedihalawa
+--
+
+COPY prisma_contract.marker (space, core_hash, profile_hash, contract_json, canonical_version, updated_at, app_tag, meta, invariants) FROM stdin;
+app	5de1855093b2eb511301cf26cd48c530b711cb098ff9e53ebde1ea1291a425d1	3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2	\N	\N	2026-09-16 23:37:47.651777+07	\N	{}	{}
+\.
+
+
+--
+-- Data for Name: book; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.book (author, "categoryId", "createdAt", description, id, isbn, "publicationYear", publisher, title, "updatedAt") FROM stdin;
+Dedi Setiawan Halawa	2	2026-09-13 16:20:52.266748+07	Buku pengantar pemrograman dan teknologi komputer	2	978-602-1234-56-7	2026	UMA Library Press	Dasar-Dasar Pemrograman	2026-09-13 16:20:52.265+07
+QA Author	4	2026-09-15 12:26:56.032344+07	\N	4	9781234567890	\N	\N	QA Book	2026-09-15 12:26:56.032+07
+Sutrisno, S.T., M.T.\nAndre Hasadungan Lubis, S.Ti., M.Sc.\nProf. Dr. Muhammad Zarlis, M.Sc.	2	2026-09-18 03:33:45.083763+07	\N	5	978-602-1577-92-9	2023	Universitas Medan Area Press	LITERASI KOMPUTER DAN TEKNOLOGI INFORMASI	2026-09-18 04:30:36.42+07
+Dr. Ujang Charda S., S.H., M.H.	4	2026-09-20 04:42:42.96557+07	Pendidikan Kewarganegaraan untuk Pendidikan Tinggi merupakan buku yang membahas pendidikan kewarganegaraan sebagai bagian dari pembelajaran di perguruan tinggi. Buku ini dapat digunakan untuk membantu mahasiswa memahami konsep kewarganegaraan, kehidupan berbangsa dan bernegara, serta berbagai pengetahuan dan nilai yang berkaitan dengan peran dan tanggung jawab sebagai warga negara.	6	978-602-425-279-3	2023	PT. Rajagrafindo Persada	PENDIDIKAN KEWARGANEGARAAN Untuk Pendidikan Tinggi	2026-09-20 04:42:42.963+07
+\.
+
+
+--
+-- Data for Name: bookCopy; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."bookCopy" (barcode, "bookId", "createdAt", id, "shelfLocation", status, "updatedAt", "homeLocation") FROM stdin;
+QA-COPY-002	4	2026-09-18 02:26:10.596332+07	9	TESTING	AVAILABLE	2026-09-19 02:42:36.373+07	TESTING
+UMA-BOOK-0005-002	5	2026-09-18 06:26:17.37798+07	11	Rak A-01	BORROWED	2026-09-19 07:18:55.014+07	Rak A-01
+UMA-BOOK-0005-003	5	2026-09-18 07:23:41.960781+07	12	Rak A-01	BORROWED	2026-09-19 07:29:07.179+07	Rak A-01
+UMA-BOOK-0005-004	5	2026-09-18 07:23:41.961908+07	13	Rak A-01	AVAILABLE	2026-09-19 12:24:22.102+07	Rak A-01
+UMA-BOOK-0002	2	2026-09-13 16:24:16.930653+07	2	Rak A-01	LOST	2026-09-15 15:00:18.971+07	Rak A-01
+UMA-BOOK-0003	2	2026-09-13 16:24:26.684478+07	3	Rak A-02	DAMAGED	2026-09-15 15:05:51.955+07	Rak A-02
+UMA-BOOK-0006	2	2026-09-14 20:39:00.899006+07	6	Rak A-03	LOST	2026-09-18 02:13:43.209+07	Rak A-03
+QA-COPY-001	4	2026-09-15 12:26:56.082514+07	8	\N	DAMAGED	2026-09-18 02:16:56.931+07	\N
+UMA-BOOK-0001	2	2026-09-13 16:23:14.993277+07	1	Rak A-01	LOST	2026-09-15 15:55:03.9+07	Rak A-01
+UMA-BOOK-0004	2	2026-09-14 20:38:47.670491+07	4	Rak A-02	LOST	2026-09-15 16:39:41.917+07	Rak A-02
+UMA-BOOK-0005-005	5	2026-09-18 07:23:41.962319+07	14	Rak A-01	AVAILABLE	2026-09-18 07:23:41.962+07	Rak A-01
+UMA-BOOK-0005	2	2026-09-14 20:38:54.915674+07	5	Rak A-03	DAMAGED	2026-09-15 16:43:22.69+07	Rak A-03
+UMA-BOOK-0005-006	5	2026-09-18 07:23:41.962721+07	15	Rak A-01	AVAILABLE	2026-09-18 07:23:41.962+07	Rak A-01
+UMA-BOOK-0005-007	5	2026-09-18 07:23:41.963244+07	16	Rak A-01	AVAILABLE	2026-09-18 07:23:41.963+07	Rak A-01
+UMA-BOOK-0005-008	5	2026-09-18 07:43:44.122141+07	17	Rak A-01	AVAILABLE	2026-09-18 07:43:44.121+07	Rak A-01
+UMA-BOOK-0005-009	5	2026-09-18 07:43:44.123386+07	18	Rak A-01	AVAILABLE	2026-09-18 07:43:44.123+07	Rak A-01
+\.
+
+
+--
+-- Data for Name: category; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.category ("createdAt", description, id, name, "updatedAt") FROM stdin;
+2026-09-13 15:44:25.028345+07	Buku tentang teknologi dan ilmu komputer	2	Teknologi	2026-09-13 15:44:25.027+07
+2026-09-15 12:26:55.967779+07	\N	4	QA Category	2026-09-15 12:26:55.967+07
+2026-09-20 08:53:00.116168+07	\N	5	Ekonomi	2026-09-20 08:53:00.115+07
+\.
+
+
+--
+-- Data for Name: lecturerProfile; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."lecturerProfile" ("createdAt", faculty, id, "lecturerNumber", "studyProgram", "updatedAt", "userId") FROM stdin;
+2026-09-15 06:19:53.103341+07	Teknik	3	TEST-DOSEN-20260915	Teknik Industri	2026-09-15 06:19:53.102+07	2
+\.
+
+
+--
+-- Data for Name: loan; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.loan ("bookCopyId", "borrowedAt", "createdAt", "dueDate", id, "returnedAt", status, "updatedAt", "userId", "fineAmount", "renewalCount", "reservationId", "returnRequestedAt", "returnRequestStatus") FROM stdin;
+1	2026-09-13 18:30:14.208895+07	2026-09-13 18:30:14.208895+07	2026-09-20 07:00:00+07	1	2026-09-13 18:48:53.46+07	RETURNED	2026-09-13 18:48:53.462+07	1	0	0	\N	\N	NONE
+1	2026-09-14 04:59:10.13069+07	2026-09-14 04:59:10.13069+07	2026-09-30 19:00:00+07	2	2026-09-14 05:05:27.444+07	RETURNED	2026-09-14 05:05:27.445+07	1	0	0	\N	\N	NONE
+6	2026-09-17 18:01:11.141787+07	2026-09-17 18:01:11.141787+07	2026-09-24 18:01:11.101+07	47	2026-09-17 18:05:21.581+07	RETURNED	2026-09-17 18:05:21.581+07	1	0	0	\N	\N	NONE
+2	2026-09-15 14:58:53.732015+07	2026-09-15 14:58:53.732015+07	2026-09-24 06:59:59+07	35	\N	LOST	2026-09-15 15:00:18.97+07	2	0	0	\N	\N	NONE
+1	2026-09-14 05:13:26.147245+07	2026-09-14 05:13:26.147245+07	2026-09-30 19:00:00+07	3	2026-09-14 05:39:22.189+07	RETURNED	2026-09-14 05:39:22.19+07	1	0	0	\N	\N	NONE
+2	2026-09-14 05:48:10.635937+07	2026-09-14 05:48:10.635937+07	2026-09-30 19:00:00+07	4	\N	CANCELLED	2026-09-14 05:48:34.797+07	1	0	0	\N	\N	NONE
+2	2026-09-14 05:49:17.305846+07	2026-09-14 05:49:17.305846+07	2026-09-30 19:00:00+07	5	\N	REJECTED	2026-09-14 05:49:47.647+07	1	0	0	\N	\N	NONE
+2	2026-09-14 13:25:24.999921+07	2026-09-14 13:25:24.999921+07	2026-09-20 12:00:00+07	6	2026-09-14 13:29:44.985+07	RETURNED	2026-09-14 13:29:44.985+07	1	0	0	\N	\N	NONE
+3	2026-09-15 15:04:25.410344+07	2026-09-15 15:04:25.410344+07	2026-09-24 06:59:59+07	36	2026-09-15 15:05:51.953+07	RETURNED	2026-09-15 15:05:51.953+07	2	0	0	\N	\N	NONE
+2	2026-09-14 13:33:25.659226+07	2026-09-14 13:33:25.659226+07	2026-09-14 13:35:25+07	7	2026-09-14 13:37:39.126+07	RETURNED	2026-09-14 13:37:39.128+07	1	0	0	\N	\N	NONE
+6	2026-09-17 18:06:18.190886+07	2026-09-17 18:06:18.190886+07	2026-09-24 18:06:18.165+07	48	\N	REJECTED	2026-09-17 18:06:56.63+07	1	0	0	\N	\N	NONE
+3	2026-09-14 20:23:50.048696+07	2026-09-14 20:23:50.048696+07	2026-09-30 12:00:00+07	8	2026-09-14 20:30:20.371+07	RETURNED	2026-09-14 20:30:20.372+07	1	0	0	\N	\N	NONE
+1	2026-09-15 15:13:08.472255+07	2026-09-15 15:13:08.472255+07	2026-09-16 06:59:59+07	37	2026-09-15 15:14:10.846+07	RETURNED	2026-09-15 15:14:10.846+07	2	0	0	\N	\N	NONE
+3	2026-09-14 20:32:16.654753+07	2026-09-14 20:32:16.654753+07	2026-09-30 12:00:00+07	9	\N	CANCELLED	2026-09-14 20:34:04.734+07	1	0	0	\N	\N	NONE
+3	2026-09-14 20:34:20.94077+07	2026-09-14 20:34:20.94077+07	2026-09-30 12:00:00+07	10	\N	REJECTED	2026-09-14 20:34:29.79+07	1	0	0	\N	\N	NONE
+9	2026-09-18 02:27:53.275644+07	2026-09-18 02:27:53.275644+07	2026-09-25 02:27:53.108+07	52	2026-09-18 02:28:25.833+07	RETURNED	2026-09-18 02:28:25.833+07	1	0	0	\N	\N	NONE
+1	2026-09-15 15:20:26.469104+07	2026-09-15 15:20:26.469104+07	2026-09-13 23:59:59+07	38	2026-09-15 15:23:51.648+07	RETURNED	2026-09-15 15:23:51.649+07	2	2000	0	\N	\N	NONE
+1	2026-09-14 22:17:01.64403+07	2026-09-14 22:17:01.64403+07	2026-09-30 12:00:00+07	14	2026-09-15 05:01:58.413+07	RETURNED	2026-09-15 05:01:58.413+07	2	0	0	\N	\N	NONE
+6	2026-09-17 00:42:49.240922+07	2026-09-17 00:42:49.240922+07	2026-10-08 00:42:49.191+07	42	2026-09-17 15:27:38.751+07	RETURNED	2026-09-17 15:27:38.751+07	1	0	2	\N	\N	NONE
+1	2026-09-15 05:06:05.847339+07	2026-09-15 05:06:05.847339+07	2026-09-30 12:00:00+07	15	2026-09-15 05:08:42.848+07	RETURNED	2026-09-15 05:08:42.848+07	2	0	0	\N	\N	NONE
+5	2026-09-15 05:06:05.958107+07	2026-09-15 05:06:05.958107+07	2026-09-30 12:00:00+07	16	\N	REJECTED	2026-09-15 05:08:42.88+07	2	0	0	\N	\N	NONE
+6	2026-09-15 05:06:05.991074+07	2026-09-15 05:06:05.991074+07	2026-09-30 12:00:00+07	17	\N	CANCELLED	2026-09-15 05:08:42.903+07	2	0	0	\N	\N	NONE
+2	2026-09-14 20:40:40.486022+07	2026-09-14 20:40:40.486022+07	2026-09-30 12:00:00+07	11	\N	CANCELLED	2026-09-15 06:42:46.384+07	1	0	0	\N	\N	NONE
+3	2026-09-14 20:40:47.69204+07	2026-09-14 20:40:47.69204+07	2026-09-30 12:00:00+07	12	\N	CANCELLED	2026-09-15 06:42:55.341+07	1	0	0	\N	\N	NONE
+4	2026-09-14 20:40:54.287395+07	2026-09-14 20:40:54.287395+07	2026-09-30 12:00:00+07	13	\N	CANCELLED	2026-09-15 06:43:01.19+07	1	0	0	\N	\N	NONE
+1	2026-09-15 15:54:38.40127+07	2026-09-15 15:54:38.40127+07	2026-09-13 23:59:59+07	39	\N	LOST	2026-09-15 15:55:03.9+07	2	0	0	\N	\N	NONE
+6	2026-09-18 02:08:33.990439+07	2026-09-18 02:08:33.990439+07	2026-09-25 02:08:33.818+07	49	2026-09-18 02:11:06.329+07	RETURNED	2026-09-18 02:11:06.329+07	1	0	0	\N	\N	NONE
+6	2026-09-17 15:32:10.964654+07	2026-09-17 15:32:10.964654+07	2026-09-24 15:32:10.916+07	43	\N	CANCELLED	2026-09-17 15:32:39.856+07	1	0	0	\N	\N	NONE
+1	2026-09-15 06:44:02.145855+07	2026-09-15 06:44:02.145855+07	2026-09-21 06:59:59+07	18	\N	CANCELLED	2026-09-15 07:32:04.438+07	1	0	0	\N	\N	NONE
+1	2026-09-15 06:44:02.14608+07	2026-09-15 06:44:02.14608+07	2026-09-21 06:59:59+07	19	\N	CANCELLED	2026-09-15 07:32:09.244+07	1	0	0	\N	\N	NONE
+2	2026-09-15 07:26:25.307914+07	2026-09-15 07:26:25.307914+07	2026-09-21 06:59:59+07	20	\N	CANCELLED	2026-09-15 07:32:13.829+07	1	0	0	\N	\N	NONE
+4	2026-09-15 07:30:35.313943+07	2026-09-15 07:30:35.313943+07	2026-09-21 06:59:59+07	23	\N	CANCELLED	2026-09-15 07:32:50.016+07	2	0	0	\N	\N	NONE
+4	2026-09-15 16:37:20.786281+07	2026-09-15 16:37:20.786281+07	2026-09-13 23:59:59+07	40	\N	LOST	2026-09-15 16:39:41.917+07	2	2000	0	\N	\N	NONE
+2	2026-09-15 07:33:21.580388+07	2026-09-15 07:33:21.580388+07	2026-09-21 06:59:59+07	24	\N	CANCELLED	2026-09-15 07:38:02.028+07	2	0	0	\N	\N	NONE
+1	2026-09-15 07:33:21.580542+07	2026-09-15 07:33:21.580542+07	2026-09-21 06:59:59+07	25	\N	CANCELLED	2026-09-15 07:38:07.915+07	2	0	0	\N	\N	NONE
+1	2026-09-15 08:39:18.983199+07	2026-09-15 08:39:18.983199+07	2026-09-21 23:59:59+07	28	\N	CANCELLED	2026-09-15 08:40:02.518+07	2	0	0	\N	\N	NONE
+1	2026-09-15 08:44:38.43853+07	2026-09-15 08:44:38.43853+07	2026-09-21 23:59:59+07	29	\N	CANCELLED	2026-09-15 08:45:00.495+07	2	0	0	\N	\N	NONE
+1	2026-09-15 07:39:30.383229+07	2026-09-15 07:39:30.383229+07	2026-09-21 06:59:59+07	26	2026-09-15 08:12:20.426+07	RETURNED	2026-09-15 08:12:20.426+07	2	0	0	\N	\N	NONE
+6	2026-09-17 15:35:34.218093+07	2026-09-17 15:35:34.218093+07	2026-09-24 15:35:34.195+07	44	\N	REJECTED	2026-09-17 15:52:57.062+07	1	0	0	\N	\N	NONE
+1	2026-09-15 08:45:39.184486+07	2026-09-15 08:45:39.184486+07	2026-09-21 23:59:59+07	30	\N	REJECTED	2026-09-15 08:46:07.261+07	2	0	0	\N	\N	NONE
+3	2026-09-15 07:29:14.916339+07	2026-09-15 07:29:14.916339+07	2026-09-21 06:59:59+07	21	2026-09-15 08:29:51.81+07	RETURNED	2026-09-15 08:29:51.811+07	2	0	0	\N	\N	NONE
+5	2026-09-15 16:41:04.450859+07	2026-09-15 16:41:04.450859+07	2026-09-13 23:59:59+07	41	2026-09-15 16:43:22.69+07	RETURNED	2026-09-15 16:43:22.69+07	2	2000	0	\N	\N	NONE
+1	2026-09-15 08:37:53.3575+07	2026-09-15 08:37:53.3575+07	2026-09-21 23:59:59+07	27	\N	CANCELLED	2026-09-15 08:38:34.363+07	2	0	0	\N	\N	NONE
+5	2026-09-15 07:30:35.313488+07	2026-09-15 07:30:35.313488+07	2026-09-21 06:59:59+07	22	\N	REJECTED	2026-09-15 08:38:34.374+07	2	0	0	\N	\N	NONE
+6	2026-09-17 15:57:04.072807+07	2026-09-17 15:57:04.072807+07	2026-09-24 15:57:04.048+07	45	2026-09-17 16:48:17.043+07	RETURNED	2026-09-17 16:48:17.043+07	1	0	0	\N	\N	NONE
+13	2026-09-19 09:41:14.05+07	2026-09-19 09:41:14.040152+07	2026-09-26 09:41:14.05+07	58	2026-09-19 12:24:22.102+07	RETURNED	2026-09-19 12:24:22.102+07	1	0	0	\N	2026-09-19 10:42:11.666+07	COMPLETED
+6	2026-09-17 16:49:26.355495+07	2026-09-17 16:49:26.355495+07	2026-09-24 16:49:26.331+07	46	\N	REJECTED	2026-09-17 16:50:02.494+07	1	0	0	\N	\N	NONE
+8	2026-09-15 12:48:45.926862+07	2026-09-15 12:48:45.926862+07	2026-09-22 07:00:00+07	32	2026-09-15 12:50:17.197+07	RETURNED	2026-09-15 12:50:17.197+07	2	0	0	\N	\N	NONE
+6	2026-09-18 02:12:54.112855+07	2026-09-18 02:12:54.112855+07	2026-09-25 02:12:53.94+07	50	\N	LOST	2026-09-18 02:13:43.209+07	1	0	0	\N	\N	NONE
+13	2026-09-18 16:36:18.594823+07	2026-09-18 16:36:18.594823+07	2026-09-25 16:36:18.556+07	54	\N	REJECTED	2026-09-18 16:50:28.528+07	1	0	0	\N	\N	NONE
+1	2026-09-15 13:23:44.593896+07	2026-09-15 13:23:44.593896+07	2026-09-22 07:00:00+07	33	2026-09-15 13:25:47.146+07	RETURNED	2026-09-15 13:25:47.146+07	2	0	0	\N	\N	NONE
+11	2026-09-18 15:41:23.352+07	2026-09-18 15:41:23.347272+07	2026-09-25 15:41:23.352+07	53	2026-09-18 16:52:59.824+07	RETURNED	2026-09-18 16:52:59.824+07	1	0	0	1	\N	NONE
+8	2026-09-18 02:16:31.558209+07	2026-09-18 02:16:31.558209+07	2026-09-25 02:16:31.391+07	51	2026-09-18 02:16:56.931+07	RETURNED	2026-09-18 02:16:56.931+07	1	0	0	\N	\N	NONE
+1	2026-09-15 14:22:33.693678+07	2026-09-15 14:22:33.693678+07	2026-09-23 06:59:59+07	34	2026-09-15 14:25:36.668+07	RETURNED	2026-09-15 14:25:36.668+07	2	0	0	\N	\N	NONE
+9	2026-09-18 17:06:52.143+07	2026-09-18 17:06:52.137381+07	2026-10-02 17:06:52.143+07	55	2026-09-19 02:42:36.373+07	RETURNED	2026-09-19 02:42:36.373+07	1	0	1	2	\N	NONE
+11	2026-09-19 07:18:55.012+07	2026-09-19 07:18:55.003035+07	2026-09-26 07:18:55.012+07	56	\N	ACTIVE	2026-09-19 07:18:55.012+07	1	0	0	\N	\N	NONE
+12	2026-09-19 07:29:07.179+07	2026-09-19 07:29:07.175072+07	2026-09-26 07:29:07.179+07	57	\N	ACTIVE	2026-09-19 07:29:07.18+07	1	0	0	3	\N	NONE
+\.
+
+
+--
+-- Data for Name: memberQr; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."memberQr" (id, "userId", "tokenHash", "revokedAt", "createdAt", "updatedAt", "tokenEncrypted") FROM stdin;
+1	1	f2eebb16cdd491fa95fca4e946154f8e933aa8e359aa4b32be57cf244e74ea03	\N	2026-09-19 06:28:14.269405+07	2026-09-19 06:56:45.893+07	7ic-smIomZKbKjcT.Ht4ya-8rh5H3Jtfu9brwKQ.CX-Z3xOEHoUwDq39VlJw4TSRx1Qf_2cm_Xaq_RX4uWyrZIsgLk9Z81w2lJqoE5-WFR8
+\.
+
+
+--
+-- Data for Name: notification; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.notification (id, "userId", type, title, message, "isRead", "createdAt", "updatedAt") FROM stdin;
+1	1	RESERVATION_APPROVED	Reservasi Disetujui	Reservasi buku Anda telah disetujui dan siap diambil di perpustakaan.	f	2026-09-19 02:30:07.357463+07	2026-09-19 02:30:07.357+07
+2	1	RESERVATION_REJECTED	Reservasi Ditolak	Reservasi buku Anda ditolak oleh perpustakaan.	f	2026-09-19 02:43:48.446019+07	2026-09-19 02:43:48.445+07
+3	1	RESERVATION_CANCELLED	Reservasi Dibatalkan	Reservasi buku Anda telah dibatalkan.	f	2026-09-19 02:47:34.058392+07	2026-09-19 02:47:34.057+07
+\.
+
+
+--
+-- Data for Name: passwordReset; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."passwordReset" (id, "userId", "otpHash", "expiresAt", attempts, "usedAt", "createdAt") FROM stdin;
+1	1	$2b$10$axiHI.AMguW1Z4xHFdag5OUVbKsomfScFp6QaWI8X9vIYZQYQOpOW	2026-09-19 04:42:52.812+07	0	2026-09-19 04:39:52.303+07	2026-09-19 04:32:52.813655+07
+2	1	$2b$10$XCPsKJbqfMmKSQrTo2mmfuRw.urTwQu/2Uhi5vqJYpOZGvESvBof2	2026-09-19 04:49:52.376+07	0	2026-09-19 04:43:38.615+07	2026-09-19 04:39:52.37629+07
+3	1	$2b$10$0Zw0GIkpYow8mm5jlCXS2eFAmhPAV.wRNOI7fFIIdUKuhm4uvSEBm	2026-09-19 04:59:18.254+07	0	2026-09-19 04:50:04.857+07	2026-09-19 04:49:18.254766+07
+4	1	$2b$10$KmNzyeftL4hpmGFdvBgqr.WuJGsfqpuUNDbPp52WO3X3VtwS./M8i	2026-09-19 05:53:15.16+07	0	2026-09-19 05:45:28.514+07	2026-09-19 05:43:15.161783+07
+\.
+
+
+--
+-- Data for Name: permission; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.permission (code, "createdAt", description, id, "updatedAt") FROM stdin;
+BOOK_VIEW	2026-09-13 05:36:14.059805+07	Melihat katalog dan detail buku	1	2026-09-13 05:36:14.059805+07
+BOOK_CREATE	2026-09-13 05:36:14.059805+07	Menambahkan buku baru	2	2026-09-13 05:36:14.059805+07
+BOOK_UPDATE	2026-09-13 05:36:14.059805+07	Mengubah data buku	3	2026-09-13 05:36:14.059805+07
+BOOK_DELETE	2026-09-13 05:36:14.059805+07	Menghapus buku	4	2026-09-13 05:36:14.059805+07
+LOAN_VIEW	2026-09-13 05:36:14.059805+07	Melihat data peminjaman	5	2026-09-13 05:36:14.059805+07
+LOAN_CREATE	2026-09-13 05:36:14.059805+07	Membuat peminjaman buku	6	2026-09-13 05:36:14.059805+07
+LOAN_APPROVE	2026-09-13 05:36:14.059805+07	Menyetujui peminjaman	7	2026-09-13 05:36:14.059805+07
+LOAN_RETURN	2026-09-13 05:36:14.059805+07	Memproses pengembalian buku	8	2026-09-13 05:36:14.059805+07
+USER_VIEW	2026-09-13 05:36:14.059805+07	Melihat data pengguna	9	2026-09-13 05:36:14.059805+07
+USER_CREATE	2026-09-13 05:36:14.059805+07	Menambahkan pengguna	10	2026-09-13 05:36:14.059805+07
+USER_UPDATE	2026-09-13 05:36:14.059805+07	Mengubah data pengguna	11	2026-09-13 05:36:14.059805+07
+USER_DELETE	2026-09-13 05:36:14.059805+07	Menghapus pengguna	12	2026-09-13 05:36:14.059805+07
+ROLE_MANAGE	2026-09-13 05:36:14.059805+07	Mengelola role pengguna	13	2026-09-13 05:36:14.059805+07
+PERMISSION_MANAGE	2026-09-13 05:36:14.059805+07	Mengelola permission	14	2026-09-13 05:36:14.059805+07
+SYSTEM_MANAGE	2026-09-13 05:36:14.059805+07	Mengelola konfigurasi sistem	15	2026-09-13 05:36:14.059805+07
+STUDENT_VIEW	2026-09-13 11:27:35.066923+07	Melihat data mahasiswa	16	2026-09-13 11:27:35.066923+07
+STUDENT_CREATE	2026-09-13 11:27:35.066923+07	Membuat profil mahasiswa	17	2026-09-13 11:27:35.066923+07
+STUDENT_UPDATE	2026-09-13 11:27:35.066923+07	Mengubah data mahasiswa	18	2026-09-13 11:27:35.066923+07
+STUDENT_DELETE	2026-09-13 11:27:35.066923+07	Menghapus data mahasiswa	19	2026-09-13 11:27:35.066923+07
+LECTURER_VIEW	2026-09-13 13:46:19.715375+07	Melihat data dosen	20	2026-09-13 13:46:19.715375+07
+LECTURER_CREATE	2026-09-13 13:46:19.715375+07	Membuat profil dosen	21	2026-09-13 13:46:19.715375+07
+LECTURER_UPDATE	2026-09-13 13:46:19.715375+07	Mengubah data dosen	22	2026-09-13 13:46:19.715375+07
+LECTURER_DELETE	2026-09-13 13:46:19.715375+07	Menghapus data dosen	23	2026-09-13 13:46:19.715375+07
+CATEGORY_VIEW	2026-09-13 14:49:05.923666+07	Melihat data kategori	24	2026-09-13 14:49:05.923666+07
+CATEGORY_CREATE	2026-09-13 14:49:05.923666+07	Membuat kategori	25	2026-09-13 14:49:05.923666+07
+CATEGORY_UPDATE	2026-09-13 14:49:05.923666+07	Mengubah kategori	26	2026-09-13 14:49:05.923666+07
+CATEGORY_DELETE	2026-09-13 14:49:05.923666+07	Menghapus kategori	27	2026-09-13 14:49:05.923666+07
+BOOK_COPY_VIEW	2026-09-13 16:10:03.338161+07	Melihat data copy buku	30	2026-09-13 16:10:03.338161+07
+BOOK_COPY_CREATE	2026-09-13 16:10:03.338161+07	Membuat copy buku	31	2026-09-13 16:10:03.338161+07
+BOOK_COPY_UPDATE	2026-09-13 16:10:03.338161+07	Mengubah data copy buku	32	2026-09-13 16:10:03.338161+07
+BOOK_COPY_DELETE	2026-09-13 16:10:03.338161+07	Menghapus copy buku	33	2026-09-13 16:10:03.338161+07
+LOAN_CANCEL	2026-09-14 17:34:58.750009+07	Membatalkan peminjaman buku	34	2026-09-14 17:34:58.749+07
+LOAN_REJECT	2026-09-14 17:34:58.751558+07	Menolak permintaan peminjaman	35	2026-09-14 17:34:58.751+07
+LOAN_STATISTICS	2026-09-14 17:34:58.752747+07	Melihat statistik peminjaman	36	2026-09-14 17:34:58.752+07
+LOAN_VIEW_OWN	2026-09-14 21:41:01.45651+07	Melihat peminjaman milik sendiri	37	2026-09-14 21:41:01.455+07
+RESERVATION_VIEW	2026-09-18 13:49:01.040106+07	Melihat seluruh reservation	40	2026-09-18 13:49:01.040106+07
+RESERVATION_VIEW_OWN	2026-09-18 13:49:01.040106+07	Melihat reservation milik sendiri	41	2026-09-18 13:49:01.040106+07
+RESERVATION_CREATE	2026-09-18 13:49:01.040106+07	Membuat reservation	42	2026-09-18 13:49:01.040106+07
+RESERVATION_APPROVE	2026-09-18 13:49:01.040106+07	Menyetujui atau menolak reservation	43	2026-09-18 13:49:01.040106+07
+RESERVATION_CANCEL	2026-09-18 13:49:01.040106+07	Membatalkan reservation	44	2026-09-18 13:49:01.040106+07
+RESERVATION_PICKUP	2026-09-18 15:33:05.54045+07	Memproses pengambilan reservation menjadi peminjaman	45	2026-09-18 15:33:05.54045+07
+NOTIFICATION_VIEW_OWN	2026-09-19 00:57:43.338343+07	Melihat dan mengelola notifikasi milik sendiri	46	2026-09-19 00:57:43.338343+07
+MEMBER_QR_VIEW_OWN	2026-09-19 06:05:43.338303+07	Melihat QR anggota sendiri	48	2026-09-19 06:05:43.338303+07
+MEMBER_QR_GENERATE	2026-09-19 06:05:43.338303+07	Membuat dan memperbarui QR anggota	49	2026-09-19 06:05:43.338303+07
+MEMBER_QR_VALIDATE	2026-09-19 06:05:43.338303+07	Memvalidasi QR anggota	50	2026-09-19 06:05:43.338303+07
+\.
+
+
+--
+-- Data for Name: reservation; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.reservation (id, "userId", "bookId", status, "expiresAt", "approvedAt", "pickedUpAt", "cancelledAt", "createdAt", "updatedAt") FROM stdin;
+1	1	5	PICKED_UP	2026-09-19 15:14:09.58+07	2026-09-18 15:15:00.055+07	2026-09-18 15:41:23.352+07	\N	2026-09-18 15:14:09.572934+07	2026-09-18 15:41:23.352+07
+2	1	4	PICKED_UP	2026-09-19 16:52:48.244+07	2026-09-18 17:04:03.788+07	2026-09-18 17:06:52.143+07	\N	2026-09-18 16:52:48.236876+07	2026-09-18 17:06:52.143+07
+4	1	4	REJECTED	2026-09-20 02:43:03.588+07	\N	\N	\N	2026-09-19 02:43:03.586238+07	2026-09-19 02:43:48.444+07
+5	1	4	CANCELLED	2026-09-20 02:47:20.34+07	\N	\N	2026-09-19 02:47:34.053+07	2026-09-19 02:47:20.335307+07	2026-09-19 02:47:34.055+07
+3	1	5	PICKED_UP	2026-09-20 02:29:35.046+07	2026-09-19 02:30:07.353+07	2026-09-19 07:29:07.179+07	\N	2026-09-19 02:29:35.038295+07	2026-09-19 07:29:07.179+07
+\.
+
+
+--
+-- Data for Name: role; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public.role ("createdAt", description, id, name, "updatedAt") FROM stdin;
+2026-09-13 05:31:59.948172+07	Mahasiswa pengguna perpustakaan	1	STUDENT	2026-09-13 05:31:59.948172+07
+2026-09-13 05:31:59.948172+07	Dosen pengguna perpustakaan	2	LECTURER	2026-09-13 05:31:59.948172+07
+2026-09-13 05:31:59.948172+07	Petugas perpustakaan	3	LIBRARIAN	2026-09-13 05:31:59.948172+07
+2026-09-13 05:31:59.948172+07	Administrator sistem	4	ADMIN	2026-09-13 05:31:59.948172+07
+2026-09-13 05:31:59.948172+07	Pengunjung umum	5	PUBLIC	2026-09-13 05:31:59.948172+07
+\.
+
+
+--
+-- Data for Name: rolePermission; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."rolePermission" ("createdAt", id, "permissionId", "roleId") FROM stdin;
+2026-09-13 05:37:29.014028+07	1	1	4
+2026-09-13 05:37:29.014028+07	2	2	4
+2026-09-13 05:37:29.014028+07	3	3	4
+2026-09-13 05:37:29.014028+07	4	4	4
+2026-09-13 05:37:29.014028+07	5	5	4
+2026-09-13 05:37:29.014028+07	6	6	4
+2026-09-13 05:37:29.014028+07	7	7	4
+2026-09-13 05:37:29.014028+07	8	8	4
+2026-09-13 05:37:29.014028+07	9	9	4
+2026-09-13 05:37:29.014028+07	10	10	4
+2026-09-13 05:37:29.014028+07	11	11	4
+2026-09-13 05:37:29.014028+07	12	12	4
+2026-09-13 05:37:29.014028+07	13	13	4
+2026-09-13 05:37:29.014028+07	14	14	4
+2026-09-13 05:37:29.014028+07	15	15	4
+2026-09-13 05:37:29.017298+07	16	1	3
+2026-09-13 05:37:29.017298+07	17	2	3
+2026-09-13 05:37:29.017298+07	18	3	3
+2026-09-13 05:37:29.017298+07	19	4	3
+2026-09-13 05:37:29.017298+07	20	5	3
+2026-09-13 05:37:29.017298+07	21	6	3
+2026-09-13 05:37:29.017298+07	22	7	3
+2026-09-13 05:37:29.017298+07	23	8	3
+2026-09-13 05:37:29.017298+07	24	9	3
+2026-09-13 05:37:29.017861+07	25	1	2
+2026-09-13 05:37:29.017861+07	27	6	2
+2026-09-13 05:37:29.018466+07	28	1	1
+2026-09-13 05:37:29.018466+07	30	6	1
+2026-09-13 05:37:29.018744+07	31	1	5
+2026-09-13 11:28:43.454133+07	32	16	4
+2026-09-13 11:28:43.454133+07	33	17	4
+2026-09-13 11:28:43.454133+07	34	18	4
+2026-09-13 11:28:43.454133+07	35	19	4
+2026-09-13 13:47:19.13592+07	36	20	4
+2026-09-13 13:47:19.13592+07	37	21	4
+2026-09-13 13:47:19.13592+07	38	22	4
+2026-09-13 13:47:19.13592+07	39	23	4
+2026-09-13 14:50:11.993743+07	40	24	4
+2026-09-13 14:50:11.993743+07	41	25	4
+2026-09-13 14:50:11.993743+07	42	26	4
+2026-09-13 14:50:11.993743+07	43	27	4
+2026-09-13 16:11:30.794748+07	48	30	4
+2026-09-13 16:11:30.794748+07	49	31	4
+2026-09-13 16:11:30.794748+07	50	32	4
+2026-09-13 16:11:30.794748+07	51	33	4
+2026-09-13 16:11:38.055553+07	52	30	3
+2026-09-13 16:11:38.055553+07	53	31	3
+2026-09-13 16:11:38.055553+07	54	32	3
+2026-09-13 16:11:38.055553+07	55	33	3
+2026-09-14 17:39:38.813014+07	56	34	1
+2026-09-14 17:39:38.815937+07	57	34	2
+2026-09-14 17:39:38.817918+07	58	24	3
+2026-09-14 17:39:38.818641+07	59	25	3
+2026-09-14 17:39:38.819305+07	60	26	3
+2026-09-14 17:39:38.81994+07	61	27	3
+2026-09-14 17:39:38.82194+07	62	35	3
+2026-09-14 17:39:38.822704+07	63	36	3
+2026-09-14 17:39:38.823293+07	64	16	3
+2026-09-14 17:39:38.823856+07	65	20	3
+2026-09-14 17:39:38.832369+07	66	34	4
+2026-09-14 17:39:38.833111+07	67	35	4
+2026-09-14 17:39:38.833644+07	68	36	4
+2026-09-14 21:43:37.983718+07	69	37	1
+2026-09-14 21:43:37.987027+07	70	37	2
+2026-09-14 21:43:38.002226+07	71	37	4
+2026-09-18 13:49:01.042437+07	74	41	1
+2026-09-18 13:49:01.042437+07	75	42	1
+2026-09-18 13:49:01.042437+07	76	44	1
+2026-09-18 13:49:01.045308+07	77	41	2
+2026-09-18 13:49:01.045308+07	78	42	2
+2026-09-18 13:49:01.045308+07	79	44	2
+2026-09-18 13:49:01.045873+07	80	40	3
+2026-09-18 13:49:01.045873+07	81	43	3
+2026-09-18 13:49:01.045873+07	82	44	3
+2026-09-18 13:49:01.046225+07	83	40	4
+2026-09-18 13:49:01.046225+07	84	43	4
+2026-09-18 13:49:01.046225+07	85	44	4
+2026-09-18 15:13:12.737991+07	86	42	4
+2026-09-18 15:33:05.542245+07	87	45	3
+2026-09-18 15:33:05.542245+07	88	45	4
+2026-09-19 01:00:34.57838+07	89	46	1
+2026-09-19 01:00:34.57838+07	90	46	2
+2026-09-19 02:14:58.95873+07	91	46	3
+2026-09-19 02:14:58.95873+07	92	46	4
+2026-09-19 06:06:40.089361+07	93	48	1
+2026-09-19 06:06:40.089361+07	94	49	1
+2026-09-19 06:06:40.089361+07	95	48	2
+2026-09-19 06:06:40.089361+07	96	49	2
+2026-09-19 06:06:40.089361+07	97	50	3
+2026-09-19 06:06:40.089361+07	98	48	4
+2026-09-19 06:06:40.089361+07	99	49	4
+2026-09-19 06:06:40.089361+07	100	50	4
+\.
+
+
+--
+-- Data for Name: studentProfile; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."studentProfile" ("createdAt", "enrollmentYear", faculty, id, npm, "studyProgram", "updatedAt", "userId") FROM stdin;
+2026-09-15 06:16:29.537125+07	2026	Teknik	3	TEST-20260915	Teknik Industri	2026-09-15 06:16:29.536+07	2
+2026-09-16 18:39:02.831873+07	2025	Teknik	4	258150062	Teknik Industri	2026-09-16 18:39:02.802+07	1
+\.
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."user" ("createdAt", email, "fullName", id, "isActive", "passwordHash", phone, "updatedAt", username, "refreshTokenHash") FROM stdin;
+2026-09-14 20:07:39.106625+07	student@test.com	Student Testing	2	t	$2b$10$jKqHxSgyMM4XG4r0LeSDYORcY4drnJXpc1mRiaidVS2rUtkr3wD3e	081234567891	2026-09-15 07:27:30.768+07	studenttest	$2b$10$Q/STH0OxSO9.ZfeULF35duyMBT7AExLrrgqIIPsuuG8OxVbqVw7oS
+2026-09-13 06:09:35.257218+07	bigbosssumatera@gmail.com	Dedi Setiawan Halawa	1	t	$2b$10$K/dR/Zza98IhBDinC5e8..iyZv0wZU85Aqk.tjBNXGY7SmTFqdi6q	082258159066	2026-09-20 03:39:20.471+07	dedi	$2b$10$6MDcqDS3ETgbEW4/U/NdlOM9HlvHegDWRpIhZKK4RudQZ0tG.DSTq
+\.
+
+
+--
+-- Data for Name: userRole; Type: TABLE DATA; Schema: public; Owner: dedihalawa
+--
+
+COPY public."userRole" ("createdAt", id, "roleId", "userId") FROM stdin;
+2026-09-13 08:02:25.720061+07	2	4	1
+2026-09-14 22:09:00.05505+07	5	1	2
+\.
+
+
+--
+-- Name: ledger_id_seq; Type: SEQUENCE SET; Schema: prisma_contract; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('prisma_contract.ledger_id_seq', 6, true);
+
+
+--
+-- Name: bookCopy_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."bookCopy_id_seq"', 18, true);
+
+
+--
+-- Name: book_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.book_id_seq', 6, true);
+
+
+--
+-- Name: category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.category_id_seq', 5, true);
+
+
+--
+-- Name: lecturerProfile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."lecturerProfile_id_seq"', 3, true);
+
+
+--
+-- Name: loan_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.loan_id_seq', 58, true);
+
+
+--
+-- Name: memberQr_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."memberQr_id_seq"', 1, true);
+
+
+--
+-- Name: notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.notification_id_seq', 3, true);
+
+
+--
+-- Name: passwordReset_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."passwordReset_id_seq"', 4, true);
+
+
+--
+-- Name: permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.permission_id_seq', 50, true);
+
+
+--
+-- Name: reservation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.reservation_id_seq', 5, true);
+
+
+--
+-- Name: rolePermission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."rolePermission_id_seq"', 100, true);
+
+
+--
+-- Name: role_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.role_id_seq', 8, true);
+
+
+--
+-- Name: studentProfile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."studentProfile_id_seq"', 4, true);
+
+
+--
+-- Name: userRole_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public."userRole_id_seq"', 7, true);
+
+
+--
+-- Name: user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: dedihalawa
+--
+
+SELECT pg_catalog.setval('public.user_id_seq', 2, true);
+
+
+--
+-- Name: contract contract_pkey; Type: CONSTRAINT; Schema: prisma_contract; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY prisma_contract.contract
+    ADD CONSTRAINT contract_pkey PRIMARY KEY (core_hash);
+
+
+--
+-- Name: ledger ledger_pkey; Type: CONSTRAINT; Schema: prisma_contract; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY prisma_contract.ledger
+    ADD CONSTRAINT ledger_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: marker marker_pkey; Type: CONSTRAINT; Schema: prisma_contract; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY prisma_contract.marker
+    ADD CONSTRAINT marker_pkey PRIMARY KEY (space);
+
+
+--
+-- Name: bookCopy bookCopy_barcode_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."bookCopy"
+    ADD CONSTRAINT "bookCopy_barcode_key" UNIQUE (barcode);
+
+
+--
+-- Name: bookCopy bookCopy_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."bookCopy"
+    ADD CONSTRAINT "bookCopy_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: book book_isbn_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.book
+    ADD CONSTRAINT book_isbn_key UNIQUE (isbn);
+
+
+--
+-- Name: book book_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.book
+    ADD CONSTRAINT book_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: category category_name_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.category
+    ADD CONSTRAINT category_name_key UNIQUE (name);
+
+
+--
+-- Name: category category_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.category
+    ADD CONSTRAINT category_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: lecturerProfile lecturerProfile_lecturerNumber_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."lecturerProfile"
+    ADD CONSTRAINT "lecturerProfile_lecturerNumber_key" UNIQUE ("lecturerNumber");
+
+
+--
+-- Name: lecturerProfile lecturerProfile_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."lecturerProfile"
+    ADD CONSTRAINT "lecturerProfile_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: lecturerProfile lecturerProfile_userId_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."lecturerProfile"
+    ADD CONSTRAINT "lecturerProfile_userId_key" UNIQUE ("userId");
+
+
+--
+-- Name: loan loan_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.loan
+    ADD CONSTRAINT loan_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: memberQr memberQr_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."memberQr"
+    ADD CONSTRAINT "memberQr_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: memberQr memberQr_tokenHash_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."memberQr"
+    ADD CONSTRAINT "memberQr_tokenHash_key" UNIQUE ("tokenHash");
+
+
+--
+-- Name: memberQr memberQr_userId_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."memberQr"
+    ADD CONSTRAINT "memberQr_userId_key" UNIQUE ("userId");
+
+
+--
+-- Name: notification notification_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.notification
+    ADD CONSTRAINT notification_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: passwordReset passwordReset_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."passwordReset"
+    ADD CONSTRAINT "passwordReset_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: permission permission_code_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.permission
+    ADD CONSTRAINT permission_code_key UNIQUE (code);
+
+
+--
+-- Name: permission permission_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.permission
+    ADD CONSTRAINT permission_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: reservation reservation_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.reservation
+    ADD CONSTRAINT reservation_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rolePermission rolePermission_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."rolePermission"
+    ADD CONSTRAINT "rolePermission_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: rolePermission rolePermission_roleId_permissionId_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."rolePermission"
+    ADD CONSTRAINT "rolePermission_roleId_permissionId_key" UNIQUE ("roleId", "permissionId");
+
+
+--
+-- Name: role role_name_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.role
+    ADD CONSTRAINT role_name_key UNIQUE (name);
+
+
+--
+-- Name: role role_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.role
+    ADD CONSTRAINT role_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: studentProfile studentProfile_nim_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."studentProfile"
+    ADD CONSTRAINT "studentProfile_nim_key" UNIQUE (npm);
+
+
+--
+-- Name: studentProfile studentProfile_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."studentProfile"
+    ADD CONSTRAINT "studentProfile_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: studentProfile studentProfile_userId_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."studentProfile"
+    ADD CONSTRAINT "studentProfile_userId_key" UNIQUE ("userId");
+
+
+--
+-- Name: userRole userRole_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."userRole"
+    ADD CONSTRAINT "userRole_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: userRole userRole_userId_roleId_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."userRole"
+    ADD CONSTRAINT "userRole_userId_roleId_key" UNIQUE ("userId", "roleId");
+
+
+--
+-- Name: user user_email_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."user"
+    ADD CONSTRAINT user_email_key UNIQUE (email);
+
+
+--
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user user_username_key; Type: CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."user"
+    ADD CONSTRAINT user_username_key UNIQUE (username);
+
+
+--
+-- Name: bookCopy_bookId_idx_3eec38a3; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "bookCopy_bookId_idx_3eec38a3" ON public."bookCopy" USING btree ("bookId");
+
+
+--
+-- Name: book_categoryId_idx_15c304f2; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "book_categoryId_idx_15c304f2" ON public.book USING btree ("categoryId");
+
+
+--
+-- Name: loan_bookCopyId_idx_ab16ce78; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "loan_bookCopyId_idx_ab16ce78" ON public.loan USING btree ("bookCopyId");
+
+
+--
+-- Name: loan_reservationId_key; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE UNIQUE INDEX "loan_reservationId_key" ON public.loan USING btree ("reservationId");
+
+
+--
+-- Name: loan_status_idx_e98638ab; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX loan_status_idx_e98638ab ON public.loan USING btree (status);
+
+
+--
+-- Name: loan_userId_idx_a489d58a; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "loan_userId_idx_a489d58a" ON public.loan USING btree ("userId");
+
+
+--
+-- Name: notification_createdAt_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "notification_createdAt_idx" ON public.notification USING btree ("createdAt");
+
+
+--
+-- Name: notification_isRead_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "notification_isRead_idx" ON public.notification USING btree ("isRead");
+
+
+--
+-- Name: notification_userId_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "notification_userId_idx" ON public.notification USING btree ("userId");
+
+
+--
+-- Name: passwordReset_expiresAt_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "passwordReset_expiresAt_idx" ON public."passwordReset" USING btree ("expiresAt");
+
+
+--
+-- Name: passwordReset_userId_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "passwordReset_userId_idx" ON public."passwordReset" USING btree ("userId");
+
+
+--
+-- Name: reservation_bookId_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "reservation_bookId_idx" ON public.reservation USING btree ("bookId");
+
+
+--
+-- Name: reservation_status_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX reservation_status_idx ON public.reservation USING btree (status);
+
+
+--
+-- Name: reservation_userId_idx; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "reservation_userId_idx" ON public.reservation USING btree ("userId");
+
+
+--
+-- Name: rolePermission_permissionId_idx_f46fcdf5; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "rolePermission_permissionId_idx_f46fcdf5" ON public."rolePermission" USING btree ("permissionId");
+
+
+--
+-- Name: rolePermission_roleId_idx_ffccc9a4; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "rolePermission_roleId_idx_ffccc9a4" ON public."rolePermission" USING btree ("roleId");
+
+
+--
+-- Name: userRole_roleId_idx_ffccc9a4; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "userRole_roleId_idx_ffccc9a4" ON public."userRole" USING btree ("roleId");
+
+
+--
+-- Name: userRole_userId_idx_a489d58a; Type: INDEX; Schema: public; Owner: dedihalawa
+--
+
+CREATE INDEX "userRole_userId_idx_a489d58a" ON public."userRole" USING btree ("userId");
+
+
+--
+-- Name: bookCopy bookCopy_bookId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."bookCopy"
+    ADD CONSTRAINT "bookCopy_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES public.book(id);
+
+
+--
+-- Name: book book_categoryId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.book
+    ADD CONSTRAINT "book_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES public.category(id);
+
+
+--
+-- Name: lecturerProfile lecturerProfile_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."lecturerProfile"
+    ADD CONSTRAINT "lecturerProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id);
+
+
+--
+-- Name: loan loan_bookCopyId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.loan
+    ADD CONSTRAINT "loan_bookCopyId_fkey" FOREIGN KEY ("bookCopyId") REFERENCES public."bookCopy"(id);
+
+
+--
+-- Name: loan loan_reservationId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.loan
+    ADD CONSTRAINT "loan_reservationId_fkey" FOREIGN KEY ("reservationId") REFERENCES public.reservation(id);
+
+
+--
+-- Name: loan loan_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.loan
+    ADD CONSTRAINT "loan_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id);
+
+
+--
+-- Name: memberQr memberQr_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."memberQr"
+    ADD CONSTRAINT "memberQr_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: notification notification_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.notification
+    ADD CONSTRAINT "notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: passwordReset passwordReset_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."passwordReset"
+    ADD CONSTRAINT "passwordReset_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: reservation reservation_bookId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.reservation
+    ADD CONSTRAINT "reservation_bookId_fkey" FOREIGN KEY ("bookId") REFERENCES public.book(id);
+
+
+--
+-- Name: reservation reservation_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public.reservation
+    ADD CONSTRAINT "reservation_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id);
+
+
+--
+-- Name: rolePermission rolePermission_permissionId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."rolePermission"
+    ADD CONSTRAINT "rolePermission_permissionId_fkey" FOREIGN KEY ("permissionId") REFERENCES public.permission(id);
+
+
+--
+-- Name: rolePermission rolePermission_roleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."rolePermission"
+    ADD CONSTRAINT "rolePermission_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES public.role(id);
+
+
+--
+-- Name: studentProfile studentProfile_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."studentProfile"
+    ADD CONSTRAINT "studentProfile_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id);
+
+
+--
+-- Name: userRole userRole_roleId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."userRole"
+    ADD CONSTRAINT "userRole_roleId_fkey" FOREIGN KEY ("roleId") REFERENCES public.role(id);
+
+
+--
+-- Name: userRole userRole_userId_fkey; Type: FK CONSTRAINT; Schema: public; Owner: dedihalawa
+--
+
+ALTER TABLE ONLY public."userRole"
+    ADD CONSTRAINT "userRole_userId_fkey" FOREIGN KEY ("userId") REFERENCES public."user"(id);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict nlAfsV6tCPq0ulSKO7X6kgcDQmPzzTYB3Mr8lFphdyy7QPtNDjjBOzdtfNkbUIN
+

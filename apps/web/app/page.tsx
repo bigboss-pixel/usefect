@@ -1,6 +1,7 @@
 "use client";
 
 import SiteHeader from "../components/SiteHeader";
+import UsefectHeroIllustration from "../components/UsefectHeroIllustration";
 import { useEffect, useState } from "react";
 import { apiFetch } from "./lib/api";
 import Image from "next/image";
@@ -257,13 +258,7 @@ const handleLogout = async () => {
 
         <div className="hero-background">
 
-          <Image
-            src="/unexa2.jpeg"
-            alt="Gedung Perpustakaan Universitas Medan Area"
-            fill
-            priority
-            className="building-image"
-          />
+          <UsefectHeroIllustration />
 
           <div className="hero-image-overlay" />
 

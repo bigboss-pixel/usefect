@@ -1,0 +1,218 @@
+import * as bcrypt from 'bcrypt';
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { db } from '../prisma/db.js';
+import { AuditLogService } from '../audit-log/audit-log.service.js';
+
+import {
+  CreateAdminDto,
+} from './dto/create-admin.dto.js';
+
+@Injectable()
+export class AdminManagementService {
+  constructor(
+    private readonly auditLogService: AuditLogService,
+  ) {}
+
+  async findAll() {
+    const users = await db.orm.public.User.all();
+
+    const result = [];
+
+    for (const user of users) {
+      const userRoles =
+        await db.orm.public.UserRole
+          .where({ userId: user.id })
+          .all();
+
+      const roles = [];
+
+      for (const userRole of userRoles) {
+        const role =
+          await db.orm.public.Role
+            .where({ id: userRole.roleId })
+            .first();
+
+        if (role) {
+          roles.push({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+          });
+        }
+      }
+
+      const isAdminAccount = roles.some((role) =>
+        ['ADMIN', 'LIBRARIAN', 'SUPER_ADMIN'].includes(role.name),
+      );
+
+      if (!isAdminAccount) {
+        continue;
+      }
+
+      result.push({
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        phone: user.phone,
+        isActive: user.isActive,
+        roles,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+    }
+
+    return result;
+  }
+
+  async create(
+    dto: CreateAdminDto,
+    createdByUserId: number,
+  ) {
+    const existingEmail =
+      await db.orm.public.User
+        .where({ email: dto.email })
+        .first();
+
+    if (existingEmail) {
+      throw new BadRequestException(
+        'Email sudah digunakan',
+      );
+    }
+
+    if (dto.username) {
+      const existingUsername =
+        await db.orm.public.User
+          .where({ username: dto.username })
+          .first();
+
+      if (existingUsername) {
+        throw new BadRequestException(
+          'Username sudah digunakan',
+        );
+      }
+    }
+
+    const role =
+      await db.orm.public.Role
+        .where({ name: dto.role })
+        .first();
+
+    if (!role) {
+      throw new NotFoundException(
+        `Role ${dto.role} tidak ditemukan`,
+      );
+    }
+
+    const passwordHash =
+      await bcrypt.hash(dto.password, 12);
+
+    const user =
+      await db.orm.public.User.create({
+        email: dto.email,
+        username: dto.username ?? null,
+        fullName: dto.fullName,
+        passwordHash,
+        phone: dto.phone ?? null,
+        isActive: true,
+      });
+
+    await db.orm.public.UserRole.create({
+      userId: user.id,
+      roleId: role.id,
+    });
+
+    await this.auditLogService.create({
+      userId: createdByUserId,
+      action: 'ADMIN_CREATED',
+      entity: 'User',
+      entityId: user.id,
+      description: `Akun ${dto.role} dibuat`,
+      details:
+        `Email: ${user.email} | Username: ${user.username ?? '-'} | ` +
+        `Nama: ${user.fullName} | Role: ${dto.role}`,
+    });
+
+    return {
+      message: 'Akun admin berhasil dibuat',
+
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        phone: user.phone,
+        isActive: user.isActive,
+      },
+
+      role: {
+        id: role.id,
+        name: role.name,
+        description: role.description,
+      },
+    };
+  }
+
+  async getAdmin(id: number) {
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'User tidak ditemukan',
+      );
+    }
+
+    const userRoles =
+      await db.orm.public.UserRole
+        .where({ userId: id })
+        .all();
+
+    const roles = [];
+
+    for (const userRole of userRoles) {
+      const role =
+        await db.orm.public.Role
+          .where({ id: userRole.roleId })
+          .first();
+
+      if (role) {
+        roles.push({
+          id: role.id,
+          name: role.name,
+          description: role.description,
+        });
+      }
+    }
+
+    const isAdminAccount = roles.some((role) =>
+      ['ADMIN', 'LIBRARIAN', 'SUPER_ADMIN'].includes(role.name),
+    );
+
+    if (!isAdminAccount) {
+      throw new BadRequestException(
+        'User tersebut bukan akun administrator',
+      );
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      fullName: user.fullName,
+      phone: user.phone,
+      isActive: user.isActive,
+      roles,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+  }
+}
