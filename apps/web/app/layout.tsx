@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Perpustakaan Digital UMA",
+  title: "USEFECT",
   description:
     "Perpustakaan Digital Universitas Medan Area - Satu Akses Untuk Semua Ilmu",
 };
