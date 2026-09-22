@@ -18,6 +18,7 @@ import { ReservationsModule } from './reservations/reservations.module.js';
 import { NotificationsModule } from './notifications/notifications.module.js';
 import { MemberQrModule } from './member-qr/member-qr.module.js';
 import { LibrarySettingsModule } from './library-settings/library-settings.module.js';
+import { AiModule } from './ai/ai.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -46,6 +47,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     NotificationsModule,
     MemberQrModule,
     LibrarySettingsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
