@@ -93,13 +93,24 @@ export default function AIPage() {
   const sendMessage = async () => {
     const trimmedMessage = message.trim();
 
-    if (!trimmedMessage || loading) {
+    if ((!trimmedMessage && !attachedFile) || loading) {
       return;
     }
 
+    if (attachedFile && !uploadedFileId) {
+      setFileError(
+        'File masih diproses. Tunggu upload selesai lalu coba lagi.',
+      );
+      return;
+    }
+
+    const effectiveMessage =
+      trimmedMessage ||
+      'Analyze the attached image and explain what you can determine from it.';
+
     const userMessage: Message = {
       role: 'user',
-      content: trimmedMessage,
+      content: effectiveMessage,
     };
 
     const assistantMessage: Message = {
@@ -127,11 +138,21 @@ export default function AIPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: trimmedMessage,
+            message: effectiveMessage,
             webSearch,
             ...(interactionId
               ? {
                   previousInteractionId: interactionId,
+                }
+              : {}),
+            ...(uploadedFileId
+              ? {
+                  fileId: uploadedFileId,
+                }
+              : {}),
+            ...(uploadedFileMimeType
+              ? {
+                  fileMimeType: uploadedFileMimeType,
                 }
               : {}),
           }),
@@ -303,6 +324,8 @@ export default function AIPage() {
       );
 
       const data = await response.json();
+
+      console.log('USEFECT AI upload response:', data);
 
       if (!response.ok || !data.success) {
         throw new Error(
@@ -618,7 +641,7 @@ export default function AIPage() {
               <button
                 type="submit"
                 className="usefect-ai-send"
-                disabled={!message.trim() || loading}
+                disabled={loading}
                 aria-label="Send message"
               >
                 <ArrowUp size={19} />

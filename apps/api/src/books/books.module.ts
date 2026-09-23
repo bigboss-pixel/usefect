@@ -17,5 +17,6 @@ import { AuthModule } from '../auth/auth.module.js';
   providers: [
     BooksService,
   ],
+  exports: [BooksService],
 })
 export class BooksModule {}

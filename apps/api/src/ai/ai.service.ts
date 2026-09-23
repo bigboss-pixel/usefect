@@ -2,9 +2,10 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
 import { AiFilesService } from './files/ai-files.service.js';
 import { WebSearchService } from './search/web-search.service.js';
+import { LibrarySearchService } from './library/library-search.service.js';
+import { AiProviderService } from './providers/ai-provider.service.js';
 
 type StreamSource = {
   id: number;
@@ -12,6 +13,21 @@ type StreamSource = {
   url: string;
   source: string;
 };
+
+type TextInput = {
+  type: 'text';
+  text: string;
+};
+
+type ImageInput = {
+  type: 'image';
+  data: string;
+  mime_type: string;
+};
+
+type MultimodalInput =
+  | string
+  | Array<TextInput | ImageInput>;
 
 type StreamEvent =
   | {
@@ -28,20 +44,12 @@ type StreamEvent =
 
 @Injectable()
 export class AiService {
-  private readonly client: GoogleGenAI;
-
   constructor(
     private readonly aiFilesService: AiFilesService,
     private readonly webSearchService: WebSearchService,
-  ) {
-    const apiKey = process.env.GEMINI_API_KEY;
-
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
-    }
-
-    this.client = new GoogleGenAI({ apiKey });
-  }
+    private readonly librarySearchService: LibrarySearchService,
+    private readonly aiProviderService: AiProviderService,
+  ) {}
 
   private async buildInput(
     message: string,
@@ -50,6 +58,7 @@ export class AiService {
     webSearch = false,
   ) {
     const contexts: string[] = [];
+    let image: ImageInput | null = null;
 
     if (fileId) {
       const fileResult =
@@ -66,24 +75,50 @@ export class AiService {
             [
               'The user attached a document to this conversation.',
               'Use the document content below as context when answering the user.',
+              'Do not invent information that is not supported by the document.',
               '',
               '--- ATTACHED DOCUMENT ---',
               fileText,
               '--- END ATTACHED DOCUMENT ---',
-            ].join('\\n'),
+            ].join('\n'),
           );
         }
       } else {
+        const imageData =
+          await this.aiFilesService.getImageData(
+            fileId,
+            fileMimeType,
+          );
+
+        image = {
+          type: 'image',
+          data: imageData.data,
+          mime_type: imageData.mimeType,
+        };
+
         contexts.push(
           [
             'The user attached an image to this conversation.',
-            'Image analysis is not yet connected to the AI model.',
-          ].join('\\n'),
+            'Analyze the image carefully and use visual information from it when answering.',
+            'Do not claim to see details that are not actually visible.',
+          ].join('\n'),
         );
       }
     }
 
     const sources: StreamSource[] = [];
+
+    const libraryResult =
+      await this.librarySearchService.buildSearchContext(
+        message,
+        5,
+      );
+
+    if (libraryResult.context) {
+      contexts.push(libraryResult.context);
+    }
+
+    sources.push(...libraryResult.sources);
 
     if (webSearch) {
       const webResult =
@@ -99,14 +134,53 @@ export class AiService {
       sources.push(...webResult.sources);
     }
 
-    const input = !contexts.length
-      ? message
+    if (sources.length) {
+      const numberedSources = sources.map((source, index) => ({
+        ...source,
+        id: index + 1,
+      }));
+
+      sources.splice(
+        0,
+        sources.length,
+        ...numberedSources,
+      );
+
+      contexts.push(
+        [
+          'SOURCE CITATION INSTRUCTION:',
+          'The available sources are numbered in the order provided below.',
+          'When using information from a source, cite it using [1], [2], [3], etc.',
+          'The number must correspond to the source number shown to the user.',
+          'Do not invent source numbers.',
+          'Library sources represent data from the USEFECT Library catalog.',
+          'Web sources represent information retrieved from the internet.',
+        ].join('\n'),
+      );
+    }
+
+    const userQuestion =
+      message.trim() ||
+      'Analyze the attached image and explain what you can determine from it.';
+
+    const textInput = !contexts.length
+      ? userQuestion
       : [
           ...contexts,
           '',
           'USER QUESTION:',
-          message,
-        ].join('\\n\\n');
+          userQuestion,
+        ].join('\n\n');
+
+    const input: MultimodalInput = image
+      ? [
+          {
+            type: 'text',
+            text: textInput,
+          },
+          image,
+        ]
+      : textInput;
 
     return {
       input,
@@ -131,16 +205,10 @@ export class AiService {
         );
 
       const response =
-        await this.client.interactions.create({
-          model:
-            process.env.GEMINI_MODEL ||
-            'gemini-3.8-flash',
+        await this.aiProviderService.create({
           input,
           ...(previousInteractionId
-            ? {
-                previous_interaction_id:
-                  previousInteractionId,
-              }
+            ? { previousInteractionId }
             : {}),
         });
 
@@ -151,7 +219,10 @@ export class AiService {
         sources,
       };
     } catch (error) {
-      console.error('USEFECT AI error:', error);
+      console.error(
+        'USEFECT AI error:',
+        error,
+      );
 
       throw new InternalServerErrorException(
         'USEFECT AI failed to generate a response',
@@ -183,16 +254,10 @@ export class AiService {
           );
 
         const stream =
-          await this.client.interactions.create({
-            model:
-              process.env.GEMINI_MODEL ||
-              'gemini-3.8-flash',
+          this.aiProviderService.stream({
             input,
             ...(previousInteractionId
-              ? {
-                  previous_interaction_id:
-                    previousInteractionId,
-                }
+              ? { previousInteractionId }
               : {}),
             stream: true,
           });
@@ -201,54 +266,26 @@ export class AiService {
         let receivedText = false;
 
         for await (const event of stream) {
-          const eventData = event as any;
-
-          if (eventData.interaction?.id) {
-            interactionId =
-              eventData.interaction.id;
-          }
-
-          if (eventData.event_type === 'error') {
-            const errorMessage =
-              eventData.error?.message ||
-              'Gemini temporarily unavailable';
-
-            throw new Error(errorMessage);
-          }
-
-          if (
-            eventData.event_type !==
-            'step.delta'
-          ) {
+          if (event.type === 'interaction') {
+            interactionId = event.interactionId;
             continue;
           }
 
-          const delta = eventData.delta;
+          if (event.type === 'error') {
+            const providerError = new Error(
+              event.message,
+            ) as Error & { code?: string };
 
-          if (
-            delta?.type === 'text' &&
-            delta.text
-          ) {
-            receivedText = true;
+            providerError.code = event.code;
 
-            yield {
-              text: delta.text,
-              ...(interactionId
-                ? { interactionId }
-                : {}),
-            };
-
-            continue;
+            throw providerError;
           }
 
-          if (
-            delta?.content?.type === 'text' &&
-            delta.content.text
-          ) {
+          if (event.type === 'text' && event.text) {
             receivedText = true;
 
             yield {
-              text: delta.content.text,
+              text: event.text,
               ...(interactionId
                 ? { interactionId }
                 : {}),
@@ -256,10 +293,11 @@ export class AiService {
           }
         }
 
-        if (receivedText) {
+    if (receivedText) {
           if (sources.length) {
             yield {
-              interactionId: interactionId || undefined,
+              interactionId:
+                interactionId || undefined,
               sources,
             };
           }
@@ -273,10 +311,25 @@ export class AiService {
 
         if (attempt === maxAttempts) {
           throw new Error(
-            'Gemini tidak mengirimkan respons teks.',
+            'AI provider tidak mengirimkan respons teks.',
           );
         }
       } catch (error) {
+        const errorCode =
+          error instanceof Error
+            ? (error as Error & { code?: string }).code
+            : undefined;
+
+        if (errorCode === 'rate_limit_exceeded') {
+          console.error(
+            'USEFECT AI provider rate limit reached.',
+          );
+
+          throw new Error(
+            'USEFECT AI sedang mencapai batas penggunaan provider. Silakan coba lagi nanti atau gunakan provider/model lain.',
+          );
+        }
+
         if (attempt === maxAttempts) {
           console.error(
             'USEFECT AI streaming error:',

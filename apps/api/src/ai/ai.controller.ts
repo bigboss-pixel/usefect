@@ -141,6 +141,9 @@ export class AiController {
     return this.aiService.chat(
       dto.message,
       dto.previousInteractionId,
+      dto.fileId,
+      dto.fileMimeType,
+      dto.webSearch,
     );
   }
 
@@ -167,11 +170,11 @@ export class AiController {
         dto.webSearch,
       )) {
         res.write(
-          `data: ${JSON.stringify(event)}\\n\\n`,
+          `data: ${JSON.stringify(event)}\n\n`,
         );
       }
 
-      res.write('data: [DONE]\\n\\n');
+      res.write('data: [DONE]\n\n');
       res.end();
     } catch (error) {
       console.error(
@@ -187,7 +190,7 @@ export class AiController {
       res.write(
         `data: ${JSON.stringify({
           error: message,
-        })}\\n\\n`,
+        })}\n\n`,
       );
 
       res.end();
