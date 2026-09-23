@@ -4,12 +4,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cookieParser from 'cookie-parser';
 
-import {
-  AppModule,
-  ObserveInstrument,
-} from './app.module.js';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
 
-    async function bootstrap() {
+import { AppModule, ObserveInstrument } from './app.module.js';
+
+async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     instrument: ObserveInstrument,
   });
@@ -17,9 +16,11 @@ import {
   app.use(cookieParser());
 
   app.enableCors({
-  origin: "http://localhost:3000",
-  credentials: true,
-});
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
+
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({
