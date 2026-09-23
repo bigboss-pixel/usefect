@@ -11,43 +11,47 @@ import { CreateMemberDto } from './dto/create-member.dto.js';
 
 @Injectable()
 export class MembersService {
-  private async getMemberData(id: number) {
+  private async getMemberData(
+    idOrUser:
+      | number
+      | Awaited<ReturnType<typeof db.orm.public.User.first>>,
+    roleCache = new Map<number, string>(),
+  ) {
     const user =
-      await db.orm.public.User
-        .where({ id })
-        .first();
+      typeof idOrUser === 'number'
+        ? await db.orm.public.User.where({ id: idOrUser }).first()
+        : idOrUser;
 
     if (!user) {
-      throw new NotFoundException(
-        'Anggota tidak ditemukan',
-      );
+      throw new NotFoundException('Anggota tidak ditemukan');
     }
 
     const studentProfile =
-      await db.orm.public.StudentProfile
-        .where({ userId: id })
-        .first();
+      await db.orm.public.StudentProfile.where({ userId: user.id }).first();
 
     const lecturerProfile =
-      await db.orm.public.LecturerProfile
-        .where({ userId: id })
-        .first();
+      await db.orm.public.LecturerProfile.where({ userId: user.id }).first();
 
     const userRoles =
-      await db.orm.public.UserRole
-        .where({ userId: id })
-        .all();
+      await db.orm.public.UserRole.where({ userId: user.id }).all();
 
     const roles: string[] = [];
 
     for (const userRole of userRoles) {
-      const role =
-        await db.orm.public.Role
-          .where({ id: userRole.roleId })
-          .first();
+      let roleName = roleCache.get(userRole.roleId);
 
-      if (role) {
-        roles.push(role.name);
+      if (roleName === undefined) {
+        const role =
+          await db.orm.public.Role.where({ id: userRole.roleId }).first();
+
+        if (role) {
+          roleName = role.name;
+          roleCache.set(userRole.roleId, role.name);
+        }
+      }
+
+      if (roleName) {
+        roles.push(roleName);
       }
     }
 
@@ -217,10 +221,11 @@ export class MembersService {
       await db.orm.public.User.all();
 
     const members = [];
+    const roleCache = new Map<number, string>();
 
     for (const user of users) {
       const data =
-        await this.getMemberData(user.id);
+        await this.getMemberData(user, roleCache);
 
       if (
         this.isAdministrativeRole(data.roles)
