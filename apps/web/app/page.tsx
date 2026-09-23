@@ -1,4 +1,6 @@
-"use client";
+'use client';
+
+import Link from 'next/link';
 
 import SiteHeader from "../components/SiteHeader";
 import UsefectHeroIllustration from "../components/UsefectHeroIllustration";
@@ -728,10 +730,10 @@ const handleLogout = async () => {
                     serta jelajahi sumber pengetahuan.
                   </p>
 
-                  <button>
+                  <Link href="/ai" className="usefect-ai-card-button">
                     Mulai Chat
                     <Arrow />
-                  </button>
+                  </Link>
 
                 </div>
 

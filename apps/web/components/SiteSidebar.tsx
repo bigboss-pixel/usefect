@@ -251,9 +251,9 @@ export default function SiteSidebar({
     return (
       <a
         key={`${item.label}-${item.href}`}
-        href={item.href}
+        href={item.label === "Dashboard" && isSuperAdmin ? "/admin" : item.href}
         className={`usefect-sidebar-link${
-          isActive(item.href) ? " active" : ""
+          isActive(item.label === "Dashboard" && isSuperAdmin ? "/admin" : item.href) ? " active" : ""
         }`}
       >
         <span

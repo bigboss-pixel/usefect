@@ -28,7 +28,6 @@ model User {
   passwordResets   PasswordReset[]
   memberQr         MemberQr?
   auditLogs        AuditLog[]
-  aiConversations  AiConversation[]
 }
 
 model StudentProfile {
@@ -312,56 +311,4 @@ model AuditLog {
   @@index([entity])
   @@index([entityId])
   @@index([createdAt])
-}
-
-
-model AiConversation {
-  id                    Int                @id @default(autoincrement())
-
-  user                  User               @relation(fields:[userId], references:[id])
-  userId                Int
-
-  title                 String?
-  provider              String?
-  model                 String?
-  providerInteractionId String?
-
-  createdAt             TimestamptzString  @default(now())
-  updatedAt             TimestamptzString  @default(now())
-
-  messages              AiMessage[]
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model AiMessage {
-  id             Int                @id @default(autoincrement())
-
-  conversation   AiConversation     @relation(fields:[conversationId], references:[id])
-  conversationId Int
-
-  role           String
-  content        String
-  createdAt      TimestamptzString  @default(now())
-
-  sources        AiMessageSource[]
-
-  @@index([conversationId])
-  @@index([createdAt])
-}
-
-model AiMessageSource {
-  id          Int                @id @default(autoincrement())
-
-  message     AiMessage          @relation(fields:[messageId], references:[id])
-  messageId   Int
-
-  title       String
-  url         String
-  source      String
-
-  createdAt   TimestamptzString  @default(now())
-
-  @@index([messageId])
 }

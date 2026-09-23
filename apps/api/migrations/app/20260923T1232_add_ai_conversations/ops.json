@@ -1,0 +1,440 @@
+[
+  {
+    "id": "table.aiConversation",
+    "label": "Create table \"aiConversation\"",
+    "summary": "Creates table \"aiConversation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "aiConversation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"aiConversation\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"aiConversation\"",
+        "sql": "CREATE TABLE \"public\".\"aiConversation\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"model\" text,\n  \"provider\" text,\n  \"providerInteractionId\" text,\n  \"title\" text,\n  \"updatedAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"userId\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"aiConversation\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.aiMessage",
+    "label": "Create table \"aiMessage\"",
+    "summary": "Creates table \"aiMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "aiMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"aiMessage\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"aiMessage\"",
+        "sql": "CREATE TABLE \"public\".\"aiMessage\" (\n  \"content\" text NOT NULL,\n  \"conversationId\" int4 NOT NULL,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"role\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"aiMessage\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.aiMessageSource",
+    "label": "Create table \"aiMessageSource\"",
+    "summary": "Creates table \"aiMessageSource\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "aiMessageSource"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"aiMessageSource\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessageSource\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"aiMessageSource\"",
+        "sql": "CREATE TABLE \"public\".\"aiMessageSource\" (\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"messageId\" int4 NOT NULL,\n  \"source\" text NOT NULL,\n  \"title\" text NOT NULL,\n  \"url\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"aiMessageSource\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessageSource\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.aiConversation.aiConversation_createdAt_idx_9575dbd7",
+    "label": "Create index \"aiConversation_createdAt_idx_9575dbd7\" on \"aiConversation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "aiConversation_createdAt_idx_9575dbd7",
+        "table": "aiConversation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"aiConversation_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"aiConversation_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"aiConversation_createdAt_idx_9575dbd7\" ON \"public\".\"aiConversation\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"aiConversation_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.aiConversation.aiConversation_userId_idx_a489d58a",
+    "label": "Create index \"aiConversation_userId_idx_a489d58a\" on \"aiConversation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "aiConversation_userId_idx_a489d58a",
+        "table": "aiConversation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"aiConversation_userId_idx_a489d58a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation_userId_idx_a489d58a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"aiConversation_userId_idx_a489d58a\"",
+        "sql": "CREATE INDEX \"aiConversation_userId_idx_a489d58a\" ON \"public\".\"aiConversation\" (\"userId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"aiConversation_userId_idx_a489d58a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiConversation_userId_idx_a489d58a\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.aiMessage.aiMessage_conversationId_idx_669215a6",
+    "label": "Create index \"aiMessage_conversationId_idx_669215a6\" on \"aiMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "aiMessage_conversationId_idx_669215a6",
+        "table": "aiMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"aiMessage_conversationId_idx_669215a6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage_conversationId_idx_669215a6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"aiMessage_conversationId_idx_669215a6\"",
+        "sql": "CREATE INDEX \"aiMessage_conversationId_idx_669215a6\" ON \"public\".\"aiMessage\" (\"conversationId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"aiMessage_conversationId_idx_669215a6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage_conversationId_idx_669215a6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.aiMessage.aiMessage_createdAt_idx_9575dbd7",
+    "label": "Create index \"aiMessage_createdAt_idx_9575dbd7\" on \"aiMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "aiMessage_createdAt_idx_9575dbd7",
+        "table": "aiMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"aiMessage_createdAt_idx_9575dbd7\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"aiMessage_createdAt_idx_9575dbd7\"",
+        "sql": "CREATE INDEX \"aiMessage_createdAt_idx_9575dbd7\" ON \"public\".\"aiMessage\" (\"createdAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"aiMessage_createdAt_idx_9575dbd7\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessage_createdAt_idx_9575dbd7\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.aiMessageSource.aiMessageSource_messageId_idx_3cdded8d",
+    "label": "Create index \"aiMessageSource_messageId_idx_3cdded8d\" on \"aiMessageSource\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "aiMessageSource_messageId_idx_3cdded8d",
+        "table": "aiMessageSource"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"aiMessageSource_messageId_idx_3cdded8d\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessageSource_messageId_idx_3cdded8d\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"aiMessageSource_messageId_idx_3cdded8d\"",
+        "sql": "CREATE INDEX \"aiMessageSource_messageId_idx_3cdded8d\" ON \"public\".\"aiMessageSource\" (\"messageId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"aiMessageSource_messageId_idx_3cdded8d\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"aiMessageSource_messageId_idx_3cdded8d\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.aiConversation.aiConversation_userId_fkey",
+    "label": "Add foreign key \"aiConversation_userId_fkey\" on \"aiConversation\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "aiConversation_userId_fkey",
+        "table": "aiConversation"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"aiConversation_userId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiConversation_userId_fkey",
+          "public",
+          "\"public\".\"aiConversation\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"aiConversation_userId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"aiConversation\"\nADD CONSTRAINT \"aiConversation_userId_fkey\"\nFOREIGN KEY (\"userId\")\nREFERENCES \"public\".\"user\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"aiConversation_userId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiConversation_userId_fkey",
+          "public",
+          "\"public\".\"aiConversation\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.aiMessage.aiMessage_conversationId_fkey",
+    "label": "Add foreign key \"aiMessage_conversationId_fkey\" on \"aiMessage\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "aiMessage_conversationId_fkey",
+        "table": "aiMessage"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"aiMessage_conversationId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiMessage_conversationId_fkey",
+          "public",
+          "\"public\".\"aiMessage\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"aiMessage_conversationId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"aiMessage\"\nADD CONSTRAINT \"aiMessage_conversationId_fkey\"\nFOREIGN KEY (\"conversationId\")\nREFERENCES \"public\".\"aiConversation\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"aiMessage_conversationId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiMessage_conversationId_fkey",
+          "public",
+          "\"public\".\"aiMessage\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.aiMessageSource.aiMessageSource_messageId_fkey",
+    "label": "Add foreign key \"aiMessageSource_messageId_fkey\" on \"aiMessageSource\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "aiMessageSource_messageId_fkey",
+        "table": "aiMessageSource"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"aiMessageSource_messageId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiMessageSource_messageId_fkey",
+          "public",
+          "\"public\".\"aiMessageSource\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"aiMessageSource_messageId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"aiMessageSource\"\nADD CONSTRAINT \"aiMessageSource_messageId_fkey\"\nFOREIGN KEY (\"messageId\")\nREFERENCES \"public\".\"aiMessage\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"aiMessageSource_messageId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "aiMessageSource_messageId_fkey",
+          "public",
+          "\"public\".\"aiMessageSource\""
+        ]
+      }
+    ]
+  }
+]

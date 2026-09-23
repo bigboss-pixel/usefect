@@ -1,3 +1,5 @@
+import * as bcrypt from 'bcrypt';
+
 import {
   BadRequestException,
   Injectable,
@@ -5,6 +7,7 @@ import {
 } from '@nestjs/common';
 
 import { db } from '../prisma/db.js';
+import { CreateMemberDto } from './dto/create-member.dto.js';
 
 @Injectable()
 export class MembersService {
@@ -63,6 +66,150 @@ export class MembersService {
       roles.includes('ADMIN') ||
       roles.includes('SUPER_ADMIN')
     );
+  }
+
+  async create(data: CreateMemberDto) {
+    const existingEmail =
+      await db.orm.public.User
+        .where({ email: data.email })
+        .first();
+
+    if (existingEmail) {
+      throw new BadRequestException(
+        'Email sudah terdaftar',
+      );
+    }
+
+    if (data.username) {
+      const existingUsername =
+        await db.orm.public.User
+          .where({ username: data.username })
+          .first();
+
+      if (existingUsername) {
+        throw new BadRequestException(
+          'Username sudah terdaftar',
+        );
+      }
+    }
+
+    if (
+      data.type === 'MAHASISWA' &&
+      !data.npm
+    ) {
+      throw new BadRequestException(
+        'NPM wajib diisi untuk mahasiswa',
+      );
+    }
+
+    if (
+      data.type === 'DOSEN' &&
+      !data.lecturerNumber
+    ) {
+      throw new BadRequestException(
+        'Nomor dosen wajib diisi untuk dosen',
+      );
+    }
+
+    if (data.type === 'MAHASISWA') {
+      const existingNpm =
+        await db.orm.public.StudentProfile
+          .where({ npm: data.npm! })
+          .first();
+
+      if (existingNpm) {
+        throw new BadRequestException(
+          'NPM sudah terdaftar',
+        );
+      }
+    }
+
+    if (data.type === 'DOSEN') {
+      const existingLecturerNumber =
+        await db.orm.public.LecturerProfile
+          .where({
+            lecturerNumber:
+              data.lecturerNumber!,
+          })
+          .first();
+
+      if (existingLecturerNumber) {
+        throw new BadRequestException(
+          'Nomor dosen sudah terdaftar',
+        );
+      }
+    }
+
+    const passwordHash =
+      await bcrypt.hash(data.password, 10);
+
+    const user =
+      await db.orm.public.User.create({
+        email: data.email,
+        username: data.username ?? null,
+        fullName: data.fullName,
+        passwordHash,
+        phone: data.phone ?? null,
+      });
+
+    const roleName =
+      data.type === 'MAHASISWA'
+        ? 'STUDENT'
+        : data.type === 'DOSEN'
+          ? 'LECTURER'
+          : 'PUBLIC';
+
+    const role =
+      await db.orm.public.Role
+        .where({ name: roleName })
+        .first();
+
+    if (!role) {
+      throw new BadRequestException(
+        `Role ${roleName} tidak ditemukan`,
+      );
+    }
+
+    await db.orm.public.UserRole.create({
+      userId: user.id,
+      roleId: role.id,
+    });
+
+    if (data.type === 'MAHASISWA') {
+      await db.orm.public.StudentProfile.create({
+        userId: user.id,
+        npm: data.npm!,
+        faculty: data.faculty ?? null,
+        studyProgram:
+          data.studyProgram ?? null,
+        enrollmentYear:
+          data.enrollmentYear ?? null,
+      });
+    }
+
+    if (data.type === 'DOSEN') {
+      await db.orm.public.LecturerProfile.create({
+        userId: user.id,
+        lecturerNumber:
+          data.lecturerNumber!,
+        faculty: data.faculty ?? null,
+        studyProgram:
+          data.studyProgram ?? null,
+      });
+    }
+
+    return {
+      message: 'Anggota berhasil ditambahkan',
+      member: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        username: user.username,
+        phone: user.phone,
+        type: data.type,
+        isActive: user.isActive,
+      },
+    };
   }
 
   async findAll() {
@@ -202,6 +349,11 @@ export class MembersService {
       email?: string;
       username?: string;
       phone?: string;
+      npm?: string;
+      lecturerNumber?: string;
+      faculty?: string;
+      studyProgram?: string;
+      enrollmentYear?: number;
     },
   ) {
     const member = await this.getMemberData(id);
@@ -225,6 +377,95 @@ export class MembersService {
       );
     }
 
+    if (
+      data.email !== undefined &&
+      data.email !== user.email
+    ) {
+      const existingEmail =
+        await db.orm.public.User
+          .where({ email: data.email })
+          .first();
+
+      if (
+        existingEmail &&
+        existingEmail.id !== id
+      ) {
+        throw new BadRequestException(
+          'Email sudah digunakan oleh akun lain',
+        );
+      }
+    }
+
+    if (
+      data.username !== undefined &&
+      data.username !== user.username
+    ) {
+      const existingUsername =
+        await db.orm.public.User
+          .where({ username: data.username })
+          .first();
+
+      if (
+        existingUsername &&
+        existingUsername.id !== id
+      ) {
+        throw new BadRequestException(
+          'Username sudah digunakan oleh akun lain',
+        );
+      }
+    }
+
+    const type =
+      member.studentProfile
+        ? 'MAHASISWA'
+        : member.lecturerProfile
+          ? 'DOSEN'
+          : 'ANGGOTA';
+
+    if (
+      type === 'MAHASISWA' &&
+      data.npm !== undefined &&
+      data.npm !== member.studentProfile?.npm
+    ) {
+      const existingNpm =
+        await db.orm.public.StudentProfile
+          .where({ npm: data.npm })
+          .first();
+
+      if (
+        existingNpm &&
+        existingNpm.userId !== id
+      ) {
+        throw new BadRequestException(
+          'NPM sudah digunakan oleh anggota lain',
+        );
+      }
+    }
+
+    if (
+      type === 'DOSEN' &&
+      data.lecturerNumber !== undefined &&
+      data.lecturerNumber !==
+        member.lecturerProfile?.lecturerNumber
+    ) {
+      const existingLecturerNumber =
+        await db.orm.public.LecturerProfile
+          .where({
+            lecturerNumber:
+              data.lecturerNumber,
+          })
+          .first();
+
+      if (
+        existingLecturerNumber &&
+        existingLecturerNumber.userId !== id
+      ) {
+        throw new BadRequestException(
+          'Nomor dosen sudah digunakan oleh anggota lain',
+        );
+      }
+    }
+
     const updated =
       await db.orm.public.User
         .where({ id })
@@ -239,14 +480,156 @@ export class MembersService {
             ? { username: data.username }
             : {}),
           ...(data.phone !== undefined
-            ? { phone: data.phone }
+            ? { phone: data.phone || null }
             : {}),
         });
+
+    if (!updated) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    if (type === 'MAHASISWA') {
+      await db.orm.public.StudentProfile
+        .where({ userId: id })
+        .update({
+          ...(data.npm !== undefined
+            ? { npm: data.npm }
+            : {}),
+          ...(data.faculty !== undefined
+            ? { faculty: data.faculty || null }
+            : {}),
+          ...(data.studyProgram !== undefined
+            ? {
+                studyProgram:
+                  data.studyProgram || null,
+              }
+            : {}),
+          ...(data.enrollmentYear !== undefined
+            ? {
+                enrollmentYear:
+                  data.enrollmentYear,
+              }
+            : {}),
+        });
+    }
+
+    if (type === 'DOSEN') {
+      await db.orm.public.LecturerProfile
+        .where({ userId: id })
+        .update({
+          ...(data.lecturerNumber !== undefined
+            ? {
+                lecturerNumber:
+                  data.lecturerNumber,
+              }
+            : {}),
+          ...(data.faculty !== undefined
+            ? { faculty: data.faculty || null }
+            : {}),
+          ...(data.studyProgram !== undefined
+            ? {
+                studyProgram:
+                  data.studyProgram || null,
+              }
+            : {}),
+        });
+    }
 
     return {
       message:
         'Data anggota berhasil diperbarui',
-      member: updated,
+      member: {
+        id: updated.id,
+        fullName: updated.fullName,
+        email: updated.email,
+        username: updated.username,
+        phone: updated.phone,
+        type,
+        npm:
+          type === 'MAHASISWA'
+            ? data.npm ??
+              member.studentProfile?.npm ??
+              null
+            : null,
+        lecturerNumber:
+          type === 'DOSEN'
+            ? data.lecturerNumber ??
+              member.lecturerProfile?.lecturerNumber ??
+              null
+            : null,
+        faculty:
+          data.faculty ??
+          member.studentProfile?.faculty ??
+          member.lecturerProfile?.faculty ??
+          null,
+        studyProgram:
+          data.studyProgram ??
+          member.studentProfile?.studyProgram ??
+          member.lecturerProfile?.studyProgram ??
+          null,
+        enrollmentYear:
+          type === 'MAHASISWA'
+            ? data.enrollmentYear ??
+              member.studentProfile?.enrollmentYear ??
+              null
+            : null,
+        isActive: updated.isActive,
+      },
+    };
+  }
+
+  async resetPassword(
+    id: number,
+    password: string,
+  ) {
+    const member = await this.getMemberData(id);
+
+    if (
+      this.isAdministrativeRole(member.roles)
+    ) {
+      throw new BadRequestException(
+        'Password akun administratif tidak dapat diubah melalui Manajemen Anggota',
+      );
+    }
+
+    const user =
+      await db.orm.public.User
+        .where({ id })
+        .first();
+
+    if (!user) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    const passwordHash =
+      await bcrypt.hash(password, 10);
+
+    const updated =
+      await db.orm.public.User
+        .where({ id })
+        .update({
+          passwordHash,
+          refreshTokenHash: null,
+        });
+
+    if (!updated) {
+      throw new NotFoundException(
+        'Anggota tidak ditemukan',
+      );
+    }
+
+    return {
+      message:
+        'Password anggota berhasil direset',
+      member: {
+        id: updated.id,
+        fullName: updated.fullName,
+        email: updated.email,
+      },
     };
   }
 

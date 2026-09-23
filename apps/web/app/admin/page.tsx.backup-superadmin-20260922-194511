@@ -125,8 +125,6 @@ function status(status?: string) {
 export default function AdminDashboardPage() {
   const [data, setData] = useState(initial);
   const [loading, setLoading] = useState(true);
-  const [authChecking, setAuthChecking] = useState(true);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -209,49 +207,6 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    let active = true;
-
-    const checkSuperAdmin = async () => {
-      try {
-        const response = await apiFetch("/auth/me");
-
-        if (!response.ok) {
-          window.location.href = "/";
-          return;
-        }
-
-        const payload = await response.json();
-        const user = payload?.user ?? payload;
-
-        const allowed =
-          Array.isArray(user?.roles) &&
-          user.roles.includes("SUPER_ADMIN");
-
-        if (!allowed) {
-          window.location.href = "/";
-          return;
-        }
-
-        if (active) {
-          setIsSuperAdmin(true);
-        }
-      } catch {
-        window.location.href = "/";
-      } finally {
-        if (active) {
-          setAuthChecking(false);
-        }
-      }
-    };
-
-    checkSuperAdmin();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     load();
@@ -360,28 +315,6 @@ export default function AdminDashboardPage() {
       ) / 8
     ),
   );
-
-  if (authChecking) {
-    return (
-      <div className="admin-dashboard-single">
-        <main className="admin-single-main">
-          <div
-            style={{
-              minHeight: "100%",
-              display: "grid",
-              placeItems: "center",
-            }}
-          >
-            Memverifikasi akses...
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  if (!isSuperAdmin) {
-    return null;
-  }
 
   return (
     <>

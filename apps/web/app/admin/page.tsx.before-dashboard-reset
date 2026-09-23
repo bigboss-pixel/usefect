@@ -1,0 +1,1003 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import SiteHeader from "../../components/SiteHeader";
+import AdminSidebar from "./components/AdminSidebar";
+import {
+  Activity,
+  ArrowUpRight,
+  BookOpen,
+  CalendarClock,
+  CheckCircle2,
+  ClipboardList,
+  Clock3,
+  Database,
+  FilePlus2,
+  RefreshCw,
+  ShieldCheck,
+  UserPlus,
+  Users,
+  AlertTriangle,
+  CircleDot,
+} from "lucide-react";
+import { apiFetch } from "../lib/api";
+
+type LoanStatistics = {
+  total?: number;
+  pending?: number;
+  active?: number;
+  overdue?: number;
+  returned?: number;
+  cancelled?: number;
+  rejected?: number;
+};
+
+type DashboardLoan = {
+  id?: number;
+  status?: string;
+  createdAt?: string;
+  dueDate?: string;
+  returnedAt?: string;
+  user?: {
+    fullName?: string;
+  };
+  bookCopy?: {
+    book?: {
+      title?: string;
+    };
+  };
+  book?: {
+    title?: string;
+  };
+};
+
+type DashboardReservation = {
+  id?: number;
+  status?: string;
+  createdAt?: string;
+  user?: {
+    fullName?: string;
+  };
+  book?: {
+    title?: string;
+  };
+};
+
+type DashboardData = {
+  totalBooks: number;
+  totalMembers: number;
+  totalLoans: number;
+  activeLoans: number;
+  overdueLoans: number;
+  returnedLoans: number;
+  pendingLoans: number;
+  reservations: number;
+  pendingReservations: number;
+  recentLoans: DashboardLoan[];
+  recentReservations: DashboardReservation[];
+};
+
+const emptyDashboard: DashboardData = {
+  totalBooks: 0,
+  totalMembers: 0,
+  totalLoans: 0,
+  activeLoans: 0,
+  overdueLoans: 0,
+  returnedLoans: 0,
+  pendingLoans: 0,
+  reservations: 0,
+  pendingReservations: 0,
+  recentLoans: [],
+  recentReservations: [],
+};
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("id-ID").format(value);
+}
+
+function formatRelativeDate(value?: string) {
+  if (!value) return "Baru saja";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Baru saja";
+  }
+
+  const diff = Date.now() - date.getTime();
+  const minutes = Math.floor(diff / 60000);
+
+  if (minutes < 1) return "Baru saja";
+  if (minutes < 60) return `${minutes} menit lalu`;
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) return `${hours} jam lalu`;
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 7) return `${days} hari lalu`;
+
+  return date.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function getLoanTitle(loan: DashboardLoan) {
+  return (
+    loan.bookCopy?.book?.title ??
+    loan.book?.title ??
+    "Transaksi peminjaman"
+  );
+}
+
+function getLoanUser(loan: DashboardLoan) {
+  return loan.user?.fullName ?? "Anggota";
+}
+
+function getReservationTitle(reservation: DashboardReservation) {
+  return reservation.book?.title ?? "Reservasi buku";
+}
+
+function getReservationUser(reservation: DashboardReservation) {
+  return reservation.user?.fullName ?? "Anggota";
+}
+
+function statusLabel(status?: string) {
+  switch (status) {
+    case "ACTIVE":
+      return "Aktif";
+    case "OVERDUE":
+      return "Terlambat";
+    case "PENDING":
+      return "Menunggu";
+    case "RETURNED":
+      return "Dikembalikan";
+    case "CANCELLED":
+      return "Dibatalkan";
+    case "REJECTED":
+      return "Ditolak";
+    case "APPROVED":
+      return "Disetujui";
+    case "READY":
+      return "Siap diambil";
+    default:
+      return status ?? "Aktivitas";
+  }
+}
+
+export default function AdminDashboardPage() {
+  const [data, setData] = useState<DashboardData>(emptyDashboard);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
+
+  async function loadDashboard(showRefresh = false) {
+    if (showRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
+
+    setError("");
+
+    try {
+      const [
+        booksResponse,
+        membersResponse,
+        statisticsResponse,
+        loansResponse,
+        reservationsResponse,
+      ] = await Promise.all([
+        apiFetch("/books?limit=1"),
+        apiFetch("/members"),
+        apiFetch("/loans/statistics"),
+        apiFetch("/loans?limit=100&sortBy=createdAt&order=desc"),
+        apiFetch("/reservations"),
+      ]);
+
+      const [
+        booksJson,
+        membersJson,
+        statisticsJson,
+        loansJson,
+        reservationsJson,
+      ] = await Promise.all([
+        booksResponse.ok ? booksResponse.json() : null,
+        membersResponse.ok ? membersResponse.json() : null,
+        statisticsResponse.ok ? statisticsResponse.json() : null,
+        loansResponse.ok ? loansResponse.json() : null,
+        reservationsResponse.ok ? reservationsResponse.json() : null,
+      ]);
+
+      const statistics: LoanStatistics =
+        statisticsJson ?? {};
+
+      const recentLoans = Array.isArray(loansJson)
+        ? loansJson
+        : Array.isArray(loansJson?.data)
+          ? loansJson.data
+          : [];
+
+      const reservations = Array.isArray(reservationsJson)
+        ? reservationsJson
+        : Array.isArray(reservationsJson?.data)
+          ? reservationsJson.data
+          : [];
+
+      const totalBooks =
+        Number(booksJson?.pagination?.total ?? 0);
+
+      const totalMembers =
+        Array.isArray(membersJson)
+          ? membersJson.length
+          : Array.isArray(membersJson?.data)
+            ? membersJson.data.length
+            : 0;
+
+      const totalReservations =
+        reservations.length;
+
+      const pendingReservations =
+        reservations.filter((item: DashboardReservation) =>
+          ["PENDING", "WAITING"].includes(
+            item.status ?? "",
+          ),
+        ).length;
+
+      setData({
+        totalBooks,
+        totalMembers,
+        totalLoans: Number(statistics.total ?? 0),
+        activeLoans: Number(statistics.active ?? 0),
+        overdueLoans: Number(statistics.overdue ?? 0),
+        returnedLoans: Number(statistics.returned ?? 0),
+        pendingLoans: Number(statistics.pending ?? 0),
+        reservations: totalReservations,
+        pendingReservations,
+        recentLoans,
+        recentReservations: reservations.slice(0, 5),
+      });
+    } catch (err) {
+      console.error("Gagal memuat dashboard:", err);
+      setError(
+        "Sebagian data dashboard belum dapat dimuat. Silakan coba refresh.",
+      );
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const collectionStatus = useMemo(() => {
+    const total =
+      data.activeLoans +
+      data.overdueLoans +
+      data.returnedLoans;
+
+    const active =
+      data.activeLoans +
+      data.overdueLoans;
+
+    const returned =
+      data.returnedLoans;
+
+    const activePercent =
+      total > 0
+        ? Math.round((active / total) * 100)
+        : 0;
+
+    const returnedPercent =
+      total > 0
+        ? Math.round((returned / total) * 100)
+        : 0;
+
+    return {
+      active,
+      returned,
+      activePercent,
+      returnedPercent,
+    };
+  }, [
+    data.activeLoans,
+    data.overdueLoans,
+    data.returnedLoans,
+  ]);
+
+  const loanTrend = useMemo(() => {
+    const now = new Date();
+    const days = [];
+
+    for (let offset = 6; offset >= 0; offset--) {
+      const date = new Date(now);
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() - offset);
+
+      days.push({
+        key: [
+          date.getFullYear(),
+          String(date.getMonth() + 1).padStart(2, "0"),
+          String(date.getDate()).padStart(2, "0"),
+        ].join("-"),
+        label: date.toLocaleDateString("id-ID", {
+          weekday: "short",
+        }),
+        dateLabel: date.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+        }),
+        count: 0,
+      });
+    }
+
+    for (const loan of data.recentLoans) {
+      if (!loan.createdAt) continue;
+
+      const date = new Date(loan.createdAt);
+
+      if (Number.isNaN(date.getTime())) continue;
+
+      const key = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ].join("-");
+
+      const day = days.find((item) => item.key === key);
+
+      if (day) {
+        day.count++;
+      }
+    }
+
+    const max = Math.max(
+      ...days.map((day) => day.count),
+      1,
+    );
+
+    const total = days.reduce(
+      (sum, day) => sum + day.count,
+      0,
+    );
+
+    const peak = days.reduce(
+      (highest, day) =>
+        day.count > highest.count
+          ? day
+          : highest,
+      days[0],
+    );
+
+    return {
+      days,
+      max,
+      total,
+      peak,
+    };
+  }, [data.recentLoans]);
+
+  const loanChartPoints = useMemo(() => {
+    const width = 720;
+    const height = 190;
+    const max = Math.max(loanTrend.max, 1);
+
+    return loanTrend.days.map((day, index) => {
+      const x =
+        loanTrend.days.length === 1
+          ? width / 2
+          : (index / (loanTrend.days.length - 1)) * width;
+
+      const y =
+        height -
+        22 -
+        (day.count / max) * (height - 48);
+
+      return {
+        ...day,
+        x,
+        y,
+      };
+    });
+  }, [loanTrend]);
+
+  const loanLinePath =
+    loanChartPoints.length > 0
+      ? loanChartPoints
+          .map(
+            (point, index) =>
+              `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`,
+          )
+          .join(" ")
+      : "";
+
+  const loanAreaPath =
+    loanChartPoints.length > 0
+      ? `${loanLinePath} L 720 190 L 0 190 Z`
+      : "";
+
+  const systemHealthy =
+    !loading && !error;
+
+  return (
+    <>
+      <SiteHeader />
+
+      <div className="admin-dashboard-shell">
+        <AdminSidebar />
+
+        <main className="admin-dashboard-main">
+          <div className="admin-dashboard-content">
+            <section className="admin-dashboard-header">
+              <div>
+                <div className="admin-dashboard-eyebrow">
+                  USEFECT · ADMIN WORKSPACE
+                </div>
+
+                <h1>
+                  Administration
+                  <span>Dashboard</span>
+                </h1>
+
+                <p>
+                  Overview operasional, koleksi, transaksi,
+                  pengguna, dan aktivitas sistem USEFECT.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="admin-dashboard-refresh"
+                onClick={() => loadDashboard(true)}
+                disabled={loading || refreshing}
+              >
+                <RefreshCw
+                  size={16}
+                  className={
+                    refreshing
+                      ? "admin-dashboard-spin"
+                      : ""
+                  }
+                />
+                {refreshing ? "Memuat..." : "Refresh"}
+              </button>
+            </section>
+
+            {error && (
+              <div className="admin-dashboard-alert">
+                <AlertTriangle size={17} />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <section className="admin-dashboard-kpi-grid">
+              <article className="admin-dashboard-kpi">
+                <div className="admin-dashboard-kpi-icon blue">
+                  <BookOpen size={21} />
+                </div>
+
+                <div className="admin-dashboard-kpi-body">
+                  <span>Total Koleksi</span>
+                  <strong>
+                    {loading
+                      ? "—"
+                      : formatNumber(data.totalBooks)}
+                  </strong>
+                  <small>Judul buku terdaftar</small>
+                </div>
+
+                <ArrowUpRight size={17} />
+              </article>
+
+              <article className="admin-dashboard-kpi">
+                <div className="admin-dashboard-kpi-icon violet">
+                  <Users size={21} />
+                </div>
+
+                <div className="admin-dashboard-kpi-body">
+                  <span>Total Anggota</span>
+                  <strong>
+                    {loading
+                      ? "—"
+                      : formatNumber(data.totalMembers)}
+                  </strong>
+                  <small>Anggota non-administratif</small>
+                </div>
+
+                <ArrowUpRight size={17} />
+              </article>
+
+              <article className="admin-dashboard-kpi">
+                <div className="admin-dashboard-kpi-icon green">
+                  <ClipboardList size={21} />
+                </div>
+
+                <div className="admin-dashboard-kpi-body">
+                  <span>Peminjaman Aktif</span>
+                  <strong>
+                    {loading
+                      ? "—"
+                      : formatNumber(data.activeLoans)}
+                  </strong>
+                  <small>
+                    {formatNumber(data.overdueLoans)} terlambat
+                  </small>
+                </div>
+
+                <ArrowUpRight size={17} />
+              </article>
+
+              <article className="admin-dashboard-kpi">
+                <div className="admin-dashboard-kpi-icon orange">
+                  <CalendarClock size={21} />
+                </div>
+
+                <div className="admin-dashboard-kpi-body">
+                  <span>Reservasi</span>
+                  <strong>
+                    {loading
+                      ? "—"
+                      : formatNumber(data.reservations)}
+                  </strong>
+                  <small>
+                    {formatNumber(data.pendingReservations)} menunggu
+                  </small>
+                </div>
+
+                <ArrowUpRight size={17} />
+              </article>
+            </section>
+
+            <section className="admin-dashboard-main-grid">
+              <article className="admin-dashboard-panel admin-dashboard-loan-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      TRANSACTION OVERVIEW
+                    </span>
+                    <h2>Statistik Peminjaman</h2>
+                    <p>
+                      Ringkasan status transaksi perpustakaan.
+                    </p>
+                  </div>
+
+                  <div className="admin-dashboard-panel-icon">
+                    <Activity size={19} />
+                  </div>
+                </div>
+
+                <div className="admin-dashboard-trend-clean">
+                  <div className="admin-dashboard-chart-meta">
+                    <div>
+                      <strong>
+                        {loading
+                          ? "—"
+                          : formatNumber(loanTrend.total)}
+                      </strong>
+                      <span>transaksi dalam 7 hari terakhir</span>
+                    </div>
+
+                    <div className="admin-dashboard-chart-peak">
+                      <span>Puncak aktivitas</span>
+                      <strong>
+                        {loading
+                          ? "—"
+                          : `${loanTrend.peak.label} · ${loanTrend.peak.count}`}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="admin-dashboard-line-chart">
+                    <div className="admin-dashboard-chart-grid-line line-1" />
+                    <div className="admin-dashboard-chart-grid-line line-2" />
+                    <div className="admin-dashboard-chart-grid-line line-3" />
+                    <div className="admin-dashboard-chart-grid-line line-4" />
+
+                    <svg
+                      viewBox="0 0 720 190"
+                      preserveAspectRatio="none"
+                      className="admin-dashboard-chart-svg"
+                      aria-label="Tren peminjaman 7 hari terakhir"
+                    >
+                      <defs>
+                        <linearGradient
+                          id="loanAreaGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#2563eb"
+                            stopOpacity="0.18"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#2563eb"
+                            stopOpacity="0"
+                          />
+                        </linearGradient>
+                      </defs>
+
+                      <path
+                        d={loanAreaPath}
+                        fill="url(#loanAreaGradient)"
+                      />
+
+                      <path
+                        d={loanLinePath}
+                        fill="none"
+                        stroke="#2563eb"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+
+                      {loanChartPoints.map((point) => (
+                        <circle
+                          key={point.key}
+                          cx={point.x}
+                          cy={point.y}
+                          r="4.5"
+                          fill="#ffffff"
+                          stroke="#2563eb"
+                          strokeWidth="2.5"
+                        />
+                      ))}
+                    </svg>
+
+                    <div className="admin-dashboard-chart-labels">
+                      {loanChartPoints.map((point) => (
+                        <span key={point.key}>
+                          {point.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="admin-dashboard-trend-stats">
+                    <div>
+                      <span>
+                        <i className="dot active" />
+                        Aktif
+                      </span>
+                      <strong>{data.activeLoans}</strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        <i className="dot overdue" />
+                        Terlambat
+                      </span>
+                      <strong>{data.overdueLoans}</strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        <i className="dot pending" />
+                        Pending
+                      </span>
+                      <strong>{data.pendingLoans}</strong>
+                    </div>
+
+                    <div>
+                      <span>
+                        <i className="dot returned" />
+                        Dikembalikan
+                      </span>
+                      <strong>{data.returnedLoans}</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article className="admin-dashboard-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      COLLECTION
+                    </span>
+                    <h2>Status Transaksi</h2>
+                    <p>
+                      Distribusi transaksi berdasarkan status.
+                    </p>
+                  </div>
+
+                  <div className="admin-dashboard-panel-icon">
+                    <BookOpen size={19} />
+                  </div>
+                </div>
+
+                <div className="admin-dashboard-progress-list">
+                  <div>
+                    <div>
+                      <span>Aktif</span>
+                      <strong>
+                        {collectionStatus.activePercent}%
+                      </strong>
+                    </div>
+
+                    <div className="admin-dashboard-progress-track">
+                      <span
+                        style={{
+                          width: `${collectionStatus.activePercent}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div>
+                      <span>Dikembalikan</span>
+                      <strong>
+                        {collectionStatus.returnedPercent}%
+                      </strong>
+                    </div>
+
+                    <div className="admin-dashboard-progress-track returned">
+                      <span
+                        style={{
+                          width: `${collectionStatus.returnedPercent}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="admin-dashboard-mini-grid">
+                    <div>
+                      <small>Pending</small>
+                      <strong>{data.pendingLoans}</strong>
+                    </div>
+
+                    <div>
+                      <small>Overdue</small>
+                      <strong>{data.overdueLoans}</strong>
+                    </div>
+
+                    <div>
+                      <small>Returned</small>
+                      <strong>{data.returnedLoans}</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </section>
+
+            <section className="admin-dashboard-lower-grid">
+              <article className="admin-dashboard-panel admin-dashboard-activity-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      RECENT ACTIVITY
+                    </span>
+                    <h2>Aktivitas Terbaru</h2>
+                    <p>
+                      Transaksi peminjaman terakhir di sistem.
+                    </p>
+                  </div>
+
+                  <a href="/admin/peminjaman/kelola">
+                    Lihat semua
+                    <ArrowUpRight size={15} />
+                  </a>
+                </div>
+
+                <div className="admin-dashboard-activity-list">
+                  {loading ? (
+                    <div className="admin-dashboard-empty">
+                      Memuat aktivitas...
+                    </div>
+                  ) : data.recentLoans.length === 0 ? (
+                    <div className="admin-dashboard-empty">
+                      Belum ada aktivitas peminjaman.
+                    </div>
+                  ) : (
+                    data.recentLoans.map((loan, index) => (
+                      <div
+                        className="admin-dashboard-activity-item"
+                        key={loan.id ?? index}
+                      >
+                        <div className="admin-dashboard-activity-icon">
+                          <ClipboardList size={17} />
+                        </div>
+
+                        <div className="admin-dashboard-activity-main">
+                          <strong>
+                            {getLoanTitle(loan)}
+                          </strong>
+                          <span>
+                            {getLoanUser(loan)} ·{" "}
+                            {statusLabel(loan.status)}
+                          </span>
+                        </div>
+
+                        <time>
+                          {formatRelativeDate(loan.createdAt)}
+                        </time>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </article>
+
+              <article className="admin-dashboard-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      RESERVATIONS
+                    </span>
+                    <h2>Reservasi Terbaru</h2>
+                    <p>
+                      Antrean reservasi yang tercatat.
+                    </p>
+                  </div>
+
+                  <a href="/admin/reservasi">
+                    Kelola
+                    <ArrowUpRight size={15} />
+                  </a>
+                </div>
+
+                <div className="admin-dashboard-reservation-list">
+                  {loading ? (
+                    <div className="admin-dashboard-empty">
+                      Memuat reservasi...
+                    </div>
+                  ) : data.recentReservations.length === 0 ? (
+                    <div className="admin-dashboard-empty">
+                      Belum ada reservasi.
+                    </div>
+                  ) : (
+                    data.recentReservations.map(
+                      (reservation, index) => (
+                        <div
+                          className="admin-dashboard-reservation"
+                          key={
+                            reservation.id ?? index
+                          }
+                        >
+                          <div className="admin-dashboard-reservation-icon">
+                            <CalendarClock size={16} />
+                          </div>
+
+                          <div>
+                            <strong>
+                              {getReservationTitle(
+                                reservation,
+                              )}
+                            </strong>
+                            <span>
+                              {getReservationUser(
+                                reservation,
+                              )}
+                            </span>
+                          </div>
+
+                          <small>
+                            {statusLabel(
+                              reservation.status,
+                            )}
+                          </small>
+                        </div>
+                      ),
+                    )
+                  )}
+                </div>
+              </article>
+            </section>
+
+            <section className="admin-dashboard-bottom-grid">
+              <article className="admin-dashboard-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      QUICK ACTIONS
+                    </span>
+                    <h2>Akses Cepat</h2>
+                  </div>
+                </div>
+
+                <div className="admin-dashboard-actions">
+                  <a href="/admin/buku">
+                    <FilePlus2 size={18} />
+                    <span>
+                      <strong>Tambah Buku</strong>
+                      <small>Tambah koleksi baru</small>
+                    </span>
+                    <ArrowUpRight size={15} />
+                  </a>
+
+                  <a href="/admin/anggota">
+                    <UserPlus size={18} />
+                    <span>
+                      <strong>Tambah Anggota</strong>
+                      <small>Kelola anggota USEFECT</small>
+                    </span>
+                    <ArrowUpRight size={15} />
+                  </a>
+
+                  <a href="/admin/peminjaman/kelola">
+                    <ClipboardList size={18} />
+                    <span>
+                      <strong>Kelola Peminjaman</strong>
+                      <small>Transaksi dan pengembalian</small>
+                    </span>
+                    <ArrowUpRight size={15} />
+                  </a>
+                </div>
+              </article>
+
+              <article className="admin-dashboard-panel">
+                <div className="admin-dashboard-panel-heading">
+                  <div>
+                    <span className="admin-dashboard-panel-label">
+                      SYSTEM HEALTH
+                    </span>
+                    <h2>Status Sistem</h2>
+                  </div>
+
+                  <div className="admin-dashboard-health-badge">
+                    <CircleDot size={14} />
+                    {systemHealthy ? "Operational" : "Checking"}
+                  </div>
+                </div>
+
+                <div className="admin-dashboard-health-list">
+                  <div>
+                    <span>
+                      <Database size={16} />
+                      API Service
+                    </span>
+                    <strong>
+                      <CheckCircle2 size={15} />
+                      Online
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      <Database size={16} />
+                      Data Service
+                    </span>
+                    <strong>
+                      <CheckCircle2 size={15} />
+                      Available
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      <ShieldCheck size={16} />
+                      Authentication
+                    </span>
+                    <strong>
+                      <CheckCircle2 size={15} />
+                      Active
+                    </strong>
+                  </div>
+
+                  <div>
+                    <span>
+                      <Clock3 size={16} />
+                      Dashboard
+                    </span>
+                    <strong>
+                      <CheckCircle2 size={15} />
+                      Live Data
+                    </strong>
+                  </div>
+                </div>
+              </article>
+            </section>
+          </div>
+        </main>
+      </div>
+    </>
+  );
+}

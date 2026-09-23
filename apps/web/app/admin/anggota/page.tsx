@@ -79,6 +79,42 @@ export default function AdminAnggotaPage() {
 
   const [statusSaving, setStatusSaving] = useState(false);
 
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createSaving, setCreateSaving] = useState(false);
+  const [createError, setCreateError] = useState("");
+
+  const [createForm, setCreateForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    type: "MAHASISWA" as Member["type"],
+    npm: "",
+    lecturerNumber: "",
+    faculty: "",
+    studyProgram: "",
+    enrollmentYear: "",
+  });
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState("");
+  const [passwordResetSaving, setPasswordResetSaving] =
+    useState(false);
+  const [resetPassword, setResetPassword] = useState("");
+
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    email: "",
+    username: "",
+    phone: "",
+    npm: "",
+    lecturerNumber: "",
+    faculty: "",
+    studyProgram: "",
+    enrollmentYear: "",
+  });
+
   const fetchMembers = async () => {
     try {
       setLoading(true);
@@ -380,6 +416,318 @@ export default function AdminAnggotaPage() {
     }
   };
 
+  const resetCreateForm = () => {
+    setCreateForm({
+      fullName: "",
+      email: "",
+      phone: "",
+      password: "",
+      type: "MAHASISWA",
+      npm: "",
+      lecturerNumber: "",
+      faculty: "",
+      studyProgram: "",
+      enrollmentYear: "",
+    });
+    setCreateError("");
+  };
+
+  const closeCreateModal = () => {
+    if (createSaving) return;
+    setShowCreateModal(false);
+    resetCreateForm();
+  };
+
+  const createMember = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    try {
+      setCreateSaving(true);
+      setCreateError("");
+      setPageError("");
+      setSuccessMessage("");
+
+      const payload: Record<string, unknown> = {
+        fullName: createForm.fullName.trim(),
+        email: createForm.email.trim(),
+        phone: createForm.phone.trim() || undefined,
+        password: createForm.password,
+        type: createForm.type,
+      };
+
+      if (createForm.type === "MAHASISWA") {
+        payload.npm = createForm.npm.trim() || undefined;
+        payload.faculty = createForm.faculty.trim() || undefined;
+        payload.studyProgram =
+          createForm.studyProgram.trim() || undefined;
+
+        if (createForm.enrollmentYear.trim()) {
+          payload.enrollmentYear = Number(
+            createForm.enrollmentYear,
+          );
+        }
+      }
+
+      if (createForm.type === "DOSEN") {
+        payload.lecturerNumber =
+          createForm.lecturerNumber.trim() || undefined;
+        payload.faculty = createForm.faculty.trim() || undefined;
+        payload.studyProgram =
+          createForm.studyProgram.trim() || undefined;
+      }
+
+      const response = await apiFetch("/members", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(result?.message)
+          ? result.message.join(", ")
+          : result?.message;
+
+        throw new Error(
+          message ?? "Gagal menambahkan anggota",
+        );
+      }
+
+      setSuccessMessage(
+        `Anggota ${createForm.fullName} berhasil ditambahkan.`,
+      );
+
+      setShowCreateModal(false);
+      resetCreateForm();
+
+      await fetchMembers();
+    } catch (error) {
+      console.error(
+        "Gagal menambahkan anggota:",
+        error,
+      );
+
+      setCreateError(
+        error instanceof Error
+          ? error.message
+          : "Gagal menambahkan anggota",
+      );
+    } finally {
+      setCreateSaving(false);
+    }
+  };
+
+  const openEditModal = () => {
+    if (!selectedMember) return;
+
+    setEditForm({
+      fullName: selectedMember.fullName ?? "",
+      email: selectedMember.email ?? "",
+      username: selectedMember.username ?? "",
+      phone: selectedMember.phone ?? "",
+      npm: selectedMember.npm ?? "",
+      lecturerNumber:
+        selectedMember.lecturerNumber ?? "",
+      faculty: selectedMember.faculty ?? "",
+      studyProgram:
+        selectedMember.studyProgram ?? "",
+      enrollmentYear:
+        selectedMember.enrollmentYear?.toString() ?? "",
+    });
+
+    setResetPassword("");
+    setEditError("");
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    if (editSaving || passwordResetSaving) return;
+
+    setShowEditModal(false);
+    setEditError("");
+    setResetPassword("");
+  };
+
+  const updateMember = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
+
+    if (!selectedMember) return;
+
+    try {
+      setEditSaving(true);
+      setEditError("");
+      setPageError("");
+      setSuccessMessage("");
+
+      const payload: Record<string, unknown> = {
+        fullName: editForm.fullName.trim(),
+        email: editForm.email.trim(),
+        username:
+          editForm.username.trim() || undefined,
+        phone:
+          editForm.phone.trim() || undefined,
+      };
+
+      if (selectedMember.type === "MAHASISWA") {
+        payload.npm =
+          editForm.npm.trim() || undefined;
+
+        payload.faculty =
+          editForm.faculty.trim() || undefined;
+
+        payload.studyProgram =
+          editForm.studyProgram.trim() || undefined;
+
+        if (editForm.enrollmentYear.trim()) {
+          payload.enrollmentYear = Number(
+            editForm.enrollmentYear,
+          );
+        }
+      }
+
+      if (selectedMember.type === "DOSEN") {
+        payload.lecturerNumber =
+          editForm.lecturerNumber.trim() || undefined;
+
+        payload.faculty =
+          editForm.faculty.trim() || undefined;
+
+        payload.studyProgram =
+          editForm.studyProgram.trim() || undefined;
+      }
+
+      const response = await apiFetch(
+        `/members/${selectedMember.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(result?.message)
+          ? result.message.join(", ")
+          : result?.message;
+
+        throw new Error(
+          message ?? "Gagal memperbarui data anggota",
+        );
+      }
+
+      setSuccessMessage(
+        `Data ${editForm.fullName} berhasil diperbarui.`,
+      );
+
+      setShowEditModal(false);
+
+      await fetchMembers();
+
+      const detailResponse = await apiFetch(
+        `/members/${selectedMember.id}`,
+      );
+
+      const detailResult =
+        await detailResponse.json();
+
+      if (detailResponse.ok) {
+        setSelectedMember(detailResult);
+      }
+    } catch (error) {
+      console.error(
+        "Gagal memperbarui anggota:",
+        error,
+      );
+
+      setEditError(
+        error instanceof Error
+          ? error.message
+          : "Gagal memperbarui data anggota",
+      );
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedMember) return;
+
+    if (resetPassword.length < 8) {
+      setEditError(
+        "Password baru minimal 8 karakter.",
+      );
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Reset password untuk ${selectedMember.fullName}?\n\nPassword lama akan diganti dengan password baru yang dimasukkan.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setPasswordResetSaving(true);
+      setEditError("");
+      setPageError("");
+      setSuccessMessage("");
+
+      const response = await apiFetch(
+        `/members/${selectedMember.id}/password`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            password: resetPassword,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        const message = Array.isArray(result?.message)
+          ? result.message.join(", ")
+          : result?.message;
+
+        throw new Error(
+          message ?? "Gagal mereset password",
+        );
+      }
+
+      setSuccessMessage(
+        `Password ${selectedMember.fullName} berhasil direset.`,
+      );
+
+      setResetPassword("");
+    } catch (error) {
+      console.error(
+        "Gagal mereset password:",
+        error,
+      );
+
+      setEditError(
+        error instanceof Error
+          ? error.message
+          : "Gagal mereset password",
+      );
+    } finally {
+      setPasswordResetSaving(false);
+    }
+  };
+
   const resetFilters = () => {
     setSearch("");
     setTypeFilter("ALL");
@@ -424,34 +772,13 @@ export default function AdminAnggotaPage() {
             </div>
           </div>
 
-          <div className="member-hero-building">
-            <div className="member-hero-building-glow" />
-            <div className="member-hero-quote">
-              <strong>
-                “Knowledge
-                <br />
-                today for a better
-                <br />
-                tomorrow”
-              </strong>
-              <span />
-            </div>
-          </div>
-
           <div className="member-hero-actions">
-            <div className="member-breadcrumb">
-              <span>Dashboard</span>
-              <ChevronRight size={13} />
-              <strong>Manajemen Anggota</strong>
-            </div>
-
             <button
               type="button"
               className="member-add-button"
               onClick={() => {
-                window.alert(
-                  "Form Tambah Anggota akan dihubungkan setelah endpoint pendaftaran anggota disiapkan.",
-                );
+                setCreateError("");
+                setShowCreateModal(true);
               }}
             >
               <Plus size={17} />
@@ -1089,11 +1416,7 @@ export default function AdminAnggotaPage() {
                     <button
                       type="button"
                       className="member-edit-button"
-                      onClick={() =>
-                        window.alert(
-                          "Form Edit Anggota akan kita aktifkan pada tahap berikutnya.",
-                        )
-                      }
+                      onClick={openEditModal}
                     >
                       <Pencil size={16} />
                       Edit Data
@@ -1147,6 +1470,699 @@ export default function AdminAnggotaPage() {
             </aside>
           )}
         </section>
+
+        {showEditModal && selectedMember && (
+          <div
+            className="member-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                closeEditModal();
+              }
+            }}
+          >
+            <div
+              className="member-create-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="edit-member-title"
+            >
+              <div className="member-create-heading">
+                <div>
+                  <span>SUPER ADMIN · ANGGOTA</span>
+                  <h2 id="edit-member-title">
+                    Edit Data Anggota
+                  </h2>
+                  <p>
+                    Perbarui informasi anggota dan kelola
+                    akses akun.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  disabled={
+                    editSaving ||
+                    passwordResetSaving
+                  }
+                  aria-label="Tutup form"
+                >
+                  <X size={19} />
+                </button>
+              </div>
+
+              <form
+                className="member-create-form"
+                onSubmit={updateMember}
+              >
+                <div className="member-form-section">
+                  <div className="member-form-section-title">
+                    Data Akun
+                  </div>
+
+                  <div className="member-form-grid">
+                    <label className="member-form-field full">
+                      <span>Nama Lengkap *</span>
+                      <input
+                        required
+                        maxLength={100}
+                        value={editForm.fullName}
+                        onChange={(event) =>
+                          setEditForm((current) => ({
+                            ...current,
+                            fullName:
+                              event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>Email *</span>
+                      <input
+                        required
+                        type="email"
+                        value={editForm.email}
+                        onChange={(event) =>
+                          setEditForm((current) => ({
+                            ...current,
+                            email:
+                              event.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>Username</span>
+                      <input
+                        maxLength={50}
+                        value={editForm.username}
+                        onChange={(event) =>
+                          setEditForm((current) => ({
+                            ...current,
+                            username:
+                              event.target.value,
+                          }))
+                        }
+                        placeholder="Username"
+                      />
+                    </label>
+
+                    <label className="member-form-field full">
+                      <span>No. HP</span>
+                      <input
+                        type="tel"
+                        value={editForm.phone}
+                        onChange={(event) =>
+                          setEditForm((current) => ({
+                            ...current,
+                            phone:
+                              event.target.value,
+                          }))
+                        }
+                        placeholder="08xxxxxxxxxx"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {selectedMember.type === "MAHASISWA" && (
+                  <div className="member-form-section">
+                    <div className="member-form-section-title">
+                      Data Mahasiswa
+                    </div>
+
+                    <div className="member-form-grid">
+                      <label className="member-form-field">
+                        <span>NPM *</span>
+                        <input
+                          required
+                          maxLength={30}
+                          value={editForm.npm}
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              npm:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Tahun Masuk</span>
+                        <input
+                          type="number"
+                          min={1900}
+                          max={2100}
+                          value={
+                            editForm.enrollmentYear
+                          }
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              enrollmentYear:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Fakultas</span>
+                        <input
+                          maxLength={100}
+                          value={editForm.faculty}
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              faculty:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Program Studi</span>
+                        <input
+                          maxLength={100}
+                          value={
+                            editForm.studyProgram
+                          }
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              studyProgram:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {selectedMember.type === "DOSEN" && (
+                  <div className="member-form-section">
+                    <div className="member-form-section-title">
+                      Data Dosen
+                    </div>
+
+                    <div className="member-form-grid">
+                      <label className="member-form-field">
+                        <span>No. Dosen *</span>
+                        <input
+                          required
+                          maxLength={50}
+                          value={
+                            editForm.lecturerNumber
+                          }
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              lecturerNumber:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Fakultas</span>
+                        <input
+                          maxLength={100}
+                          value={editForm.faculty}
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              faculty:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+
+                      <label className="member-form-field full">
+                        <span>Program Studi</span>
+                        <input
+                          maxLength={100}
+                          value={
+                            editForm.studyProgram
+                          }
+                          onChange={(event) =>
+                            setEditForm((current) => ({
+                              ...current,
+                              studyProgram:
+                                event.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {selectedMember.type === "ANGGOTA" && (
+                  <div className="member-form-info">
+                    <ShieldCheck size={16} />
+                    <span>
+                      Akun ini merupakan anggota umum
+                      perpustakaan.
+                    </span>
+                  </div>
+                )}
+
+                <div className="member-form-section">
+                  <div className="member-form-section-title">
+                    Reset Password
+                  </div>
+
+                  <div className="member-form-grid">
+                    <label className="member-form-field full">
+                      <span>Password Baru</span>
+                      <input
+                        type="password"
+                        minLength={8}
+                        value={resetPassword}
+                        onChange={(event) => {
+                          setResetPassword(
+                            event.target.value,
+                          );
+                          setEditError("");
+                        }}
+                        placeholder="Minimal 8 karakter"
+                        disabled={
+                          editSaving ||
+                          passwordResetSaving
+                        }
+                      />
+                    </label>
+                  </div>
+
+                  <div className="member-reset-password-row">
+                    <span>
+                      Password lama tidak diperlukan.
+                      Reset dilakukan oleh SUPER_ADMIN.
+                    </span>
+
+                    <button
+                      type="button"
+                      className="member-reset-password-button"
+                      onClick={handleResetPassword}
+                      disabled={
+                        passwordResetSaving ||
+                        editSaving ||
+                        resetPassword.length < 8
+                      }
+                    >
+                      {passwordResetSaving ? (
+                        <>
+                          <RefreshCw
+                            size={14}
+                            className="member-spin"
+                          />
+                          Mereset...
+                        </>
+                      ) : (
+                        "Reset Password"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {editError && (
+                  <div className="member-create-error">
+                    <XCircle size={16} />
+                    <span>{editError}</span>
+                  </div>
+                )}
+
+                <div className="member-create-footer">
+                  <button
+                    type="button"
+                    className="member-create-cancel"
+                    onClick={closeEditModal}
+                    disabled={
+                      editSaving ||
+                      passwordResetSaving
+                    }
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="member-create-submit"
+                    disabled={
+                      editSaving ||
+                      passwordResetSaving
+                    }
+                  >
+                    {editSaving ? (
+                      <>
+                        <RefreshCw
+                          size={15}
+                          className="member-spin"
+                        />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={15} />
+                        Simpan Perubahan
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showCreateModal && (
+          <div
+            className="member-modal-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                closeCreateModal();
+              }
+            }}
+          >
+            <div
+              className="member-create-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="create-member-title"
+            >
+              <div className="member-create-heading">
+                <div>
+                  <span>SUPER ADMIN · ANGGOTA</span>
+                  <h2 id="create-member-title">
+                    Tambah Anggota
+                  </h2>
+                  <p>
+                    Buat akun anggota secara langsung tanpa
+                    proses registrasi mandiri.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={closeCreateModal}
+                  disabled={createSaving}
+                  aria-label="Tutup form"
+                >
+                  <X size={19} />
+                </button>
+              </div>
+
+              <form
+                className="member-create-form"
+                onSubmit={createMember}
+              >
+                <div className="member-form-section">
+                  <div className="member-form-section-title">
+                    Data Akun
+                  </div>
+
+                  <div className="member-form-grid">
+                    <label className="member-form-field full">
+                      <span>Nama Lengkap *</span>
+                      <input
+                        required
+                        maxLength={100}
+                        value={createForm.fullName}
+                        onChange={(event) =>
+                          setCreateForm((current) => ({
+                            ...current,
+                            fullName: event.target.value,
+                          }))
+                        }
+                        placeholder="Nama lengkap anggota"
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>Email *</span>
+                      <input
+                        required
+                        type="email"
+                        value={createForm.email}
+                        onChange={(event) =>
+                          setCreateForm((current) => ({
+                            ...current,
+                            email: event.target.value,
+                          }))
+                        }
+                        placeholder="Masukkan alamat email"
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>No. HP</span>
+                      <input
+                        type="tel"
+                        value={createForm.phone}
+                        onChange={(event) =>
+                          setCreateForm((current) => ({
+                            ...current,
+                            phone: event.target.value,
+                          }))
+                        }
+                        placeholder="08xxxxxxxxxx"
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>Password Awal *</span>
+                      <input
+                        required
+                        type="password"
+                        minLength={8}
+                        value={createForm.password}
+                        onChange={(event) =>
+                          setCreateForm((current) => ({
+                            ...current,
+                            password: event.target.value,
+                          }))
+                        }
+                        placeholder="Minimal 8 karakter"
+                      />
+                    </label>
+
+                    <label className="member-form-field">
+                      <span>Jenis Anggota *</span>
+                      <select
+                        required
+                        value={createForm.type}
+                        onChange={(event) =>
+                          setCreateForm((current) => ({
+                            ...current,
+                            type: event.target.value as Member["type"],
+                            npm: "",
+                            lecturerNumber: "",
+                          }))
+                        }
+                      >
+                        <option value="MAHASISWA">
+                          Mahasiswa
+                        </option>
+                        <option value="DOSEN">
+                          Dosen
+                        </option>
+                        <option value="ANGGOTA">
+                          Tenaga Kependidikan
+                        </option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                {createForm.type === "MAHASISWA" && (
+                  <div className="member-form-section">
+                    <div className="member-form-section-title">
+                      Data Mahasiswa
+                    </div>
+
+                    <div className="member-form-grid">
+                      <label className="member-form-field">
+                        <span>NPM *</span>
+                        <input
+                          required
+                          maxLength={30}
+                          value={createForm.npm}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              npm: event.target.value,
+                            }))
+                          }
+                          placeholder="Nomor Pokok Mahasiswa"
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Tahun Masuk</span>
+                        <input
+                          type="number"
+                          min={1900}
+                          max={2100}
+                          value={createForm.enrollmentYear}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              enrollmentYear: event.target.value,
+                            }))
+                          }
+                          placeholder="2026"
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Fakultas</span>
+                        <input
+                          maxLength={100}
+                          value={createForm.faculty}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              faculty: event.target.value,
+                            }))
+                          }
+                          placeholder="Fakultas"
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Program Studi</span>
+                        <input
+                          maxLength={100}
+                          value={createForm.studyProgram}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              studyProgram: event.target.value,
+                            }))
+                          }
+                          placeholder="Program studi"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {createForm.type === "DOSEN" && (
+                  <div className="member-form-section">
+                    <div className="member-form-section-title">
+                      Data Dosen
+                    </div>
+
+                    <div className="member-form-grid">
+                      <label className="member-form-field">
+                        <span>No. Dosen *</span>
+                        <input
+                          required
+                          maxLength={50}
+                          value={createForm.lecturerNumber}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              lecturerNumber: event.target.value,
+                            }))
+                          }
+                          placeholder="NIDN / nomor dosen"
+                        />
+                      </label>
+
+                      <label className="member-form-field">
+                        <span>Fakultas</span>
+                        <input
+                          maxLength={100}
+                          value={createForm.faculty}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              faculty: event.target.value,
+                            }))
+                          }
+                          placeholder="Fakultas"
+                        />
+                      </label>
+
+                      <label className="member-form-field full">
+                        <span>Program Studi</span>
+                        <input
+                          maxLength={100}
+                          value={createForm.studyProgram}
+                          onChange={(event) =>
+                            setCreateForm((current) => ({
+                              ...current,
+                              studyProgram: event.target.value,
+                            }))
+                          }
+                          placeholder="Program studi"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {createForm.type === "ANGGOTA" && (
+                  <div className="member-form-info">
+                    <ShieldCheck size={16} />
+                    <span>
+                      Akun Tenaga Kependidikan akan dibuat
+                      sebagai anggota umum perpustakaan.
+                    </span>
+                  </div>
+                )}
+
+                {createError && (
+                  <div className="member-create-error">
+                    <XCircle size={16} />
+                    <span>{createError}</span>
+                  </div>
+                )}
+
+                <div className="member-create-footer">
+                  <button
+                    type="button"
+                    className="member-create-cancel"
+                    onClick={closeCreateModal}
+                    disabled={createSaving}
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="member-create-submit"
+                    disabled={createSaving}
+                  >
+                    {createSaving ? (
+                      <>
+                        <RefreshCw
+                          size={15}
+                          className="member-spin"
+                        />
+                        Menyimpan...
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={16} />
+                        Tambah Anggota
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
       <style jsx global>{`
   .member-management-page {
@@ -2126,6 +3142,304 @@ export default function AdminAnggotaPage() {
     line-height: 1.55;
   }
 
+  .member-modal-backdrop {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(10, 29, 50, .42);
+    backdrop-filter: blur(7px);
+  }
+
+  .member-create-modal {
+    width: min(760px, 100%);
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,.75);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow:
+      0 28px 70px rgba(13, 42, 70, .22);
+  }
+
+  .member-create-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid #edf1f5;
+    background:
+      linear-gradient(
+        135deg,
+        #f2f8ff 0%,
+        #ffffff 72%
+      );
+  }
+
+  .member-create-heading span {
+    color: #2676c5;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: .14em;
+  }
+
+  .member-create-heading h2 {
+    margin: 5px 0 4px;
+    color: #102846;
+    font-size: 21px;
+    letter-spacing: -.025em;
+  }
+
+  .member-create-heading p {
+    margin: 0;
+    color: #718196;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .member-create-heading > button {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    border: 0;
+    border-radius: 9px;
+    color: #687b90;
+    background: #eef3f7;
+    cursor: pointer;
+  }
+
+  .member-create-heading > button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  .member-create-form {
+    padding: 20px 24px 22px;
+  }
+
+  .member-reset-password-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 13px;
+    padding: 11px 12px;
+    border: 1px solid #e5edf4;
+    border-radius: 11px;
+    background: #f7fafc;
+  }
+
+  .member-reset-password-row span {
+    color: #718196;
+    font-size: 9px;
+    line-height: 1.5;
+  }
+
+  .member-reset-password-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    min-height: 31px;
+    padding: 0 12px;
+    border: 1px solid #d8e4ee;
+    border-radius: 8px;
+    color: #245f91;
+    background: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .member-reset-password-button:hover:not(:disabled) {
+    border-color: #9fc4df;
+    background: #eef7ff;
+  }
+
+  .member-reset-password-button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 620px) {
+    .member-reset-password-row {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    .member-reset-password-button {
+      width: 100%;
+    }
+  }
+
+  .member-form-section {
+    padding: 15px;
+    border: 1px solid #e8eef3;
+    border-radius: 14px;
+    background: #fbfcfe;
+  }
+
+  .member-form-section + .member-form-section {
+    margin-top: 12px;
+  }
+
+  .member-form-section-title {
+    margin-bottom: 12px;
+    color: #284967;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .04em;
+  }
+
+  .member-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
+  .member-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .member-form-field.full {
+    grid-column: 1 / -1;
+  }
+
+  .member-form-field span {
+    color: #536a80;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .member-form-field input,
+  .member-form-field select {
+    width: 100%;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid #dce5ed;
+    border-radius: 9px;
+    outline: 0;
+    color: #263f59;
+    background: #fff;
+    font: inherit;
+    font-size: 10px;
+    box-sizing: border-box;
+    transition:
+      border-color .15s ease,
+      box-shadow .15s ease;
+  }
+
+  .member-form-field input:focus,
+  .member-form-field select:focus {
+    border-color: #75aee7;
+    box-shadow: 0 0 0 3px rgba(28,119,220,.08);
+  }
+
+  .member-form-field input::placeholder {
+    color: #a0acb9;
+  }
+
+  .member-form-info {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-top: 12px;
+    padding: 11px 13px;
+    border: 1px solid #dceafa;
+    border-radius: 10px;
+    color: #456782;
+    background: #f4f9ff;
+    font-size: 10px;
+  }
+
+  .member-create-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border: 1px solid #f0cbd0;
+    border-radius: 10px;
+    color: #a42f3e;
+    background: #fff5f6;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  .member-create-error span {
+    flex: 1;
+  }
+
+  .member-create-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 17px;
+  }
+
+  .member-create-cancel,
+  .member-create-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 38px;
+    padding: 0 15px;
+    border-radius: 9px;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  .member-create-cancel {
+    border: 1px solid #dce4ec;
+    color: #53677c;
+    background: #fff;
+  }
+
+  .member-create-submit {
+    border: 0;
+    color: #fff;
+    background:
+      linear-gradient(
+        135deg,
+        #1175e8,
+        #1261c8
+      );
+    box-shadow:
+      0 7px 16px rgba(18,103,201,.2);
+  }
+
+  .member-create-cancel:disabled,
+  .member-create-submit:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+  }
+
+  .member-spin {
+    animation: member-spin-animation .8s linear infinite;
+  }
+
+  @keyframes member-spin-animation {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
   @media (max-width: 1250px) {
     .member-workspace {
       grid-template-columns: minmax(0, 1fr);
@@ -2219,6 +3533,41 @@ export default function AdminAnggotaPage() {
     .member-pagination {
       align-items: flex-start;
       flex-direction: column;
+    }
+
+    .member-modal-backdrop {
+      align-items: flex-end;
+      padding: 0;
+    }
+
+    .member-create-modal {
+      width: 100%;
+      max-height: 92vh;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .member-create-heading,
+    .member-create-form {
+      padding-left: 18px;
+      padding-right: 18px;
+    }
+
+    .member-form-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .member-form-field.full {
+      grid-column: auto;
+    }
+
+    .member-create-footer {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .member-create-cancel,
+    .member-create-submit {
+      width: 100%;
     }
 
     .pagination-controls {
