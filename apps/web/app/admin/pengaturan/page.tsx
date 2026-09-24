@@ -9,6 +9,10 @@ import {
   Save,
   Settings2,
   RotateCcw,
+  UserRound,
+  ShieldCheck,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 import SiteHeader from "../../../components/SiteHeader";
@@ -61,6 +65,46 @@ export default function AdminPengaturanPage() {
     useState("");
 
   const [successMessage, setSuccessMessage] =
+    useState("");
+
+  const [account, setAccount] = useState({
+    email: "",
+    username: "",
+    fullName: "",
+    phone: "",
+  });
+
+  const [accountLoading, setAccountLoading] =
+    useState(true);
+
+  const [accountSaving, setAccountSaving] =
+    useState(false);
+
+  const [passwordSaving, setPasswordSaving] =
+    useState(false);
+
+  const [currentPassword, setCurrentPassword] =
+    useState("");
+
+  const [newPassword, setNewPassword] =
+    useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [showCurrentPassword, setShowCurrentPassword] =
+    useState(false);
+
+  const [showNewPassword, setShowNewPassword] =
+    useState(false);
+
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState(false);
+
+  const [accountMessage, setAccountMessage] =
+    useState("");
+
+  const [accountError, setAccountError] =
     useState("");
 
   const fetchSettings = async () => {
@@ -117,8 +161,53 @@ export default function AdminPengaturanPage() {
     }
   };
 
+  const fetchAccount = async () => {
+    try {
+      setAccountLoading(true);
+      setAccountError("");
+
+      const response =
+        await apiFetch("/users/me");
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal mengambil data akun",
+        );
+      }
+
+      const data =
+        result?.user ??
+        result?.data ??
+        result;
+
+      setAccount({
+        email: data.email ?? "",
+        username: data.username ?? "",
+        fullName: data.fullName ?? "",
+        phone: data.phone ?? "",
+      });
+    } catch (error: any) {
+      console.error(
+        "Gagal mengambil data akun:",
+        error,
+      );
+
+      setAccountError(
+        error?.message ??
+          "Gagal mengambil data akun",
+      );
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchSettings();
+    fetchAccount();
   }, []);
 
   const updateField = (
@@ -280,6 +369,163 @@ export default function AdminPengaturanPage() {
       );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveAccount = async () => {
+    setAccountError("");
+    setAccountMessage("");
+
+    if (!account.fullName.trim()) {
+      setAccountError(
+        "Nama lengkap wajib diisi.",
+      );
+      return;
+    }
+
+    if (!account.username.trim()) {
+      setAccountError(
+        "Username wajib diisi.",
+      );
+      return;
+    }
+
+    if (!account.email.trim()) {
+      setAccountError(
+        "Email wajib diisi.",
+      );
+      return;
+    }
+
+    try {
+      setAccountSaving(true);
+
+      const response =
+        await apiFetch("/users/me", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fullName: account.fullName.trim(),
+            username: account.username.trim(),
+            email: account.email.trim(),
+            phone: account.phone.trim(),
+          }),
+        });
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal memperbarui akun",
+        );
+      }
+
+      const data =
+        result?.user ??
+        result?.data ??
+        result;
+
+      setAccount({
+        email: data.email ?? "",
+        username: data.username ?? "",
+        fullName: data.fullName ?? "",
+        phone: data.phone ?? "",
+      });
+
+      setAccountMessage(
+        "Informasi akun berhasil diperbarui.",
+      );
+    } catch (error: any) {
+      console.error(
+        "Gagal memperbarui akun:",
+        error,
+      );
+
+      setAccountError(
+        error?.message ??
+          "Gagal memperbarui akun",
+      );
+    } finally {
+      setAccountSaving(false);
+    }
+  };
+
+  const savePassword = async () => {
+    setAccountError("");
+    setAccountMessage("");
+
+    if (!currentPassword) {
+      setAccountError(
+        "Password lama wajib diisi.",
+      );
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setAccountError(
+        "Password baru minimal 8 karakter.",
+      );
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setAccountError(
+        "Konfirmasi password baru tidak cocok.",
+      );
+      return;
+    }
+
+    try {
+      setPasswordSaving(true);
+
+      const response =
+        await apiFetch(
+          "/users/me/password",
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              currentPassword,
+              newPassword,
+            }),
+          },
+        );
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal mengubah password",
+        );
+      }
+
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setAccountMessage(
+        "Password berhasil diubah.",
+      );
+    } catch (error: any) {
+      console.error(
+        "Gagal mengubah password:",
+        error,
+      );
+
+      setAccountError(
+        error?.message ??
+          "Gagal mengubah password",
+      );
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -463,6 +709,8 @@ export default function AdminPengaturanPage() {
             </div>
           )}
 
+          
+
           <div className="settings-admin-note">
             <div className="settings-admin-note-icon">
               <Settings2 size={17} />
@@ -483,6 +731,54 @@ export default function AdminPengaturanPage() {
         </section>
       </main>
     </>
+  );
+}
+
+function PasswordField({
+  label,
+  value,
+  onChange,
+  visible,
+  onToggle,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  visible: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <label>
+      <span>{label}</span>
+
+      <div className="settings-password-input">
+        <input
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(event) =>
+            onChange(event.target.value)
+          }
+          placeholder={label}
+          autoComplete="new-password"
+        />
+
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={
+            visible
+              ? "Sembunyikan password"
+              : "Tampilkan password"
+          }
+        >
+          {visible ? (
+            <EyeOff size={17} />
+          ) : (
+            <Eye size={17} />
+          )}
+        </button>
+      </div>
+    </label>
   );
 }
 

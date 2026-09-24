@@ -378,9 +378,8 @@ export default function SiteHeader() {
 
               <button
                 onClick={() => {
-                  alert(
-                    "Pengaturan akan tersedia pada tahap berikutnya.",
-                  );
+                  window.location.href =
+                    "/pengaturan-akun";
                 }}
               >
                 <Settings size={17} />

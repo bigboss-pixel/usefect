@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 
@@ -21,6 +22,10 @@ import {
 import {
   ChangePasswordDto,
 } from './dto/change-password.dto.js';
+
+import {
+  UpdateMyAccountDto,
+} from './dto/update-my-account.dto.js';
 
 import {
   AssignRoleDto,
@@ -49,7 +54,6 @@ import {
 @Controller('users')
 @UseGuards(
   JwtAuthGuard,
-  PermissionsGuard,
 )
 export class UsersController {
   constructor(
@@ -57,10 +61,61 @@ export class UsersController {
   ) {}
 
   // =========================
+  // GET MY ACCOUNT
+  // GET /users/me
+  // =========================
+  @Get('me')
+  async getMyAccount(
+    @Req() req: any,
+  ) {
+    return this.usersService.findOne(
+      req.user.userId,
+    );
+  }
+
+  // =========================
+  // UPDATE MY ACCOUNT
+  // PATCH /users/me
+  // =========================
+  @Patch('me')
+  async updateMyAccount(
+    @Req() req: any,
+
+    @Body()
+    updateMyAccountDto: UpdateMyAccountDto,
+  ) {
+    return this.usersService.update(
+      req.user.userId,
+      updateMyAccountDto,
+    );
+  }
+
+  // =========================
+  // CHANGE MY PASSWORD
+  // PATCH /users/me/password
+  // =========================
+  @Patch('me/password')
+  async changeMyPassword(
+    @Req() req: any,
+
+    @Body()
+    changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(
+      req.user.userId,
+      changePasswordDto,
+    );
+  }
+
+  // =========================
   // GET ALL USERS
   // GET /users
   // =========================
   @Get()
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
   @Permissions('USER_VIEW')
   async findAll() {
     return this.usersService.findAll();
@@ -71,6 +126,10 @@ export class UsersController {
   // GET /users/:id/roles
   // =========================
   @Get(':id/roles')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
   @Permissions('USER_VIEW')
   async getRoles(
     @Param(
@@ -148,6 +207,10 @@ export class UsersController {
   // GET /users/:id
   // =========================
   @Get(':id')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
   @Permissions('USER_VIEW')
   async findOne(
     @Param(
@@ -166,6 +229,10 @@ export class UsersController {
   // PATCH /users/:id/password
   // =========================
   @Patch(':id/password')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
   @Permissions('USER_UPDATE')
   async changePassword(
     @Param(
@@ -188,6 +255,10 @@ export class UsersController {
   // PATCH /users/:id
   // =========================
   @Patch(':id')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
   @Permissions('USER_UPDATE')
   async update(
     @Param(

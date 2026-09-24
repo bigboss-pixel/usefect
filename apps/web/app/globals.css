@@ -21576,3 +21576,185 @@ a {
   flex-shrink: 0;
 }
 
+
+
+/* =========================================
+   USEFECT ACCOUNT SETTINGS
+   ========================================= */
+
+.settings-account-section {
+  margin-top: 32px;
+}
+
+.settings-account-heading {
+  margin-bottom: 18px;
+}
+
+.settings-account-heading h2 {
+  margin: 6px 0 6px;
+  font-size: 24px;
+  line-height: 1.2;
+  color: #162033;
+}
+
+.settings-account-heading p {
+  margin: 0;
+  color: #758093;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.settings-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.settings-account-card {
+  padding: 22px;
+  border: 1px solid rgba(30, 64, 175, 0.09);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 35px rgba(15, 35, 75, 0.06);
+}
+
+.settings-account-card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  margin-bottom: 22px;
+}
+
+.settings-account-card-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: rgba(30, 64, 175, 0.08);
+  color: #1e40af;
+}
+
+.settings-account-card-header h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: #162033;
+}
+
+.settings-account-card-header p {
+  margin: 0;
+  color: #7b8494;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.settings-account-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.settings-account-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.settings-account-form label > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4c5668;
+}
+
+.settings-account-form input {
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #dfe4ec;
+  border-radius: 11px;
+  background: #fff;
+  color: #182235;
+  font-size: 13px;
+  outline: none;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.settings-account-form input:focus {
+  border-color: rgba(30, 64, 175, 0.5);
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.08);
+}
+
+.settings-account-form input::placeholder {
+  color: #a3aab6;
+}
+
+.settings-account-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.settings-password-input {
+  position: relative;
+  width: 100%;
+}
+
+.settings-password-input input {
+  padding-right: 45px;
+}
+
+.settings-password-input button {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #7b8494;
+  cursor: pointer;
+}
+
+.settings-password-input button:hover {
+  background: rgba(30, 64, 175, 0.06);
+  color: #1e40af;
+}
+
+.settings-account-password-note {
+  margin-top: -3px;
+  color: #8992a2;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .settings-account-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .settings-account-card {
+    padding: 18px;
+    border-radius: 16px;
+  }
+
+  .settings-account-actions {
+    justify-content: stretch;
+  }
+
+  .settings-account-actions .settings-admin-save {
+    width: 100%;
+    justify-content: center;
+  }
+}
