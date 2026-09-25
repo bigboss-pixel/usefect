@@ -11,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "../lib/api";
+import { useUsefectDialog } from "../../components/UsefectDialogProvider";
 
 type ReservationStatus =
   | "PENDING"
@@ -103,6 +104,7 @@ export default function ReservasiPage() {
     null,
   );
   const [error, setError] = useState("");
+  const { showAlert, showConfirm } = useUsefectDialog();
 
   const fetchReservations = async (isRefresh = false) => {
     try {
@@ -170,10 +172,17 @@ export default function ReservasiPage() {
   );
 
   const handleCancel = async (reservation: Reservation) => {
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Batalkan reservasi buku "${
         reservation.book?.title ?? `Buku #${reservation.bookId}`
       }"?`,
+      {
+        type: "warning",
+        title: "Batalkan Reservasi",
+        confirmLabel: "Batalkan",
+        cancelLabel: "Kembali",
+        showCancel: true,
+      },
     );
 
     if (!confirmed) return;
@@ -199,16 +208,26 @@ export default function ReservasiPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ?? "Reservasi berhasil dibatalkan",
+        {
+          type: "success",
+          title: "Reservasi Dibatalkan",
+          confirmLabel: "Tutup",
+        },
       );
 
       await fetchReservations(true);
     } catch (error: any) {
       console.error("Gagal membatalkan reservasi:", error);
 
-      alert(
+      await showAlert(
         error?.message ?? "Gagal membatalkan reservasi",
+        {
+          type: "error",
+          title: "Gagal Membatalkan Reservasi",
+          confirmLabel: "Tutup",
+        },
       );
     } finally {
       setCancellingId(null);

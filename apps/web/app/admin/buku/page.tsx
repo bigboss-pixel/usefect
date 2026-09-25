@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../lib/api";
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
 
 type Book = {
   id: number;
@@ -52,6 +53,9 @@ type Book = {
 const ITEMS_PER_PAGE = 8;
 
 export default function AdminBukuPage() {
+  const { showAlert } = useUsefectDialog();
+
+
   const router = useRouter();
 
   const [books, setBooks] = useState<Book[]>([]);
@@ -1051,8 +1055,12 @@ export default function AdminBukuPage() {
 
                         <button
                           onClick={() => {
-                            alert(
+                            void showAlert(
                               "Fitur tambah eksemplar akan dihubungkan ke modul eksemplar.",
+                              {
+                                title: "Tambah Eksemplar",
+                                type: "info",
+                              },
                             );
                           }}
                         >
@@ -1066,8 +1074,12 @@ export default function AdminBukuPage() {
 
                         <button
                           onClick={() => {
-                            alert(
+                            void showAlert(
                               "Riwayat buku akan dihubungkan ke audit transaksi.",
+                              {
+                                title: "Riwayat Buku",
+                                type: "info",
+                              },
                             );
                           }}
                         >
@@ -1078,8 +1090,12 @@ export default function AdminBukuPage() {
                         <button
                           className="danger"
                           onClick={() => {
-                            alert(
+                            void showAlert(
                               "Hapus buku akan dihubungkan setelah alur penghapusan backend siap.",
+                              {
+                                title: "Hapus Buku",
+                                type: "warning",
+                              },
                             );
                           }}
                         >

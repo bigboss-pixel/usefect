@@ -20,6 +20,7 @@ import { NotificationsModule } from './notifications/notifications.module.js';
 import { MemberQrModule } from './member-qr/member-qr.module.js';
 import { LibrarySettingsModule } from './library-settings/library-settings.module.js';
 import { AiModule } from './ai/ai.module.js';
+import { AuditLogModule } from './audit-log/audit-log.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -49,6 +50,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     MemberQrModule,
     LibrarySettingsModule,
     AiModule,
+    AuditLogModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthService],

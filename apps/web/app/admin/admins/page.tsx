@@ -1,5 +1,7 @@
 "use client";
 
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
+
 import { FormEvent, useEffect, useState } from "react";
 import SiteHeader from "../../../components/SiteHeader";
 import {
@@ -32,6 +34,7 @@ type AdminUser = {
 };
 
 export default function AdminManagementPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -99,7 +102,10 @@ export default function AdminManagementPage() {
     event.preventDefault();
 
     if (form.password.length < 8) {
-      alert("Password minimal 8 karakter.");
+      await showAlert("Password minimal 8 karakter.", {
+        title: "Password Tidak Valid",
+        type: "warning",
+      });
       return;
     }
 
@@ -132,7 +138,10 @@ export default function AdminManagementPage() {
         );
       }
 
-      alert("Akun administrator berhasil dibuat.");
+      await showAlert("Akun administrator berhasil dibuat.", {
+        title: "Administrator Berhasil Dibuat",
+        type: "success",
+      });
 
       setForm({
         email: "",
@@ -146,7 +155,13 @@ export default function AdminManagementPage() {
       setShowCreate(false);
       await loadAdmins();
     } catch (error: any) {
-      alert(error?.message ?? "Gagal membuat akun administrator.");
+      await showAlert(
+        error?.message ?? "Gagal membuat akun administrator.",
+        {
+          title: "Gagal Membuat Administrator",
+          type: "error",
+        },
+      );
     } finally {
       setSubmitting(false);
     }
@@ -254,16 +269,24 @@ export default function AdminManagementPage() {
         );
       }
 
-      alert(
+      await showAlert(
         "Data administrator berhasil diperbarui.",
+        {
+          title: "Perubahan Berhasil",
+          type: "success",
+        },
       );
 
       closeActionModal();
       await loadAdmins();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal memperbarui administrator.",
+        {
+          title: "Gagal Memperbarui Administrator",
+          type: "error",
+        },
       );
     } finally {
       setActionSubmitting(false);
@@ -275,13 +298,23 @@ export default function AdminManagementPage() {
 
     const nextStatus = !selectedAdmin.isActive;
 
-    if (
-      !window.confirm(
-        nextStatus
-          ? `Aktifkan kembali akun ${selectedAdmin.fullName}?`
-          : `Nonaktifkan akun ${selectedAdmin.fullName}?`,
-      )
-    ) {
+    const confirmed = await showConfirm(
+      nextStatus
+        ? `Aktifkan kembali akun ${selectedAdmin.fullName}?`
+        : `Nonaktifkan akun ${selectedAdmin.fullName}?`,
+      {
+        title: nextStatus
+          ? "Aktifkan Akun"
+          : "Nonaktifkan Akun",
+        type: "warning",
+        confirmLabel: nextStatus
+          ? "Aktifkan"
+          : "Nonaktifkan",
+        cancelLabel: "Batal",
+      },
+    );
+
+    if (!confirmed) {
       return;
     }
 
@@ -312,18 +345,28 @@ export default function AdminManagementPage() {
         );
       }
 
-      alert(
+      await showAlert(
         nextStatus
           ? "Akun administrator berhasil diaktifkan."
           : "Akun administrator berhasil dinonaktifkan.",
+        {
+          title: nextStatus
+            ? "Akun Diaktifkan"
+            : "Akun Dinonaktifkan",
+          type: "success",
+        },
       );
 
       closeActionModal();
       await loadAdmins();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal mengubah status administrator.",
+        {
+          title: "Gagal Mengubah Status",
+          type: "error",
+        },
       );
     } finally {
       setActionSubmitting(false);
@@ -338,7 +381,10 @@ export default function AdminManagementPage() {
     if (!selectedAdmin) return;
 
     if (newPassword.length < 8) {
-      alert("Password minimal 8 karakter.");
+      await showAlert("Password minimal 8 karakter.", {
+        title: "Password Tidak Valid",
+        type: "warning",
+      });
       return;
     }
 
@@ -369,15 +415,23 @@ export default function AdminManagementPage() {
         );
       }
 
-      alert(
+      await showAlert(
         "Password administrator berhasil direset.",
+        {
+          title: "Password Berhasil Direset",
+          type: "success",
+        },
       );
 
       closeActionModal();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal mereset password administrator.",
+        {
+          title: "Gagal Reset Password",
+          type: "error",
+        },
       );
     } finally {
       setActionSubmitting(false);
@@ -398,11 +452,17 @@ export default function AdminManagementPage() {
       return;
     }
 
-    if (
-      !window.confirm(
-        `Ubah role ${selectedAdmin.fullName} dari ${currentRole} menjadi ${newRole}?`,
-      )
-    ) {
+    const confirmed = await showConfirm(
+      `Ubah role ${selectedAdmin.fullName} dari ${currentRole} menjadi ${newRole}?`,
+      {
+        title: "Ubah Role Administrator",
+        type: "warning",
+        confirmLabel: "Ubah Role",
+        cancelLabel: "Batal",
+      },
+    );
+
+    if (!confirmed) {
       return;
     }
 
@@ -433,16 +493,24 @@ export default function AdminManagementPage() {
         );
       }
 
-      alert(
+      await showAlert(
         "Role administrator berhasil diperbarui.",
+        {
+          title: "Role Berhasil Diperbarui",
+          type: "success",
+        },
       );
 
       closeActionModal();
       await loadAdmins();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal mengubah role administrator.",
+        {
+          title: "Gagal Mengubah Role",
+          type: "error",
+        },
       );
     } finally {
       setActionSubmitting(false);

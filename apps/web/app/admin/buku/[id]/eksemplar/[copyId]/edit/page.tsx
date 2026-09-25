@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../../../../lib/api";
+import { useUsefectDialog } from "../../../../../../../components/UsefectDialogProvider";
 
 type BookCopy = {
   id: number;
@@ -28,6 +29,8 @@ type BookCopy = {
 };
 
 export default function EditEksemplarPage() {
+  const { showAlert } = useUsefectDialog();
+
   const params = useParams();
   const router = useRouter();
 
@@ -122,9 +125,13 @@ export default function EditEksemplarPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Eksemplar berhasil diperbarui",
+        {
+          title: "Eksemplar Berhasil Diperbarui",
+          type: "success",
+        },
       );
 
       router.push(`/admin/buku/${id}`);

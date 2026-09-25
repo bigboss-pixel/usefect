@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../lib/api";
+import { useUsefectDialog } from "../../../../components/UsefectDialogProvider";
 
 type Book = {
   id: number;
@@ -50,6 +51,9 @@ type BookCopy = {
 };
 
 export default function AdminDetailBukuPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
+
+
   const params = useParams();
   const router = useRouter();
 
@@ -137,9 +141,15 @@ export default function AdminDetailBukuPage() {
   }, [id]);
 
   const handleDeleteCopy = async (copy: BookCopy) => {
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Hapus eksemplar dengan barcode "${copy.barcode}"?\n\n` +
         "Eksemplar yang sudah memiliki riwayat peminjaman tidak dapat dihapus.",
+      {
+        title: "Hapus Eksemplar",
+        type: "warning",
+        confirmLabel: "Hapus",
+        cancelLabel: "Batal",
+      },
     );
 
     if (!confirmed) {
@@ -165,9 +175,13 @@ export default function AdminDetailBukuPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Eksemplar berhasil dihapus",
+        {
+          title: "Eksemplar Berhasil Dihapus",
+          type: "success",
+        },
       );
 
       await fetchData();
@@ -177,9 +191,13 @@ export default function AdminDetailBukuPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menghapus eksemplar",
+        {
+          title: "Gagal Menghapus Eksemplar",
+          type: "error",
+        },
       );
     }
   };

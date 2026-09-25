@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../lib/api";
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
 
 type Loan = {
   id: number;
@@ -39,6 +40,8 @@ type Loan = {
 };
 
 export default function AdminPeminjamanPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
+
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingId, setApprovingId] =
@@ -97,8 +100,14 @@ export default function AdminPeminjamanPage() {
   };
 
   const approveLoan = async (id: number) => {
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       "Apakah Anda yakin ingin menyetujui peminjaman ini?",
+      {
+        title: "Setujui Peminjaman",
+        type: "warning",
+        confirmLabel: "Setujui",
+        cancelLabel: "Batal",
+      },
     );
 
     if (!confirmed) return;
@@ -128,9 +137,13 @@ export default function AdminPeminjamanPage() {
         ),
       );
 
-      alert(
+      await showAlert(
         result?.message ??
           "Peminjaman berhasil disetujui",
+        {
+          title: "Peminjaman Disetujui",
+          type: "success",
+        },
       );
     } catch (error: any) {
       console.error(
@@ -138,9 +151,13 @@ export default function AdminPeminjamanPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menyetujui peminjaman",
+        {
+          title: "Gagal Menyetujui Peminjaman",
+          type: "error",
+        },
       );
     } finally {
       setApprovingId(null);
@@ -148,8 +165,14 @@ export default function AdminPeminjamanPage() {
   };
 
 const rejectLoan = async (id: number) => {
-  const confirmed = window.confirm(
+  const confirmed = await showConfirm(
     "Apakah Anda yakin ingin menolak pengajuan peminjaman ini?",
+    {
+      title: "Tolak Peminjaman",
+      type: "warning",
+      confirmLabel: "Tolak",
+      cancelLabel: "Batal",
+    },
   );
 
   if (!confirmed) return;
@@ -179,9 +202,13 @@ const rejectLoan = async (id: number) => {
       ),
     );
 
-    alert(
+    await showAlert(
       result?.message ??
         "Peminjaman berhasil ditolak",
+      {
+        title: "Peminjaman Ditolak",
+        type: "success",
+      },
     );
   } catch (error: any) {
     console.error(
@@ -189,9 +216,13 @@ const rejectLoan = async (id: number) => {
       error,
     );
 
-    alert(
+    await showAlert(
       error?.message ??
         "Gagal menolak peminjaman",
+      {
+        title: "Gagal Menolak Peminjaman",
+        type: "error",
+      },
     );
   } finally {
     setRejectingId(null);

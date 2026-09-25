@@ -12,6 +12,7 @@ import {
   CheckCheck,
 } from "lucide-react";
 import { apiFetch } from "../lib/api";
+import { useUsefectDialog } from "../../components/UsefectDialogProvider";
 
 type Notification = {
   id: number;
@@ -47,6 +48,9 @@ function getNotificationIcon(type: string) {
 }
 
 export default function NotifikasiPage() {
+  const { showAlert } = useUsefectDialog();
+
+
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -148,9 +152,13 @@ export default function NotifikasiPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menandai notifikasi sebagai dibaca",
+        {
+          title: "Gagal Menandai Notifikasi",
+          type: "error",
+        },
       );
     } finally {
       setMarkingId(null);
@@ -196,9 +204,13 @@ export default function NotifikasiPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menandai semua notifikasi",
+        {
+          title: "Gagal Menandai Semua Notifikasi",
+          type: "error",
+        },
       );
     } finally {
       setMarkingAll(false);

@@ -76,8 +76,31 @@ export class ReservationsService {
 
     return (
       roles.includes('LIBRARIAN') ||
-      roles.includes('ADMIN')
+      roles.includes('ADMIN') ||
+      roles.includes('SUPER_ADMIN')
     );
+  }
+
+  // =========================
+  // GET LIBRARY STAFF USERS
+  // =========================
+  private async getLibraryStaffUserIds(): Promise<number[]> {
+    const users = await db.orm.public.User.all();
+    const userIds: number[] = [];
+
+    for (const user of users) {
+      const roles = await this.getUserRoleNames(user.id);
+
+      if (
+        roles.includes('LIBRARIAN') ||
+        roles.includes('ADMIN') ||
+        roles.includes('SUPER_ADMIN')
+      ) {
+        userIds.push(user.id);
+      }
+    }
+
+    return userIds;
   }
 
   // =========================
@@ -270,6 +293,25 @@ export class ReservationsService {
       description: `Reservation #${result.reservation.id} dibuat`,
       details: `Buku: ${result.book.title} | ISBN: ${result.book.isbn} | Posisi antrean: ${result.queuePosition}`,
     });
+
+    // =========================
+    // NOTIFICATION UNTUK PETUGAS
+    // =========================
+    const staffUserIds =
+      await this.getLibraryStaffUserIds();
+
+    for (const staffUserId of staffUserIds) {
+      if (staffUserId === userId) {
+        continue;
+      }
+
+      await this.notificationsService.create(
+        staffUserId,
+        'RESERVATION_CREATED',
+        'Reservasi Baru',
+        `Ada reservasi baru untuk buku "${result.book.title}". Posisi antrean: ${result.queuePosition}.`,
+      );
+    }
 
     return {
       message:

@@ -4,6 +4,7 @@ import SiteHeader from "../../../components/SiteHeader";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, MapPin } from "lucide-react";
 import { apiFetch } from "../../lib/api";
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
 
 type Book = {
   id: number;
@@ -40,6 +41,7 @@ export default function BookDetailPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { showAlert, showConfirm } = useUsefectDialog();
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -74,12 +76,23 @@ export default function BookDetailPage({
     if (!book || submitting) return;
 
     if (!book.availability.isAvailable) {
-      alert("Buku sedang tidak tersedia.");
+      await showAlert("Buku sedang tidak tersedia.", {
+        type: "warning",
+        title: "Buku Tidak Tersedia",
+        confirmLabel: "Tutup",
+      });
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Ajukan peminjaman buku "${book.title}"?`,
+      {
+        type: "warning",
+        title: "Ajukan Peminjaman",
+        confirmLabel: "Ajukan",
+        cancelLabel: "Batal",
+        showCancel: true,
+      },
     );
 
     if (!confirmed) return;
@@ -106,9 +119,14 @@ export default function BookDetailPage({
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Pengajuan peminjaman berhasil dibuat.",
+        {
+          type: "success",
+          title: "Peminjaman Diajukan",
+          confirmLabel: "Tutup",
+        },
       );
 
       window.location.href = "/reservasi";
@@ -118,9 +136,14 @@ export default function BookDetailPage({
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal mengajukan peminjaman",
+        {
+          type: "error",
+          title: "Gagal Mengajukan Peminjaman",
+          confirmLabel: "Tutup",
+        },
       );
     } finally {
       setSubmitting(false);

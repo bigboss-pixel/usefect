@@ -20,6 +20,8 @@ import {
   Settings,
   ShieldCheck,
   LogOut,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 
 type SiteSidebarProps = {
@@ -43,16 +45,6 @@ const userItems: SidebarItem[] = [
     label: "Katalog",
     href: "/katalog",
     icon: Search,
-  },
-  {
-    label: "Peminjaman",
-    href: "/peminjaman",
-    icon: ClipboardList,
-  },
-  {
-    label: "Reservasi",
-    href: "/reservasi",
-    icon: CalendarClock,
   },
   {
     label: "Notifikasi",
@@ -143,6 +135,12 @@ export default function SiteSidebar({
 
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [servicesOpen, setServicesOpen] = useState(
+    pathname === "/peminjaman" ||
+      pathname.startsWith("/peminjaman/") ||
+      pathname === "/reservasi" ||
+      pathname.startsWith("/reservasi/"),
+  );
 
   const currentUser = useMemo(() => {
     return profile?.user ?? profile ?? null;
@@ -269,6 +267,69 @@ export default function SiteSidebar({
     );
   };
 
+  const isServiceActive =
+    pathname === "/peminjaman" ||
+    pathname.startsWith("/peminjaman/") ||
+    pathname === "/reservasi" ||
+    pathname.startsWith("/reservasi/");
+
+  const renderServices = () => {
+    const ServiceIcon = ClipboardList;
+
+    return (
+      <div className="usefect-sidebar-service-group">
+        <button
+          type="button"
+          className={`usefect-sidebar-link usefect-sidebar-service-toggle${
+            isServiceActive ? " active" : ""
+          }`}
+          onClick={() => setServicesOpen((value) => !value)}
+          aria-expanded={servicesOpen}
+        >
+          <span className="usefect-sidebar-icon usefect-sidebar-icon-layanan">
+            <ServiceIcon size={18} strokeWidth={1.9} />
+          </span>
+
+          <span className="usefect-sidebar-service-label">
+            Layanan
+          </span>
+
+          <span className="usefect-sidebar-service-chevron">
+            {servicesOpen ? (
+              <ChevronDown size={16} strokeWidth={2} />
+            ) : (
+              <ChevronRight size={16} strokeWidth={2} />
+            )}
+          </span>
+        </button>
+
+        {servicesOpen && (
+          <div className="usefect-sidebar-subnav">
+            <a
+              href="/reservasi"
+              className={`usefect-sidebar-sublink${
+                isActive("/reservasi") ? " active" : ""
+              }`}
+            >
+              <CalendarClock size={16} strokeWidth={1.9} />
+              <span>Reservasi</span>
+            </a>
+
+            <a
+              href="/peminjaman"
+              className={`usefect-sidebar-sublink${
+                isActive("/peminjaman") ? " active" : ""
+              }`}
+            >
+              <ClipboardList size={16} strokeWidth={1.9} />
+              <span>Peminjaman</span>
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <aside
@@ -389,7 +450,12 @@ export default function SiteSidebar({
             </div>
 
             <nav className="usefect-sidebar-nav">
-              {userItems.map(renderItem)}
+              {userItems.map((item, index) => (
+                <div key={`${item.label}-${item.href}`}>
+                  {index === 2 && renderServices()}
+                  {renderItem(item)}
+                </div>
+              ))}
             </nav>
           </section>
 

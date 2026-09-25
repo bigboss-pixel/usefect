@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../lib/api";
+import { useUsefectDialog } from "../../../../components/UsefectDialogProvider";
 
 type Loan = {
   id: number;
@@ -47,6 +48,8 @@ type Loan = {
 };
 
 export default function AdminLoanDetailPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
+
   const params = useParams();
   const id = params.id;
 
@@ -117,8 +120,20 @@ export default function AdminLoanDetailPage() {
   ) => {
     if (!loan) return;
 
-    const confirmed =
-      window.confirm(message);
+    const actionTitles: Record<typeof action, string> = {
+      approve: "Setujui Peminjaman",
+      reject: "Tolak Peminjaman",
+      return: "Kembalikan Buku",
+      lost: "Tandai Buku Hilang",
+      damaged: "Tandai Buku Rusak",
+    };
+
+    const confirmed = await showConfirm(message, {
+      title: actionTitles[action],
+      type: "warning",
+      confirmLabel: "Lanjutkan",
+      cancelLabel: "Batal",
+    });
 
     if (!confirmed) return;
 
@@ -144,9 +159,13 @@ export default function AdminLoanDetailPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Peminjaman berhasil diproses",
+        {
+          title: "Peminjaman Berhasil Diproses",
+          type: "success",
+        },
       );
 
       await fetchLoan();
@@ -156,9 +175,13 @@ export default function AdminLoanDetailPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal memproses peminjaman",
+        {
+          title: "Gagal Memproses Peminjaman",
+          type: "error",
+        },
       );
     } finally {
       setProcessing(false);

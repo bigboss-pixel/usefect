@@ -1,5 +1,7 @@
 "use client";
 
+import { useUsefectDialog } from "../../../../components/UsefectDialogProvider";
+
 import { useEffect, useRef, useState } from "react";
 import {
   BrowserCodeReader,
@@ -80,6 +82,7 @@ const statusOptions: {
 ];
 
 export default function AdminKelolaPeminjamanPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [returnRequests, setReturnRequests] =
     useState<Loan[]>([]);
@@ -612,8 +615,14 @@ export default function AdminKelolaPeminjamanPage() {
     | "damaged",
   message: string,
 ) => {
-  const confirmed = window.confirm(
+  const confirmed = await showConfirm(
     message,
+    {
+      title: "Konfirmasi Peminjaman",
+      type: "warning",
+      confirmLabel: "Lanjutkan",
+      cancelLabel: "Batal",
+    },
   );
 
   if (!confirmed) return;
@@ -640,9 +649,13 @@ export default function AdminKelolaPeminjamanPage() {
       );
     }
 
-    alert(
+    await showAlert(
       result?.message ??
         "Peminjaman berhasil diproses",
+      {
+        title: "Peminjaman Berhasil Diproses",
+        type: "success",
+      },
     );
 
     await fetchLoans();
@@ -652,9 +665,13 @@ export default function AdminKelolaPeminjamanPage() {
       error,
     );
 
-    alert(
+    await showAlert(
       error?.message ??
         "Gagal memproses peminjaman",
+      {
+        title: "Gagal Memproses Peminjaman",
+        type: "error",
+      },
     );
   } finally {
     setProcessingId(null);
@@ -668,12 +685,18 @@ export default function AdminKelolaPeminjamanPage() {
 
   const handleStaffTransaction = async () => {
     if (!memberQrToken.trim()) {
-      alert("QR anggota belum diisi");
+      await showAlert("QR anggota belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
     if (!transactionIsbn.trim()) {
-      alert("ISBN / barcode buku belum diisi");
+      await showAlert("ISBN / barcode buku belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
@@ -708,9 +731,13 @@ export default function AdminKelolaPeminjamanPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Peminjaman berhasil dibuat",
+        {
+          title: "Peminjaman Berhasil Dibuat",
+          type: "success",
+        },
       );
 
       setMemberQrToken("");
@@ -723,9 +750,13 @@ export default function AdminKelolaPeminjamanPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Transaksi peminjaman gagal",
+        {
+          title: "Transaksi Peminjaman Gagal",
+          type: "error",
+        },
       );
     } finally {
       setTransactionLoading(false);
@@ -734,12 +765,18 @@ export default function AdminKelolaPeminjamanPage() {
 
   const handleReturnPreview = async () => {
     if (!memberQrToken.trim()) {
-      alert("QR anggota belum diisi");
+      await showAlert("QR anggota belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
     if (!returnIsbn.trim()) {
-      alert("ISBN buku belum diisi");
+      await showAlert("ISBN buku belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
@@ -785,9 +822,13 @@ export default function AdminKelolaPeminjamanPage() {
 
       setReturnPreview(null);
 
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal mengambil data pengembalian",
+        {
+          title: "Gagal Mengambil Data",
+          type: "error",
+        },
       );
     } finally {
       setReturnLoading(false);
@@ -797,17 +838,26 @@ export default function AdminKelolaPeminjamanPage() {
 
   const handleReturnTransaction = async () => {
     if (!memberQrToken.trim()) {
-      alert("QR anggota belum diisi");
+      await showAlert("QR anggota belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
     if (!returnIsbn.trim()) {
-      alert("ISBN buku belum diisi");
+      await showAlert("ISBN buku belum diisi", {
+      title: "Data Belum Lengkap",
+      type: "warning",
+    });
       return;
     }
 
     if (!returnPreview) {
-      alert("Silakan cari data buku terlebih dahulu");
+      await showAlert("Silakan cari data buku terlebih dahulu", {
+      title: "Data Belum Ditemukan",
+      type: "warning",
+    });
       return;
     }
 
@@ -815,16 +865,25 @@ export default function AdminKelolaPeminjamanPage() {
       returnCondition === "GOOD" &&
       !returnShelfConfirmed
     ) {
-      alert(
+      await showAlert(
         "Konfirmasi bahwa buku sudah ditaruh di rak.",
+        {
+          title: "Konfirmasi Rak",
+          type: "warning",
+        },
       );
       return;
     }
 
-    const confirmed =
-      window.confirm(
-        "Proses pengembalian buku ini?",
-      );
+    const confirmed = await showConfirm(
+      "Proses pengembalian buku ini?",
+      {
+        title: "Konfirmasi Pengembalian",
+        type: "warning",
+        confirmLabel: "Kembalikan",
+        cancelLabel: "Batal",
+      },
+    );
 
     if (!confirmed) return;
 
@@ -863,9 +922,13 @@ export default function AdminKelolaPeminjamanPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Buku berhasil dikembalikan",
+        {
+          title: "Pengembalian Berhasil",
+          type: "success",
+        },
       );
 
       setReturnIsbn("");
@@ -880,9 +943,13 @@ export default function AdminKelolaPeminjamanPage() {
         error,
       );
 
-      alert(
+      await showAlert(
         error?.message ??
           "Pengembalian buku gagal",
+        {
+          title: "Pengembalian Gagal",
+          type: "error",
+        },
       );
     } finally {
       setReturnLoading(false);

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../../lib/api";
+import { useUsefectDialog } from "../../../../../components/UsefectDialogProvider";
 
 type Category = {
   id: number;
@@ -33,6 +34,9 @@ type Book = {
 };
 
 export default function EditBukuPage() {
+  const { showAlert } = useUsefectDialog();
+
+
   const params = useParams();
   const router = useRouter();
 
@@ -190,9 +194,13 @@ export default function EditBukuPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Buku berhasil diperbarui",
+        {
+          title: "Buku Berhasil Diperbarui",
+          type: "success",
+        },
       );
 
       router.push(`/admin/buku/${id}`);

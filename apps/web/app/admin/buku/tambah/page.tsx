@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../lib/api";
+import { useUsefectDialog } from "../../../../components/UsefectDialogProvider";
 
 type Category = {
   id: number;
@@ -20,6 +21,9 @@ type Category = {
 };
 
 export default function TambahBukuPage() {
+  const { showAlert } = useUsefectDialog();
+
+
   const router = useRouter();
 
   const [form, setForm] = useState({
@@ -171,9 +175,13 @@ export default function TambahBukuPage() {
       setNewCategoryDescription("");
       setShowCategoryForm(false);
 
-      alert(
+      await showAlert(
         result?.message ??
           "Kategori berhasil dibuat.",
+        {
+          title: "Kategori Berhasil Dibuat",
+          type: "success",
+        },
       );
     } catch (error: any) {
       console.error(
@@ -329,8 +337,12 @@ export default function TambahBukuPage() {
         );
       }
 
-      alert(
+      await showAlert(
         `Buku berhasil ditambahkan dengan ${quantity} eksemplar.`,
+        {
+          title: "Buku Berhasil Ditambahkan",
+          type: "success",
+        },
       );
 
       router.push(

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../../../../lib/api";
+import { useUsefectDialog } from "../../../../../../components/UsefectDialogProvider";
 
 type Book = {
   id: number;
@@ -35,6 +36,9 @@ type BookCopy = {
 };
 
 export default function TambahEksemplarPage() {
+  const { showAlert } = useUsefectDialog();
+
+
   const params = useParams();
   const router = useRouter();
 
@@ -186,9 +190,13 @@ export default function TambahEksemplarPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           `${quantity} eksemplar berhasil ditambahkan`,
+        {
+          title: "Eksemplar Berhasil Ditambahkan",
+          type: "success",
+        },
       );
 
       router.push(`/admin/buku/${id}`);

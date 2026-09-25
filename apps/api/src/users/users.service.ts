@@ -51,6 +51,32 @@ export class UsersService {
       );
     }
 
+    const userRoles =
+      await db.orm.public.UserRole
+        .where({
+          userId: user.id,
+        })
+        .all();
+
+    const roles = [];
+
+    for (const userRole of userRoles) {
+      const role =
+        await db.orm.public.Role
+          .where({
+            id: userRole.roleId,
+          })
+          .first();
+
+      if (role) {
+        roles.push({
+          id: role.id,
+          name: role.name,
+          description: role.description,
+        });
+      }
+    }
+
     return {
       id: user.id,
       email: user.email,
@@ -58,6 +84,7 @@ export class UsersService {
       fullName: user.fullName,
       phone: user.phone,
       isActive: user.isActive,
+      roles,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

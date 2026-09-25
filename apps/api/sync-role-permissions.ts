@@ -41,9 +41,11 @@ const rolePermissions: Record<string, string[]> = {
     'LECTURER_VIEW',
 
     'USER_VIEW',
+    'AUDIT_LOG_VIEW',
   ],
 
   ADMIN: [],
+  SUPER_ADMIN: [],
 
   PUBLIC: [
     'BOOK_VIEW',
@@ -71,6 +73,7 @@ async function main() {
     );
 
   rolePermissions.ADMIN = adminPermissions;
+  rolePermissions.SUPER_ADMIN = adminPermissions;
 
   for (
     const [roleName, permissionCodes]

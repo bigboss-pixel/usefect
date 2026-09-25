@@ -1,5 +1,7 @@
 "use client";
 
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
+
 import {
   useEffect,
   useMemo,
@@ -130,6 +132,7 @@ function formatDate(value?: string | null) {
 }
 
 export default function AdminReservasiPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
   const [reservations, setReservations] =
     useState<Reservation[]>([]);
 
@@ -265,11 +268,17 @@ export default function AdminReservasiPage() {
   const handleApprove = async (
     id: number,
   ) => {
-    if (
-      !window.confirm(
-        "Setujui reservasi ini?",
-      )
-    ) {
+    const confirmed = await showConfirm(
+      "Setujui reservasi ini?",
+      {
+        title: "Setujui Reservasi",
+        type: "warning",
+        confirmLabel: "Setujui",
+        cancelLabel: "Batal",
+      },
+    );
+
+    if (!confirmed) {
       return;
     }
 
@@ -296,16 +305,24 @@ export default function AdminReservasiPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Reservasi berhasil disetujui",
+        {
+          title: "Reservasi Disetujui",
+          type: "success",
+        },
       );
 
       await fetchReservations();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menyetujui reservasi",
+        {
+          title: "Gagal Menyetujui Reservasi",
+          type: "error",
+        },
       );
     } finally {
       setProcessingId(null);
@@ -315,11 +332,17 @@ export default function AdminReservasiPage() {
   const handleReject = async (
     id: number,
   ) => {
-    if (
-      !window.confirm(
-        "Tolak reservasi ini?",
-      )
-    ) {
+    const confirmed = await showConfirm(
+      "Tolak reservasi ini?",
+      {
+        title: "Tolak Reservasi",
+        type: "warning",
+        confirmLabel: "Tolak",
+        cancelLabel: "Batal",
+      },
+    );
+
+    if (!confirmed) {
       return;
     }
 
@@ -346,16 +369,24 @@ export default function AdminReservasiPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Reservasi berhasil ditolak",
+        {
+          title: "Reservasi Ditolak",
+          type: "success",
+        },
       );
 
       await fetchReservations();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal menolak reservasi",
+        {
+          title: "Gagal Menolak Reservasi",
+          type: "error",
+        },
       );
     } finally {
       setProcessingId(null);
@@ -458,8 +489,12 @@ export default function AdminReservasiPage() {
           error,
         );
 
-        alert(
+        await showAlert(
           "Kamera tidak dapat digunakan. Pastikan izin kamera diberikan.",
+          {
+            title: "Kamera Tidak Tersedia",
+            type: "error",
+          },
         );
 
         stopScanner();
@@ -510,15 +545,23 @@ export default function AdminReservasiPage() {
     }
 
     if (!memberQrToken.trim()) {
-      alert(
+      await showAlert(
         "QR pengguna wajib dipindai.",
+        {
+          title: "Data Belum Lengkap",
+          type: "warning",
+        },
       );
       return;
     }
 
     if (!isbn.trim()) {
-      alert(
+      await showAlert(
         "ISBN buku wajib dipindai.",
+        {
+          title: "Data Belum Lengkap",
+          type: "warning",
+        },
       );
       return;
     }
@@ -558,18 +601,26 @@ export default function AdminReservasiPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Pickup berhasil diproses",
+        {
+          title: "Pickup Berhasil",
+          type: "success",
+        },
       );
 
       closePickupModal();
 
       await fetchReservations();
     } catch (error: any) {
-      alert(
+      await showAlert(
         error?.message ??
           "Gagal memproses pickup",
+        {
+          title: "Gagal Memproses Pickup",
+          type: "error",
+        },
       );
     } finally {
       setProcessingId(null);

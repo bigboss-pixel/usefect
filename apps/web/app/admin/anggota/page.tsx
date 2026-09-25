@@ -1,5 +1,7 @@
 "use client";
 
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
@@ -59,6 +61,7 @@ type DetailTab = "info" | "loans" | "reservations";
 const PAGE_SIZE = 8;
 
 export default function AdminAnggotaPage() {
+  const { showConfirm } = useUsefectDialog();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [pageError, setPageError] = useState("");
@@ -304,8 +307,14 @@ export default function AdminAnggotaPage() {
   const deleteMember = async () => {
     if (!selectedMember) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Hapus anggota "${selectedMember.fullName}" secara permanen?\n\nData akun anggota akan dihapus dan tindakan ini tidak dapat dibatalkan.`,
+      {
+        title: "Hapus Anggota",
+        type: "warning",
+        confirmLabel: "Hapus",
+        cancelLabel: "Batal",
+      },
     );
 
     if (!confirmed) return;
@@ -350,10 +359,20 @@ export default function AdminAnggotaPage() {
 
     const nextStatus = !selectedMember.isActive;
 
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       nextStatus
         ? `Aktifkan kembali akun ${selectedMember.fullName}?`
         : `Nonaktifkan akun ${selectedMember.fullName}?`,
+      {
+        title: nextStatus
+          ? "Aktifkan Akun"
+          : "Nonaktifkan Akun",
+        type: "warning",
+        confirmLabel: nextStatus
+          ? "Aktifkan"
+          : "Nonaktifkan",
+        cancelLabel: "Batal",
+      },
     );
 
     if (!confirmed) return;
@@ -670,8 +689,14 @@ export default function AdminAnggotaPage() {
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Reset password untuk ${selectedMember.fullName}?\n\nPassword lama akan diganti dengan password baru yang dimasukkan.`,
+      {
+        title: "Reset Password",
+        type: "warning",
+        confirmLabel: "Reset Password",
+        cancelLabel: "Batal",
+      },
     );
 
     if (!confirmed) return;

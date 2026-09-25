@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../lib/api";
+import { useUsefectDialog } from "../../components/UsefectDialogProvider";
 
 type LoanStatus =
   | "PENDING"
@@ -102,6 +103,7 @@ function daysUntilDue(date: string | null) {
 }
 
 export default function PeminjamanPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
   const [loans, setLoans] = useState<Loan[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -175,11 +177,18 @@ export default function PeminjamanPage() {
     }
   }, [activeTab, loans]);
 
-  const handleRenew = async (loan: Loan) => {
+const handleRenew = async (loan: Loan) => {
     if (renewingId !== null) return;
 
-    const confirmed = window.confirm(
+    const confirmed = await showConfirm(
       `Perpanjang peminjaman "${loan.bookCopy?.book?.title ?? "buku ini"}" selama 7 hari?`,
+      {
+        type: "warning",
+        title: "Perpanjang Peminjaman",
+        confirmLabel: "Perpanjang",
+        cancelLabel: "Batal",
+        showCancel: true,
+      },
     );
 
     if (!confirmed) return;
@@ -199,20 +208,32 @@ export default function PeminjamanPage() {
         );
       }
 
-      alert(
+      await showAlert(
         result?.message ??
           "Peminjaman berhasil diperpanjang selama 7 hari.",
+        {
+          type: "success",
+          title: "Peminjaman Diperpanjang",
+          confirmLabel: "Tutup",
+        },
       );
 
       await fetchLoans(true);
     } catch (error: any) {
       console.error("Gagal memperpanjang peminjaman:", error);
-      alert(error?.message ?? "Gagal memperpanjang peminjaman");
+
+      await showAlert(
+        error?.message ?? "Gagal memperpanjang peminjaman",
+        {
+          type: "error",
+          title: "Gagal Memperpanjang Peminjaman",
+          confirmLabel: "Tutup",
+        },
+      );
     } finally {
       setRenewingId(null);
     }
   };
-
   return (
     <main className="loan-page">
       <div className="loan-container">

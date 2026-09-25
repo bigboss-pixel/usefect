@@ -13,8 +13,11 @@ import {
 } from "lucide-react";
 
 import { apiFetch } from "../../lib/api";
+import { useUsefectDialog } from "../../../components/UsefectDialogProvider";
 
 export default function PeminjamanDetailPage() {
+  const { showAlert, showConfirm } = useUsefectDialog();
+
   const params = useParams();
   const id = params.id;
 
@@ -162,8 +165,14 @@ export default function PeminjamanDetailPage() {
     <button
       className="loan-action-button loan-action-cancel"
       onClick={async () => {
-        const confirmed = window.confirm(
+        const confirmed = await showConfirm(
           "Apakah Anda yakin ingin membatalkan peminjaman ini?",
+          {
+            title: "Batalkan Peminjaman",
+            type: "warning",
+            confirmLabel: "Batalkan",
+            cancelLabel: "Kembali",
+          },
         );
 
         if (!confirmed) return;
@@ -194,9 +203,13 @@ export default function PeminjamanDetailPage() {
             status: "CANCELLED",
           }));
 
-          alert(
+          await showAlert(
             result?.message ??
               "Peminjaman berhasil dibatalkan",
+            {
+              title: "Peminjaman Dibatalkan",
+              type: "success",
+            },
           );
         } catch (error: any) {
           console.error(
@@ -204,9 +217,13 @@ export default function PeminjamanDetailPage() {
             error,
           );
 
-          alert(
+          await showAlert(
             error?.message ??
               "Gagal membatalkan peminjaman",
+            {
+              title: "Gagal Membatalkan Peminjaman",
+              type: "error",
+            },
           );
         }
       }}
@@ -219,8 +236,14 @@ export default function PeminjamanDetailPage() {
     <button
       className="loan-action-button loan-action-renew"
       onClick={async () => {
-        const confirmed = window.confirm(
+        const confirmed = await showConfirm(
           "Apakah Anda yakin ingin memperpanjang peminjaman ini selama 7 hari?",
+          {
+            title: "Perpanjang Peminjaman",
+            type: "warning",
+            confirmLabel: "Perpanjang",
+            cancelLabel: "Batal",
+          },
         );
 
         if (!confirmed) return;
@@ -238,9 +261,13 @@ if (!response.ok) {
     .json()
     .catch(() => null);
 
-  alert(
+  await showAlert(
     result?.message ??
       "Gagal memperpanjang peminjaman",
+    {
+      title: "Gagal Memperpanjang Peminjaman",
+      type: "error",
+    },
   );
 
   return;
@@ -261,9 +288,13 @@ if (!response.ok) {
               current.status,
           }));
 
-          alert(
+          await showAlert(
             result?.message ??
               "Peminjaman berhasil diperpanjang",
+            {
+              title: "Peminjaman Diperpanjang",
+              type: "success",
+            },
           );
         } catch (error: any) {
           console.error(
@@ -271,9 +302,13 @@ if (!response.ok) {
             error,
           );
 
-          alert(
+          await showAlert(
             error?.message ??
               "Gagal memperpanjang peminjaman",
+            {
+              title: "Gagal Memperpanjang Peminjaman",
+              type: "error",
+            },
           );
         }
       }}
@@ -291,8 +326,14 @@ if (!response.ok) {
         loan.returnRequestStatus === "REQUESTED"
       }
       onClick={async () => {
-        const confirmed = window.confirm(
+        const confirmed = await showConfirm(
           "Ajukan pengembalian buku ini? Buku belum dianggap dikembalikan sampai diserahkan dan diproses oleh petugas perpustakaan.",
+          {
+            title: "Ajukan Pengembalian",
+            type: "warning",
+            confirmLabel: "Ajukan",
+            cancelLabel: "Batal",
+          },
         );
 
         if (!confirmed) return;
@@ -325,9 +366,13 @@ if (!response.ok) {
               new Date().toISOString(),
           }));
 
-          alert(
+          await showAlert(
             result?.message ??
               "Pengajuan pengembalian berhasil dibuat. Silakan membawa buku ke perpustakaan pada jam operasional.",
+            {
+              title: "Pengajuan Pengembalian Berhasil",
+              type: "success",
+            },
           );
         } catch (error: any) {
           console.error(
@@ -335,9 +380,13 @@ if (!response.ok) {
             error,
           );
 
-          alert(
+          await showAlert(
             error?.message ??
               "Gagal mengajukan pengembalian",
+            {
+              title: "Gagal Mengajukan Pengembalian",
+              type: "error",
+            },
           );
         }
       }}
