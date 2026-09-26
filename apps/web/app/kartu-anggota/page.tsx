@@ -725,14 +725,15 @@ export default function KartuAnggotaPage() {
             margin: 0 auto;
             padding: 8px;
             box-sizing: border-box;
-            overflow: hidden;
+            overflow: visible;
           }
 
           .member-qr svg {
             width: 200px !important;
-            max-width: 200px !important;
-            height: auto !important;
+            height: 200px !important;
+            max-width: none !important;
             display: block;
+            flex: 0 0 200px;
           }
 
           .member-card-footer {
