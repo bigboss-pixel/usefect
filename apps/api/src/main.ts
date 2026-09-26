@@ -16,7 +16,10 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: process.env.WEB_URL ?? 'http://localhost:3000',
+    origin: [
+      "http://localhost:3000",
+      "https://usefect-web.vercel.app",
+    ],
     credentials: true,
   });
 
@@ -31,7 +34,7 @@ async function bootstrap() {
   );
 
   const port = Number(process.env.PORT ?? 8080);
-  await app.listen(port, '0.0.0.0');
+  await app.listen(process.env.PORT ?? 3001, "0.0.0.0");
 }
 
 await bootstrap();
