@@ -720,16 +720,18 @@ export default function KartuAnggotaPage() {
           }
 
           .member-qr {
-            width: 100%;
-            max-width: 400px;
+            width: min(100%, 300px);
+            max-width: 300px;
             margin: 0 auto;
+            padding: 8px;
             box-sizing: border-box;
+            overflow: hidden;
           }
 
           .member-qr svg {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
             display: block;
           }
 
