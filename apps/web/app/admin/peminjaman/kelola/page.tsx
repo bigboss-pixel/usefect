@@ -259,29 +259,39 @@ export default function AdminKelolaPeminjamanPage() {
       scannerReaderRef.current = reader;
 
       const cameraConstraints: MediaStreamConstraints = {
-        video: {
-          deviceId: {
-            exact: cameraId,
-          },
-          width: {
-            ideal: 1920,
-            min: 1280,
-          },
-          height: {
-            ideal: 1080,
-            min: 720,
-          },
-          frameRate: {
-            ideal: 30,
-            min: 15,
-          },
-          ...(mode === "QR"
+        video:
+          mode === "QR"
             ? {
-                focusMode:
-                  "continuous" as any,
+                deviceId: {
+                  exact: cameraId,
+                },
+                facingMode: {
+                  ideal: "environment",
+                },
+                width: {
+                  ideal: 1280,
+                },
+                height: {
+                  ideal: 720,
+                },
+                frameRate: {
+                  ideal: 30,
+                },
               }
-            : {}),
-        },
+            : {
+                deviceId: {
+                  exact: cameraId,
+                },
+                width: {
+                  ideal: 1280,
+                },
+                height: {
+                  ideal: 720,
+                },
+                frameRate: {
+                  ideal: 30,
+                },
+              },
       };
 
       const controls =
@@ -704,7 +714,7 @@ export default function AdminKelolaPeminjamanPage() {
       setTransactionLoading(true);
 
       const response = await apiFetch(
-        "/loans/staff-transaction",
+        "/reservations/pickup-by-member",
         {
           method: "POST",
           headers: {

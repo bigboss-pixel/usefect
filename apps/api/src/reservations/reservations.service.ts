@@ -812,6 +812,84 @@ export class ReservationsService {
   // EXPIRE
   // =========================
 
+  async pickupByMember(
+    staffUserId: number,
+    memberQrToken: string,
+    isbn: string,
+  ) {
+    if (!(await this.isLibraryStaff(staffUserId))) {
+      throw new ForbiddenException(
+        'Hanya petugas perpustakaan yang dapat memproses pickup reservation',
+      );
+    }
+
+    const qrResult =
+      await this.memberQrService.validateQr(
+        memberQrToken,
+      );
+
+    if (
+      !qrResult.valid ||
+      !qrResult.member
+    ) {
+      throw new ForbiddenException(
+        'QR anggota tidak valid',
+      );
+    }
+
+    const normalizedIsbn =
+      isbn
+        .replace(/[^0-9Xx]/g, '')
+        .toUpperCase();
+
+    const books =
+      await db.orm.public.Book.all();
+
+    const book =
+      books.find(
+        (item) =>
+          item.isbn
+            .replace(/[^0-9Xx]/g, '')
+            .toUpperCase() === normalizedIsbn,
+      );
+
+    if (!book) {
+      throw new NotFoundException(
+        'ISBN buku tidak ditemukan',
+      );
+    }
+
+    const reservations =
+      await db.orm.public.Reservation
+        .where({
+          userId:
+            qrResult.member.userId,
+          bookId:
+            book.id,
+        })
+        .all();
+
+    const reservation =
+      reservations.find(
+        (item) =>
+          item.status ===
+          'READY_FOR_PICKUP',
+      );
+
+    if (!reservation) {
+      throw new BadRequestException(
+        'Tidak ada reservation READY_FOR_PICKUP untuk anggota dan buku ini',
+      );
+    }
+
+    return this.pickup(
+      reservation.id,
+      staffUserId,
+      memberQrToken,
+      book.isbn,
+    );
+  }
+
   async pickup(
     id: number,
     staffUserId: number,
@@ -904,16 +982,49 @@ export class ReservationsService {
         );
       }
 
-      const book =
-        await tx.orm.public.Book
-          .where({
-            isbn,
-          })
-          .first();
+      const normalizedCode =
+        isbn
+          .replace(/[^0-9Xx]/g, '')
+          .toUpperCase();
+
+      const books =
+        await tx.orm.public.Book.all();
+
+      let book =
+        books.find(
+          (item) =>
+            item.isbn
+              .replace(/[^0-9Xx]/g, '')
+              .toUpperCase() === normalizedCode,
+        );
+
+      // Jika yang dipindai adalah barcode eksemplar,
+      // cari BookCopy berdasarkan barcode lalu ambil Book-nya.
+      if (!book) {
+        const copies =
+          await tx.orm.public.BookCopy.all();
+
+        const scannedCopy =
+          copies.find(
+            (copy) =>
+              copy.barcode &&
+              copy.barcode
+                .replace(/[^0-9Xx]/g, '')
+                .toUpperCase() === normalizedCode,
+          );
+
+        if (scannedCopy) {
+          book =
+            books.find(
+              (item) =>
+                item.id === scannedCopy.bookId,
+            );
+        }
+      }
 
       if (!book) {
         throw new NotFoundException(
-          'ISBN buku tidak ditemukan',
+          'ISBN / barcode buku tidak ditemukan',
         );
       }
 

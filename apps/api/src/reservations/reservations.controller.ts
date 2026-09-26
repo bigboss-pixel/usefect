@@ -217,6 +217,23 @@ export class ReservationsController {
   // PATCH /reservations/:id/expire
   // =========================
   // =========================
+  // PICKUP BY MEMBER QR + ISBN
+  // POST /reservations/pickup-by-member
+  // =========================
+  @Post('pickup-by-member')
+  @Permissions('RESERVATION_PICKUP')
+  pickupByMember(
+    @Req() req: any,
+    @Body() dto: PickupReservationDto,
+  ) {
+    return this.reservationsService.pickupByMember(
+      req.user.userId,
+      dto.memberQrToken,
+      dto.isbn,
+    );
+  }
+
+  // =========================
   // PICKUP WITH MEMBER QR + ISBN
   // PATCH /reservations/:id/pickup
   // =========================

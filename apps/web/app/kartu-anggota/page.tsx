@@ -226,10 +226,10 @@ export default function KartuAnggotaPage() {
               {qrValue ? (
                 <QRCodeSVG
                   value={qrValue}
-                  size={320}
+                  size={400}
                   bgColor="#ffffff"
                   fgColor="#10213f"
-                  level="M"
+                  level="L"
                 />
               ) : (
                 <div
