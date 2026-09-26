@@ -720,8 +720,8 @@ export default function KartuAnggotaPage() {
           }
 
           .member-qr {
-            width: min(100%, 300px);
-            max-width: 300px;
+            width: 216px;
+            max-width: 216px;
             margin: 0 auto;
             padding: 8px;
             box-sizing: border-box;
@@ -729,8 +729,8 @@ export default function KartuAnggotaPage() {
           }
 
           .member-qr svg {
-            width: 100% !important;
-            max-width: 100% !important;
+            width: 200px !important;
+            max-width: 200px !important;
             height: auto !important;
             display: block;
           }
