@@ -102,7 +102,7 @@ export default function SiteHeader() {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/auth/logout",
+        "/auth/logout",
         {
           method: "POST",
           credentials: "include",

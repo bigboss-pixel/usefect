@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "../lib/api";
 
 type Step = "npm" | "otp" | "password" | "success";
 
@@ -33,8 +34,8 @@ export default function LupaPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/auth/forgot-password/request",
+      const response = await apiFetch(
+        "/auth/forgot-password/request",
         {
           method: "POST",
           headers: {
@@ -78,8 +79,8 @@ export default function LupaPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/auth/forgot-password/verify",
+      const response = await apiFetch(
+        "/auth/forgot-password/verify",
         {
           method: "POST",
           headers: {
@@ -130,8 +131,8 @@ export default function LupaPasswordPage() {
     setError("");
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/auth/forgot-password/reset",
+      const response = await apiFetch(
+        "/auth/forgot-password/reset",
         {
           method: "POST",
           headers: {

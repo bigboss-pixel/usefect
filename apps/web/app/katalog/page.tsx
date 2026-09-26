@@ -1,6 +1,7 @@
 "use client";
 
 import SiteHeader from "../../components/SiteHeader";
+import { apiFetch } from "../lib/api";
 import { useState, useEffect } from "react";
 import {
   Search,
@@ -86,9 +87,7 @@ export default function KatalogPage() {
           params.set("sortBy", sortBy);
           params.set("sortOrder", sortOrder);
 
-        const response = await fetch(
-        `http://localhost:3001/books?${params.toString()}`,
-        );
+        const response = await apiFetch(`/books?${params.toString()}`);
 
         if (!response.ok) {
           throw new Error("Gagal mengambil data buku");
@@ -134,12 +133,7 @@ export default function KatalogPage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3001/auth/me",
-          {
-            credentials: "include",
-          },
-        );
+        const response = await apiFetch("/auth/me");
 
         if (!response.ok) {
           throw new Error("Gagal mengambil profil");
@@ -162,12 +156,7 @@ export default function KatalogPage() {
 
     const fetchUnreadNotificationCount = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:3001/notifications/unread-count",
-          {
-            credentials: "include",
-          },
-        );
+        const response = await apiFetch("/notifications/unread-count");
 
         if (!response.ok) {
           return;
@@ -212,7 +201,7 @@ export default function KatalogPage() {
 
     try {
       const response = await fetch(
-        "http://localhost:3001/auth/logout",
+        "/auth/logout",
         {
           method: "POST",
           credentials: "include",

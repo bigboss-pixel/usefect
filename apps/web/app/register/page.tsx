@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { apiFetch } from "../lib/api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -62,9 +63,7 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:3001/auth/register",
-        {
+      const response = await apiFetch("/auth/register", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

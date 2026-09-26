@@ -176,13 +176,9 @@ const handleLogout = async () => {
   setLoggingOut(true);
 
   try {
-    const response = await fetch(
-      "http://localhost:3001/auth/logout",
-      {
-        method: "POST",
-        credentials: "include",
-      }
-    );
+    const response = await apiFetch("/auth/logout", {
+      method: "POST",
+    });
 
     if (!response.ok) {
       throw new Error("Logout gagal");

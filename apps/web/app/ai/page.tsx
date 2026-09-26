@@ -3,10 +3,14 @@
 import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import {
+
+
   ArrowUp,
   Globe,
   Paperclip,
 } from 'lucide-react';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 type Source = {
   id: number;
@@ -131,7 +135,7 @@ export default function AIPage() {
 
     try {
       const response = await fetch(
-        'http://localhost:3001/ai/chat/stream',
+        `${API_URL}/ai/chat/stream`,
         {
           method: 'POST',
           headers: {
@@ -316,7 +320,7 @@ export default function AIPage() {
       formData.append('file', file);
 
       const response = await fetch(
-        'http://localhost:3001/ai/files',
+        `${API_URL}/ai/files`,
         {
           method: 'POST',
           body: formData,
