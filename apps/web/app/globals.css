@@ -22793,3 +22793,56 @@ a {
     aspect-ratio: 16 / 10;
   }
 }
+
+/* ================= OPAC UMA RESULTS ================= */
+
+.opac-book-cover {
+  background:
+    linear-gradient(145deg, #0b3b82 0%, #1769aa 55%, #d6ad5b 100%);
+}
+
+.catalog-book-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 12px;
+  color: #758093;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.catalog-book-meta span {
+  display: inline-block;
+}
+
+.catalog-book-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.catalog-detail-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: #0b4ea2;
+  color: #fff;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.catalog-detail-btn:hover {
+  background: #083b7d;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(11, 78, 162, 0.18);
+}
+

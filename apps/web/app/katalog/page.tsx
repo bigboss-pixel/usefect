@@ -37,6 +37,16 @@ type Book = {
   borrowedCopies: number,
 };
 
+type OpacBook = {
+  id: string;
+  title: string;
+  authors: string[];
+  isbn: string;
+  publisher: string;
+  year: string;
+  image: string | null;
+};
+
 const categories = [
   { id: "", name: "Semua Kategori" },
   { id: "2", name: "Teknologi" },
@@ -52,9 +62,48 @@ export default function KatalogPage() {
   const [sortBy, setSortBy] = useState("publicationYear");
   const [sortOrder, setSortOrder] = useState("desc");
   const [books, setBooks] = useState<Book[]>([]);
+  const [opacBooks, setOpacBooks] = useState<OpacBook[]>([]);
+  const [opacTotal, setOpacTotal] = useState(0);
+  const [opacLoading, setOpacLoading] = useState(false);
+  const [opacMode, setOpacMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    if (!opacMode || !searchQuery.trim()) {
+      setOpacBooks([]);
+      setOpacTotal(0);
+      return;
+    }
+
+    const fetchOpac = async () => {
+      setOpacLoading(true);
+
+      try {
+        const params = new URLSearchParams();
+        params.set("q", searchQuery.trim());
+        params.set("page", String(currentPage));
+
+        const res = await apiFetch(
+          `/opac/search?${params.toString()}`
+        );
+
+        const data = await res.json();
+
+        setOpacBooks(data.items ?? []);
+        setOpacTotal(Number(data.total ?? 0));
+      } catch (error) {
+        console.error("Gagal mengambil data OPAC:", error);
+        setOpacBooks([]);
+        setOpacTotal(0);
+      } finally {
+        setOpacLoading(false);
+      }
+    };
+
+    fetchOpac();
+  }, [opacMode, searchQuery, currentPage]);
 
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
@@ -233,6 +282,7 @@ export default function KatalogPage() {
   const handleSearch = () => {
   setCurrentPage(1);
   setSearchQuery(search.trim());
+  setOpacMode(Boolean(search.trim()));
 
   const params = new URLSearchParams();
 
@@ -542,7 +592,93 @@ export default function KatalogPage() {
 
           <div className="catalog-books">
 
-            {loading ? (
+            {opacMode ? (
+              opacLoading ? (
+                <div className="catalog-empty">
+                  Memuat koleksi OPAC UMA...
+                </div>
+              ) : opacBooks.length === 0 ? (
+                <div className="catalog-empty">
+                  <Search size={36} />
+
+                  <h3>
+                    Koleksi OPAC tidak ditemukan
+                  </h3>
+
+                  <p>
+                    Coba gunakan kata kunci atau judul lain.
+                  </p>
+                </div>
+              ) : (
+                opacBooks.map((book) => (
+                  <article
+                    className="catalog-book-card"
+                    key={book.id}
+                  >
+                    <div
+                      className={`catalog-book-cover opac-book-cover`}
+                    >
+                      <small>
+                        OPAC UMA
+                      </small>
+
+                      <strong>
+                        {book.title}
+                      </strong>
+
+                      <span>
+                        KATALOG PERPUSTAKAAN
+                      </span>
+                    </div>
+
+                    <div className="catalog-book-info">
+                      <div className="catalog-book-top">
+                        <div>
+                          <span className="book-category">
+                            SUMBER EKSTERNAL
+                          </span>
+
+                          <h3>
+                            {book.title}
+                          </h3>
+
+                          <p className="book-author">
+                            {book.authors?.join("\n") || "Penulis tidak tersedia"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="catalog-book-meta">
+                        <span>
+                          ISBN: {book.isbn || "-"}
+                        </span>
+
+                        <span>
+                          Tahun: {book.year || "-"}
+                        </span>
+                      </div>
+
+                      <div className="catalog-book-meta">
+                        <span>
+                          Penerbit: {book.publisher || "-"}
+                        </span>
+                      </div>
+
+                      <div className="catalog-book-actions">
+                        <a
+                          href={book.id}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="catalog-detail-btn"
+                        >
+                          Lihat di OPAC UMA
+                        </a>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )
+            ) : loading ? (
 
               <div className="catalog-empty">
                 Memuat koleksi...
