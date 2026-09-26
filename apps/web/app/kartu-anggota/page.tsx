@@ -703,11 +703,13 @@ export default function KartuAnggotaPage() {
           }
 
           .member-card-bottom {
-            align-items: flex-start;
+            align-items: stretch;
+            flex-direction: column;
           }
 
           .member-contact {
-            max-width: calc(100% - 125px);
+            width: 100%;
+            max-width: 100%;
             overflow: hidden;
           }
 
@@ -718,7 +720,17 @@ export default function KartuAnggotaPage() {
           }
 
           .member-qr {
-            flex: 0 0 auto;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            box-sizing: border-box;
+          }
+
+          .member-qr svg {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            display: block;
           }
 
           .member-card-footer {
