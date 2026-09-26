@@ -17,8 +17,8 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
-      "http://localhost:3000",
-      "https://usefect-web.vercel.app",
+      'http://localhost:3000',
+      'https://usefect-web.vercel.app',
     ],
     credentials: true,
   });
