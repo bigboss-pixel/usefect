@@ -112,19 +112,29 @@ Content: ${result.snippet}`,
           title?: string;
           url?: string;
           content?: string;
-          images?: Array<{
-            url?: string;
-            description?: string;
-          }>;
+          images?: Array<
+            | string
+            | {
+                url?: string;
+                description?: string;
+              }
+          >;
         }>;
-        images?: Array<{
-          url?: string;
-          description?: string;
-        }>;
+        images?: Array<
+          | string
+          | {
+              url?: string;
+              description?: string;
+            }
+        >;
       };
 
       const tavilyImages = (data.images || [])
-        .map((image) => image.url)
+        .map((image) =>
+          typeof image === 'string'
+            ? image
+            : image.url,
+        )
         .filter((url): url is string => Boolean(url))
         .slice(0, limit);
 
@@ -141,9 +151,16 @@ Content: ${result.snippet}`,
             // Keep default source.
           }
 
-          const resultImage = result.images?.find(
-            (image) => Boolean(image.url),
-          )?.url;
+          const resultImage =
+            result.images
+              ?.map((image) =>
+                typeof image === 'string'
+                  ? image
+                  : image.url,
+              )
+              .find(
+                (url): url is string => Boolean(url),
+              );
 
           return {
             title: result.title || 'Untitled',
