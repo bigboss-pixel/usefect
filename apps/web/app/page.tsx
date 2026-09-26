@@ -42,7 +42,7 @@ import {
 type QuickService = {
   icon: LucideIcon;
   title: string;
-  subtitle: string;
+  subtitle?: string;
 };
 
 const quickServices: QuickService[] = [
@@ -54,7 +54,6 @@ const quickServices: QuickService[] = [
   {
     icon: Newspaper,
     title: "Jurnal",
-    subtitle: "Publikasi ilmiah",
   },
   {
     icon: GraduationCap,
@@ -64,12 +63,10 @@ const quickServices: QuickService[] = [
   {
     icon: FlaskConical,
     title: "Penelitian",
-    subtitle: "Hasil riset dosen",
   },
   {
     icon: BookOpen,
     title: "E-Book",
-    subtitle: "Baca online",
   },
   {
     icon: PlaySquare,
@@ -417,9 +414,11 @@ const handleLogout = async () => {
                   {title}
                 </strong>
 
-                <span>
-                  {subtitle}
-                </span>
+                {subtitle && (
+                  <span>
+                    {subtitle}
+                  </span>
+                )}
 
               </a>
 

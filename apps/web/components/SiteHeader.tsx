@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
-  Search,
   BookOpen,
   Newspaper,
   FlaskConical,
@@ -252,60 +251,15 @@ export default function SiteHeader() {
       <nav className="desktop-nav">
 
 
-        <a
-          className={isActive("/katalog") ? "active" : ""}
-          href="/katalog"
-        >
-          <Search size={16} strokeWidth={2} />
-          Katalog
-        </a>
 
-        <a
-          className={isActive("/reservasi") ? "active" : ""}
-          href="/reservasi"
-        >
-          <BookOpen size={16} strokeWidth={2} />
-          Reservasi
-        </a>
 
-        <a href="#">
-          <Newspaper size={16} strokeWidth={2} />
-          Jurnal
-        </a>
 
-        <a href="#">
-          <FlaskConical size={16} strokeWidth={2} />
-          Penelitian
-        </a>
 
-        <a href="#">
-          <BookOpen size={16} strokeWidth={2} />
-          E-Book
-        </a>
 
-        <a
-          className={isActive("/peminjaman") ? "active" : ""}
-          href="/peminjaman"
-        >
-          <Grid2X2 size={16} strokeWidth={2} />
-          Layanan
-        </a>
-
-        <a href="#">
-          <Info size={16} strokeWidth={2} />
-          Tentang
-        </a>
 
       </nav>
 
       <div className="header-actions">
-
-        <button
-          className="icon-button"
-          aria-label="Cari"
-        >
-          <Search size={19} strokeWidth={2} />
-        </button>
 
         <a
           href="/notifikasi"
@@ -323,6 +277,15 @@ export default function SiteHeader() {
                 : unreadNotificationCount}
             </span>
           )}
+        </a>
+
+        <a
+          href="#"
+          className="icon-button"
+          aria-label="Tentang"
+          title="Tentang"
+        >
+          <Info size={19} strokeWidth={2} />
         </a>
 
         <div className="profile-menu-wrapper">
