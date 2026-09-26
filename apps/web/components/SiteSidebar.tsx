@@ -47,6 +47,11 @@ const userItems: SidebarItem[] = [
     icon: Search,
   },
   {
+    label: "Panduan",
+    href: "/panduan",
+    icon: BookOpen,
+  },
+  {
     label: "Notifikasi",
     href: "/notifikasi",
     icon: Bell,
