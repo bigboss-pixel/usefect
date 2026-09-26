@@ -37,6 +37,7 @@ type StreamEvent =
   | {
       interactionId?: string;
       sources: StreamSource[];
+      images?: string[];
     }
   | {
       interactionId: string;
@@ -107,6 +108,7 @@ export class AiService {
     }
 
     const sources: StreamSource[] = [];
+    const images: string[] = [];
 
     const libraryResult =
       await this.librarySearchService.buildSearchContext(
@@ -132,6 +134,7 @@ export class AiService {
       }
 
       sources.push(...webResult.sources);
+      images.push(...(webResult.images || []));
     }
 
     if (sources.length) {
@@ -185,6 +188,7 @@ export class AiService {
     return {
       input,
       sources,
+      images,
     };
   }
 
@@ -245,7 +249,7 @@ export class AiService {
       attempt++
     ) {
       try {
-        const { input, sources } =
+        const { input, sources, images } =
           await this.buildInput(
             message,
             fileId,
@@ -294,11 +298,12 @@ export class AiService {
         }
 
     if (receivedText) {
-          if (sources.length) {
+          if (sources.length || images.length) {
             yield {
               interactionId:
                 interactionId || undefined,
               sources,
+              images,
             };
           }
 

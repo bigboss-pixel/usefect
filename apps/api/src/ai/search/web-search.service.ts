@@ -8,6 +8,7 @@ export type WebSearchResult = {
   url: string;
   snippet: string;
   source: string;
+  image?: string;
 };
 
 @Injectable()
@@ -48,6 +49,9 @@ Content: ${result.snippet}`,
         url: result.url,
         source: result.source,
       })),
+      images: results
+        .map((result) => result.image)
+        .filter((url): url is string => Boolean(url)),
     };
   }
 
@@ -84,6 +88,7 @@ Content: ${result.snippet}`,
             search_depth: 'advanced',
             include_answer: false,
             include_raw_content: false,
+            include_images: true,
           }),
         },
       );
@@ -108,11 +113,20 @@ Content: ${result.snippet}`,
           url?: string;
           content?: string;
         }>;
+        images?: Array<{
+          url?: string;
+          description?: string;
+        }>;
       };
+
+      const tavilyImages = (data.images || [])
+        .map((image) => image.url)
+        .filter((url): url is string => Boolean(url))
+        .slice(0, limit);
 
       return (data.results || [])
         .slice(0, limit)
-        .map((result) => {
+        .map((result, index) => {
           let source = 'web';
 
           try {
@@ -128,6 +142,7 @@ Content: ${result.snippet}`,
             url: result.url || '',
             snippet: result.content || '',
             source,
+            image: tavilyImages[index],
           };
         })
         .filter((result) => result.url);

@@ -19,10 +19,15 @@ type Source = {
   source: string;
 };
 
+type WebImage = {
+  url: string;
+};
+
 type Message = {
   role: 'user' | 'assistant';
   content: string;
   sources?: Source[];
+  images?: WebImage[];
 };
 
 export default function AIPage() {
@@ -223,6 +228,19 @@ export default function AIPage() {
                     ? {
                         ...item,
                         sources: data.sources,
+                      }
+                    : item,
+                ),
+              );
+            }
+
+            if (data.images) {
+              setMessages((current) =>
+                current.map((item, index) =>
+                  index === assistantIndex
+                    ? {
+                        ...item,
+                        images: data.images,
                       }
                     : item,
                 ),
@@ -524,6 +542,35 @@ export default function AIPage() {
                       item.content
                     )}
                   </div>
+
+                  {item.role === 'assistant' &&
+                    item.images &&
+                    item.images.length > 0 && (
+                      <div className="usefect-ai-images">
+                        <div className="usefect-ai-images-title">
+                          Images
+                        </div>
+
+                        <div className="usefect-ai-images-grid">
+                          {item.images.map((image, imageIndex) => (
+                            <a
+                              key={`${image.url}-${imageIndex}`}
+                              href={image.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="usefect-ai-image-card"
+                            >
+                              <img
+                                src={image.url}
+                                alt={`Web result ${imageIndex + 1}`}
+                                loading="lazy"
+                                referrerPolicy="no-referrer"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                   {item.role === 'assistant' &&
                     item.sources &&
