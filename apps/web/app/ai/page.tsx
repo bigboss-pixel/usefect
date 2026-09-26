@@ -240,7 +240,15 @@ export default function AIPage() {
                   index === assistantIndex
                     ? {
                         ...item,
-                        images: data.images,
+                        images: (data.images as unknown[])
+                          .filter(
+                            (url): url is string =>
+                              typeof url === 'string' &&
+                              Boolean(url),
+                          )
+                          .map((url) => ({
+                            url,
+                          })),
                       }
                     : item,
                 ),
