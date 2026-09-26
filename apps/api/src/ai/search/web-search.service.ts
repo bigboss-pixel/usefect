@@ -112,6 +112,10 @@ Content: ${result.snippet}`,
           title?: string;
           url?: string;
           content?: string;
+          images?: Array<{
+            url?: string;
+            description?: string;
+          }>;
         }>;
         images?: Array<{
           url?: string;
@@ -137,12 +141,16 @@ Content: ${result.snippet}`,
             // Keep default source.
           }
 
+          const resultImage = result.images?.find(
+            (image) => Boolean(image.url),
+          )?.url;
+
           return {
             title: result.title || 'Untitled',
             url: result.url || '',
             snippet: result.content || '',
             source,
-            image: tavilyImages[index],
+            image: resultImage || tavilyImages[index],
           };
         })
         .filter((result) => result.url);
