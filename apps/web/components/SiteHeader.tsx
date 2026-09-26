@@ -280,7 +280,7 @@ export default function SiteHeader() {
         </a>
 
         <a
-          href="#"
+          href="/tentang"
           className="icon-button"
           aria-label="Tentang"
           title="Tentang"
