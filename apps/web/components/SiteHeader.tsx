@@ -101,11 +101,10 @@ export default function SiteHeader() {
     setLoggingOut(true);
 
     try {
-      const response = await fetch(
+      const response = await apiFetch(
         "/auth/logout",
         {
           method: "POST",
-          credentials: "include",
         },
       );
 
