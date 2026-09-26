@@ -17,6 +17,7 @@ import { apiFetch } from "../lib/api";
 export default function KartuAnggotaPage() {
   const [profile, setProfile] = useState<any>(null);
   const [qrValue, setQrValue] = useState<string | null>(null);
+  const [qrSize, setQrSize] = useState(400);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,6 +58,17 @@ export default function KartuAnggotaPage() {
     };
 
     fetchProfileAndQr();
+
+    const updateQrSize = () => {
+      setQrSize(window.innerWidth <= 600 ? 200 : 400);
+    };
+
+    updateQrSize();
+    window.addEventListener("resize", updateQrSize);
+
+    return () => {
+      window.removeEventListener("resize", updateQrSize);
+    };
   }, []);
 
   if (loading) {
@@ -226,7 +238,7 @@ export default function KartuAnggotaPage() {
               {qrValue ? (
                 <QRCodeSVG
                   value={qrValue}
-                  size={400}
+                  size={qrSize}
                   bgColor="#ffffff"
                   fgColor="#10213f"
                   level="L"
@@ -721,19 +733,10 @@ export default function KartuAnggotaPage() {
 
           .member-qr {
             width: 216px;
-            max-width: 216px;
+            max-width: 100%;
             margin: 0 auto;
             padding: 8px;
             box-sizing: border-box;
-            overflow: visible;
-          }
-
-          .member-qr svg {
-            width: 200px !important;
-            height: 200px !important;
-            max-width: none !important;
-            display: block;
-            flex: 0 0 200px;
           }
 
           .member-card-footer {
