@@ -183,9 +183,10 @@ export class MemberQrService {
     try {
       token = this.decryptToken(qr.tokenEncrypted);
     } catch {
-      throw new BadRequestException(
-        'QR anggota tidak dapat dibaca. Silakan generate ulang.',
-      );
+      // QR lama mungkin terenkripsi dengan encryption key
+      // yang berbeda (misalnya setelah migrasi database).
+      // Generate ulang menggunakan key production saat ini.
+      return this.generateOwnQr(userId);
     }
 
     return this.memberResponse(
