@@ -714,7 +714,7 @@ export default function AdminKelolaPeminjamanPage() {
       setTransactionLoading(true);
 
       const response = await apiFetch(
-        "/reservations/pickup-by-member",
+        "/loans/staff-transaction",
         {
           method: "POST",
           headers: {
