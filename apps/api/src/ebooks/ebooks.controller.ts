@@ -17,6 +17,7 @@ import { EBooksService } from './ebooks.service.js';
 import { CreateEBookDto } from './dto/create-ebook.dto.js';
 import { EBookQueryDto } from './dto/ebook-query.dto.js';
 import { UpdateEBookDto } from './dto/update-ebook.dto.js';
+import { ModerateEBookDto } from './dto/moderate-ebook.dto.js';
 
 import { Permissions } from '../auth/decorators/permissions.decorator.js';
 
@@ -88,6 +89,56 @@ export class EBooksController {
     id: number,
   ) {
     return this.ebooksService.findOne(id);
+  }
+
+  // =========================================================
+  // PROTECTED - SUBMIT FOR REVIEW
+  // =========================================================
+
+  @Post(':id/submit-review')
+  @UseGuards(JwtAuthGuard)
+  async submitForReview(
+    @Req() req: any,
+
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
+  ) {
+    return this.ebooksService.submitForReview(
+      id,
+      req.user.userId,
+    );
+  }
+
+  // =========================================================
+  // PROTECTED - MODERATION
+  // =========================================================
+
+  @Patch(':id/moderation')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
+  @Permissions('EBOOK_UPDATE')
+  async moderate(
+    @Req() req: any,
+
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
+
+    @Body()
+    moderateEBookDto: ModerateEBookDto,
+  ) {
+    return this.ebooksService.moderate(
+      id,
+      req.user.userId,
+      moderateEBookDto,
+    );
   }
 
   // =========================================================

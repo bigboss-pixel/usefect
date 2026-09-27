@@ -71,26 +71,4 @@ export class UpdateEBookDto {
   @IsString()
   @Length(2, 500)
   source?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsIn([
-    'READ_ONLY',
-    'DOWNLOAD',
-    'READ_AND_DOWNLOAD',
-  ])
-  accessType?: string;
-
-  @IsOptional()
-  @IsString()
-  @IsIn([
-    'DRAFT',
-    'PENDING_REVIEW',
-    'LICENSE_VERIFIED',
-    'TRANSLATING',
-    'TRANSLATION_REVIEW',
-    'PUBLISHED',
-    'SUSPENDED',
-  ])
-  status?: string;
 }

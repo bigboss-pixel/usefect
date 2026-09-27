@@ -107,11 +107,17 @@ const emptyForm: EBookForm = {
 export default function EbookPage() {
   const [ebooks, setEbooks] = useState<EBook[]>([]);
   const [myEbooks, setMyEbooks] = useState<EBook[]>([]);
+  const [moderationEbooks, setModerationEbooks] =
+    useState<EBook[]>([]);
   const [currentUser, setCurrentUser] =
     useState<CurrentUser | null>(null);
 
   const [showMyEbooks, setShowMyEbooks] =
     useState(false);
+  const [showModeration, setShowModeration] =
+    useState(false);
+  const [moderationStatus, setModerationStatus] =
+    useState("ALL");
 
   const [activeCategory, setActiveCategory] =
     useState("Semua");
@@ -119,6 +125,8 @@ export default function EbookPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingMyEbooks, setLoadingMyEbooks] =
+    useState(false);
+  const [loadingModeration, setLoadingModeration] =
     useState(false);
   const [error, setError] = useState("");
 
@@ -218,6 +226,55 @@ export default function EbookPage() {
     }
   }
 
+  async function loadModerationEbooks() {
+    if (!canModerate) {
+      setModerationEbooks([]);
+      return;
+    }
+
+    try {
+      setLoadingModeration(true);
+
+      const params = new URLSearchParams();
+
+      if (search.trim()) {
+        params.set("search", search.trim());
+      }
+
+      if (activeCategory !== "Semua") {
+        params.set("category", activeCategory);
+      }
+
+      if (moderationStatus !== "ALL") {
+        params.set("status", moderationStatus);
+      }
+
+      const query = params.toString();
+
+      const response = await fetch(
+        `${apiUrl}/ebooks/moderation${query ? `?${query}` : ""}`,
+        {
+          credentials: "include",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          "Gagal mengambil data moderasi E-Book.",
+        );
+      }
+
+      const result =
+        (await response.json()) as EBookResponse;
+
+      setModerationEbooks(result.data ?? []);
+    } catch {
+      setModerationEbooks([]);
+    } finally {
+      setLoadingModeration(false);
+    }
+  }
+
   useEffect(() => {
     const controller = new AbortController();
 
@@ -269,6 +326,18 @@ export default function EbookPage() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (showModeration && canModerate) {
+      loadModerationEbooks();
+    }
+  }, [
+    showModeration,
+    moderationStatus,
+    search,
+    activeCategory,
+    currentUser,
+  ]);
+
   function openCreateForm() {
     setEditingEbook(null);
     setForm(emptyForm);
@@ -277,10 +346,11 @@ export default function EbookPage() {
   }
 
   function openEditForm(ebook: EBook) {
-    if (
-      !currentUser ||
-      ebook.uploadedByUserId !== currentUser.id
-    ) {
+    const isOwner =
+      currentUser &&
+      ebook.uploadedByUserId === currentUser.id;
+
+    if (!isOwner) {
       return;
     }
 
@@ -409,6 +479,9 @@ export default function EbookPage() {
       await Promise.all([
         loadEbooks(),
         loadMyEbooks(),
+        showModeration
+          ? loadModerationEbooks()
+          : Promise.resolve(),
       ]);
 
       setShowMyEbooks(!editingEbook || showMyEbooks);
@@ -470,6 +543,9 @@ export default function EbookPage() {
       await Promise.all([
         loadEbooks(),
         loadMyEbooks(),
+        showModeration
+          ? loadModerationEbooks()
+          : Promise.resolve(),
       ]);
     } catch (err) {
       setActionError(
@@ -479,6 +555,137 @@ export default function EbookPage() {
       );
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleSubmitForReview(
+    ebook: EBook,
+  ) {
+    if (!currentUser) {
+      return;
+    }
+
+    if (
+      ebook.uploadedByUserId !==
+        currentUser.id ||
+      ebook.status !== "DRAFT"
+    ) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Ajukan "${ebook.title}" untuk review Admin?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setActionError("");
+
+      const response = await fetch(
+        `${apiUrl}/ebooks/${ebook.id}/submit-review`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
+
+      const result =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal mengajukan E-Book untuk review.",
+        );
+      }
+
+      await Promise.all([
+        loadEbooks(),
+        loadMyEbooks(),
+        showModeration
+          ? loadModerationEbooks()
+          : Promise.resolve(),
+      ]);
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Gagal mengajukan E-Book untuk review.",
+      );
+    }
+  }
+
+  async function handleModeration(
+    ebook: EBook,
+    status: string,
+  ) {
+    if (!currentUser || !canModerate) {
+      return;
+    }
+
+    const statusLabels: Record<string, string> = {
+      DRAFT: "Draft",
+      PENDING_REVIEW: "Pending Review",
+      LICENSE_VERIFIED: "License Verified",
+      TRANSLATING: "Translating",
+      TRANSLATION_REVIEW: "Translation Review",
+      PUBLISHED: "Published",
+      SUSPENDED: "Suspended",
+    };
+
+    const targetLabel =
+      statusLabels[status] ?? status;
+
+    const confirmed = window.confirm(
+      `Ubah status "${ebook.title}" menjadi ${targetLabel}?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setActionError("");
+
+      const response = await fetch(
+        `${apiUrl}/ebooks/${ebook.id}/moderation`,
+        {
+          method: "PATCH",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status,
+          }),
+        },
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result?.message ??
+            "Gagal memperbarui status moderasi.",
+        );
+      }
+
+      await Promise.all([
+        loadEbooks(),
+        loadMyEbooks(),
+        showModeration
+          ? loadModerationEbooks()
+          : Promise.resolve(),
+      ]);
+    } catch (err) {
+      setActionError(
+        err instanceof Error
+          ? err.message
+          : "Gagal memperbarui status moderasi.",
+      );
     }
   }
 
@@ -549,15 +756,19 @@ export default function EbookPage() {
             </span>
 
             <h2>
-              {showMyEbooks
-                ? "E-Book Saya"
-                : "Jelajahi E-Book"}
+              {showModeration
+                ? "Moderasi E-Book"
+                : showMyEbooks
+                  ? "E-Book Saya"
+                  : "Jelajahi E-Book"}
             </h2>
 
             <p>
-              {showMyEbooks
-                ? "Kelola koleksi E-Book yang Anda tambahkan."
-                : "Temukan buku digital yang dapat dibaca langsung melalui USEFECT Knowledge Hub."}
+              {showModeration
+                ? "Tinjau metadata, lisensi, status publikasi, dan hak akses koleksi digital."
+                : showMyEbooks
+                  ? "Kelola koleksi E-Book yang Anda tambahkan."
+                  : "Temukan buku digital yang dapat dibaca langsung melalui USEFECT Knowledge Hub."}
             </p>
           </div>
 
@@ -573,19 +784,90 @@ export default function EbookPage() {
               </button>
             )}
 
-            <button
-              className="ebook-filter-button"
-              type="button"
-            >
-              <SlidersHorizontal size={17} />
-              Filter
-              <ChevronDown size={16} />
-            </button>
+            {canModerate && (
+              <button
+                className={
+                  showModeration
+                    ? "ebook-filter-button active"
+                    : "ebook-filter-button"
+                }
+                type="button"
+                onClick={() => {
+                  setShowModeration((current) => !current);
+                  setShowMyEbooks(false);
+                }}
+              >
+                <SlidersHorizontal size={17} />
+                {showModeration
+                  ? "Koleksi Publik"
+                  : "Moderasi"}
+                <ChevronDown size={16} />
+              </button>
+            )}
+
+            {!canModerate && (
+              <button
+                className="ebook-filter-button"
+                type="button"
+              >
+                <SlidersHorizontal size={17} />
+                Filter
+                <ChevronDown size={16} />
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="ebook-categories">
-          {ebookCategories.map((category) => (
+        {showModeration && canModerate && (
+          <div className="ebook-moderation-panel">
+            <div className="ebook-moderation-heading">
+              <div>
+                <span className="ebook-section-label">
+                  CONTENT GOVERNANCE
+                </span>
+                <h3>
+                  Publication Workflow
+                </h3>
+              </div>
+
+              <span className="ebook-moderation-count">
+                {moderationEbooks.length} E-Book
+              </span>
+            </div>
+
+            <div className="ebook-moderation-filters">
+              {[
+                ["ALL", "Semua"],
+                ["DRAFT", "Draft"],
+                ["PENDING_REVIEW", "Pending Review"],
+                ["LICENSE_VERIFIED", "License Verified"],
+                ["TRANSLATING", "Translating"],
+                ["TRANSLATION_REVIEW", "Translation Review"],
+                ["PUBLISHED", "Published"],
+                ["SUSPENDED", "Suspended"],
+              ].map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={
+                    moderationStatus === value
+                      ? "ebook-moderation-filter active"
+                      : "ebook-moderation-filter"
+                  }
+                  onClick={() =>
+                    setModerationStatus(value)
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!showModeration && (
+          <div className="ebook-categories">
+            {ebookCategories.map((category) => (
             <button
               type="button"
               className={
@@ -616,8 +898,9 @@ export default function EbookPage() {
             >
               E-Book Saya
             </button>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {actionError && (
           <div className="ebook-action-error">
@@ -626,44 +909,82 @@ export default function EbookPage() {
         )}
 
         <div className="ebook-grid">
-          {showMyEbooks && loadingMyEbooks && (
-            <div>
-              Memuat E-Book Anda...
+          {showModeration && loadingModeration && (
+            <div className="ebook-state-card">
+              Memuat antrean moderasi E-Book...
             </div>
           )}
 
-          {!showMyEbooks && loading && (
-            <div>
-              Memuat koleksi E-Book...
-            </div>
-          )}
+          {showModeration &&
+            !loadingModeration &&
+            moderationEbooks.length === 0 && (
+              <div className="ebook-state-card">
+                Tidak ada E-Book pada filter moderasi ini.
+              </div>
+            )}
 
-          {!showMyEbooks &&
+          {!showModeration &&
+            showMyEbooks &&
+            loadingMyEbooks && (
+              <div className="ebook-state-card">
+                Memuat E-Book Anda...
+              </div>
+            )}
+
+          {!showModeration &&
+            !showMyEbooks &&
+            loading && (
+              <div className="ebook-state-card">
+                Memuat koleksi E-Book...
+              </div>
+            )}
+
+          {!showModeration &&
+            !showMyEbooks &&
             !loading &&
             error && (
-              <div>
+              <div className="ebook-state-card">
                 {error}
               </div>
             )}
 
-          {!showMyEbooks &&
+          {!showModeration &&
+            !showMyEbooks &&
             !loading &&
             !error &&
             ebooks.length === 0 && (
-              <div>
+              <div className="ebook-state-card">
                 Belum ada E-Book yang sesuai dengan pencarian.
               </div>
             )}
 
-          {showMyEbooks &&
+          {!showModeration &&
+            showMyEbooks &&
             !loadingMyEbooks &&
             myEbooks.length === 0 && (
-              <div>
+              <div className="ebook-state-card">
                 Anda belum menambahkan E-Book.
               </div>
             )}
 
-          {!showMyEbooks &&
+          {showModeration &&
+            !loadingModeration &&
+            moderationEbooks.map((ebook) => (
+              <EbookCard
+                key={ebook.id}
+                ebook={ebook}
+                currentUser={currentUser}
+                canModerate={canModerate}
+                deletingId={deletingId}
+                onEdit={openEditForm}
+                onDelete={handleDelete}
+                onModerate={handleModeration}
+                onSubmitForReview={handleSubmitForReview}
+              />
+            ))}
+
+          {!showModeration &&
+            !showMyEbooks &&
             !loading &&
             !error &&
             displayedEbooks.map((ebook) => (
@@ -675,10 +996,13 @@ export default function EbookPage() {
                 deletingId={deletingId}
                 onEdit={openEditForm}
                 onDelete={handleDelete}
+                onModerate={handleModeration}
+                onSubmitForReview={handleSubmitForReview}
               />
             ))}
 
-          {showMyEbooks &&
+          {!showModeration &&
+            showMyEbooks &&
             !loadingMyEbooks &&
             displayedEbooks.map((ebook) => (
               <EbookCard
@@ -689,6 +1013,8 @@ export default function EbookPage() {
                 deletingId={deletingId}
                 onEdit={openEditForm}
                 onDelete={handleDelete}
+                onModerate={handleModeration}
+                onSubmitForReview={handleSubmitForReview}
               />
             ))}
         </div>
@@ -1027,6 +1353,8 @@ function EbookCard({
   deletingId,
   onEdit,
   onDelete,
+  onModerate,
+  onSubmitForReview,
 }: {
   ebook: EBook;
   currentUser: CurrentUser | null;
@@ -1034,6 +1362,13 @@ function EbookCard({
   deletingId: number | null;
   onEdit: (ebook: EBook) => void;
   onDelete: (ebook: EBook) => void;
+  onModerate: (
+    ebook: EBook,
+    status: string,
+  ) => void;
+  onSubmitForReview: (
+    ebook: EBook,
+  ) => void;
 }) {
   const isOwner =
     currentUser?.id === ebook.uploadedByUserId;
@@ -1083,6 +1418,188 @@ function EbookCard({
             {ebook.language}
           </span>
         </div>
+
+        {isOwner &&
+          ebook.status === "DRAFT" && (
+            <div className="ebook-moderation-actions">
+              <button
+                type="button"
+                className="ebook-moderation-button"
+                onClick={() =>
+                  onSubmitForReview(ebook)
+                }
+              >
+                Ajukan Review
+              </button>
+            </div>
+          )}
+
+        {canModerate && (
+          <div className="ebook-moderation-actions">
+            {ebook.status === "PENDING_REVIEW" && (
+              <>
+                <button
+                  type="button"
+                  className="ebook-moderation-button"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "LICENSE_VERIFIED",
+                    )
+                  }
+                >
+                  Verifikasi Lisensi
+                </button>
+
+                <button
+                  type="button"
+                  className="ebook-moderation-button secondary"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "DRAFT",
+                    )
+                  }
+                >
+                  Kembalikan
+                </button>
+              </>
+            )}
+
+            {ebook.status === "LICENSE_VERIFIED" && (
+              <>
+                <button
+                  type="button"
+                  className="ebook-moderation-button"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "PUBLISHED",
+                    )
+                  }
+                >
+                  Publish
+                </button>
+
+                <button
+                  type="button"
+                  className="ebook-moderation-button secondary"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "TRANSLATING",
+                    )
+                  }
+                >
+                  Mulai Terjemahan
+                </button>
+
+                <button
+                  type="button"
+                  className="ebook-moderation-button secondary"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "DRAFT",
+                    )
+                  }
+                >
+                  Kembalikan
+                </button>
+              </>
+            )}
+
+            {ebook.status === "TRANSLATING" && (
+              <>
+                <button
+                  type="button"
+                  className="ebook-moderation-button"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "TRANSLATION_REVIEW",
+                    )
+                  }
+                >
+                  Review Terjemahan
+                </button>
+
+                <button
+                  type="button"
+                  className="ebook-moderation-button secondary"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "DRAFT",
+                    )
+                  }
+                >
+                  Kembalikan
+                </button>
+              </>
+            )}
+
+            {ebook.status === "TRANSLATION_REVIEW" && (
+              <>
+                <button
+                  type="button"
+                  className="ebook-moderation-button"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "PUBLISHED",
+                    )
+                  }
+                >
+                  Publish
+                </button>
+
+                <button
+                  type="button"
+                  className="ebook-moderation-button secondary"
+                  onClick={() =>
+                    onModerate(
+                      ebook,
+                      "DRAFT",
+                    )
+                  }
+                >
+                  Kembalikan
+                </button>
+              </>
+            )}
+
+            {ebook.status === "PUBLISHED" && (
+              <button
+                type="button"
+                className="ebook-moderation-button danger"
+                onClick={() =>
+                  onModerate(
+                    ebook,
+                    "SUSPENDED",
+                  )
+                }
+              >
+                Suspend
+              </button>
+            )}
+
+            {ebook.status === "SUSPENDED" && (
+              <button
+                type="button"
+                className="ebook-moderation-button secondary"
+                onClick={() =>
+                  onModerate(
+                    ebook,
+                    "DRAFT",
+                  )
+                }
+              >
+                Kembalikan ke Draft
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="ebook-card-actions">
           <button

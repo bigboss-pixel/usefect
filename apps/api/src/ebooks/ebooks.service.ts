@@ -10,6 +10,7 @@ import { db } from '../prisma/db.js';
 import { CreateEBookDto } from './dto/create-ebook.dto.js';
 import { UpdateEBookDto } from './dto/update-ebook.dto.js';
 import { EBookQueryDto } from './dto/ebook-query.dto.js';
+import { ModerateEBookDto } from './dto/moderate-ebook.dto.js';
 
 @Injectable()
 export class EBooksService {
@@ -657,12 +658,76 @@ export class EBooksService {
   }
 
   // =========================
-  // UPDATE E-BOOK
+  // SUBMIT E-BOOK FOR REVIEW
+  // OWNER ONLY
   // =========================
-  async update(
+  async submitForReview(
     id: number,
     userId: number,
-    updateEBookDto: UpdateEBookDto,
+  ) {
+    const ebook =
+      await db.orm.public.EBook
+        .where({ id })
+        .first();
+
+    if (!ebook) {
+      throw new NotFoundException(
+        'E-Book tidak ditemukan',
+      );
+    }
+
+    if (
+      ebook.uploadedByUserId !== userId
+    ) {
+      throw new ForbiddenException(
+        'Hanya pemilik E-Book yang dapat mengajukan review',
+      );
+    }
+
+    if (ebook.status !== 'DRAFT') {
+      throw new BadRequestException(
+        `E-Book dengan status ${ebook.status} tidak dapat diajukan untuk review`,
+      );
+    }
+
+    const updatedEBook =
+      await db.orm.public.EBook
+        .where({ id })
+        .update({
+          status: 'PENDING_REVIEW',
+          updatedAt:
+            new Date().toISOString(),
+        });
+
+    if (!updatedEBook) {
+      throw new NotFoundException(
+        'E-Book tidak ditemukan',
+      );
+    }
+
+    return {
+      message:
+        'E-Book berhasil diajukan untuk review',
+      ebook: {
+        id: updatedEBook.id,
+        title: updatedEBook.title,
+        status: updatedEBook.status,
+        uploadedByUserId:
+          updatedEBook.uploadedByUserId,
+        updatedAt:
+          updatedEBook.updatedAt,
+      },
+    };
+  }
+
+  // =========================
+  // MODERATE E-BOOK
+  // ADMIN / SUPER ADMIN ONLY
+  // =========================
+  async moderate(
+    id: number,
+    userId: number,
+    moderateEBookDto: ModerateEBookDto,
   ) {
     const ebook =
       await db.orm.public.EBook
@@ -684,14 +749,139 @@ export class EBooksService {
     const isSuperAdmin =
       roles.includes('SUPER_ADMIN');
 
+    if (!isAdmin && !isSuperAdmin) {
+      throw new ForbiddenException(
+        'Moderasi E-Book hanya untuk Admin atau Super Admin',
+      );
+    }
+
+    const {
+      status,
+      accessType,
+    } = moderateEBookDto;
+
+    if (
+      status === undefined &&
+      accessType === undefined
+    ) {
+      throw new BadRequestException(
+        'Tidak ada perubahan moderasi yang diberikan',
+      );
+    }
+
+    // =====================================================
+    // STATUS WORKFLOW
+    // =====================================================
+    // Status hanya boleh bergerak melalui alur moderasi
+    // yang telah ditentukan. Admin tidak dapat melompati
+    // proses verifikasi secara sembarangan.
+    if (status !== undefined) {
+      const allowedTransitions: Record<string, string[]> = {
+        DRAFT: [
+          'PENDING_REVIEW',
+        ],
+        PENDING_REVIEW: [
+          'DRAFT',
+          'LICENSE_VERIFIED',
+        ],
+        LICENSE_VERIFIED: [
+          'DRAFT',
+          'TRANSLATING',
+          'PUBLISHED',
+        ],
+        TRANSLATING: [
+          'DRAFT',
+          'TRANSLATION_REVIEW',
+        ],
+        TRANSLATION_REVIEW: [
+          'DRAFT',
+          'PUBLISHED',
+        ],
+        PUBLISHED: [
+          'SUSPENDED',
+        ],
+        SUSPENDED: [
+          'DRAFT',
+        ],
+      };
+
+      const allowed =
+        allowedTransitions[ebook.status] ?? [];
+
+      if (!allowed.includes(status)) {
+        throw new BadRequestException(
+          `Transisi status tidak diizinkan: ${ebook.status} → ${status}`,
+        );
+      }
+    }
+
+    const updatedEBook =
+      await db.orm.public.EBook
+        .where({ id })
+        .update({
+          status:
+            status !== undefined
+              ? status
+              : ebook.status,
+
+          accessType:
+            accessType !== undefined
+              ? accessType
+              : ebook.accessType,
+
+          updatedAt:
+            new Date().toISOString(),
+        });
+
+    if (!updatedEBook) {
+      throw new NotFoundException(
+        'E-Book tidak ditemukan',
+      );
+    }
+
+    return {
+      message:
+        'Moderasi E-Book berhasil diperbarui',
+
+      ebook: {
+        id: updatedEBook.id,
+        title: updatedEBook.title,
+        author: updatedEBook.author,
+        accessType:
+          updatedEBook.accessType,
+        status:
+          updatedEBook.status,
+        uploadedByUserId:
+          updatedEBook.uploadedByUserId,
+        updatedAt:
+          updatedEBook.updatedAt,
+      },
+    };
+  }
+
+  // =========================
+  // UPDATE E-BOOK
+  // =========================
+  async update(
+    id: number,
+    userId: number,
+    updateEBookDto: UpdateEBookDto,
+  ) {
+    const ebook =
+      await db.orm.public.EBook
+        .where({ id })
+        .first();
+
+    if (!ebook) {
+      throw new NotFoundException(
+        'E-Book tidak ditemukan',
+      );
+    }
+
     const isOwner =
       ebook.uploadedByUserId === userId;
 
-    if (
-      !isOwner &&
-      !isAdmin &&
-      !isSuperAdmin
-    ) {
+    if (!isOwner) {
       throw new ForbiddenException(
         'Anda hanya dapat mengubah E-Book yang Anda tambahkan sendiri',
       );
@@ -711,8 +901,6 @@ export class EBooksService {
       fileType,
       license,
       source,
-      accessType,
-      status,
     } = updateEBookDto;
 
     // Cek ISBN jika diubah
@@ -802,25 +990,13 @@ export class EBooksService {
               ? source
               : ebook.source,
 
-          // Hanya Admin/Super Admin yang boleh
-          // menentukan hak akses download dan status moderasi.
+          // Hak akses dan status moderasi hanya
+          // dapat diubah melalui endpoint moderasi.
           accessType:
-            isAdmin || isSuperAdmin
-              ? (
-                  accessType !== undefined
-                    ? accessType
-                    : ebook.accessType
-                )
-              : ebook.accessType,
+            ebook.accessType,
 
           status:
-            isAdmin || isSuperAdmin
-              ? (
-                  status !== undefined
-                    ? status
-                    : ebook.status
-                )
-              : ebook.status,
+            ebook.status,
 
           updatedAt:
             new Date().toISOString(),
