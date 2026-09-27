@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e4b16545ffa102a6caabccd646ae569c8f4b88d31150bc284c9fc10999545204'>;
+  StorageHashBase<'c5eaf66ed05563fb6d0d9cfd0d818807a93890d9c28b372d9b7b6ac6c1af614b'>;
 export type ExecutionHash =
   ExecutionHashBase<'1de89d9f1c4f28fb1f4637cf987d31c4fe74eafac79bfe840ac09eae644c6970'>;
 export type ProfileHash =
@@ -323,7 +323,6 @@ export type FieldOutputTypes = {
       readonly source: CodecTypes['pg/text@1']['output'] | null;
       readonly accessType: CodecTypes['pg/text@1']['output'];
       readonly status: CodecTypes['pg/text@1']['output'];
-      readonly uploadedByUserId: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -536,7 +535,6 @@ export type FieldInputTypes = {
       readonly source: CodecTypes['pg/text@1']['input'] | null;
       readonly accessType: CodecTypes['pg/text@1']['input'];
       readonly status: CodecTypes['pg/text@1']['input'];
-      readonly uploadedByUserId: CodecTypes['pg/int4@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -751,7 +749,6 @@ export type StorageColumnTypes = {
       readonly status: CodecTypes['pg/text@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly uploadedByUserId: CodecTypes['pg/int4@1']['output'] | null;
     };
     readonly lecturerProfile: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -964,7 +961,6 @@ export type StorageColumnInputTypes = {
       readonly status: CodecTypes['pg/text@1']['input'];
       readonly title: CodecTypes['pg/text@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly uploadedByUserId: CodecTypes['pg/int4@1']['input'] | null;
     };
     readonly lecturerProfile: {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -1369,7 +1365,6 @@ export namespace Models {
     source: CodecTypes['pg/text@1']['output'] | null;
     accessType: CodecTypes['pg/text@1']['output'];
     status: CodecTypes['pg/text@1']['output'];
-    uploadedByUserId: CodecTypes['pg/int4@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     readonly [RelationKeys]?: never;
@@ -2020,11 +2015,6 @@ type ContractBase = Omit<
                     readonly value: DefaultLiteralValue<'pg/text@1', 'DRAFT'>;
                   };
                 };
-                readonly uploadedByUserId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -2068,12 +2058,6 @@ type ContractBase = Omit<
                   readonly name: 'eBook_status_idx_e98638ab';
                   readonly prefix: 'eBook_status_idx';
                   readonly columns: readonly ['status'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'eBook_uploadedByUserId_idx_b9c62f4a';
-                  readonly prefix: 'eBook_uploadedByUserId_idx';
-                  readonly columns: readonly ['uploadedByUserId'];
                   readonly unique: false;
                 },
               ];
@@ -3704,10 +3688,6 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly uploadedByUserId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -3744,7 +3724,6 @@ type ContractBase = Omit<
                 readonly source: { readonly column: 'source' };
                 readonly accessType: { readonly column: 'accessType' };
                 readonly status: { readonly column: 'status' };
-                readonly uploadedByUserId: { readonly column: 'uploadedByUserId' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly updatedAt: { readonly column: 'updatedAt' };
               };

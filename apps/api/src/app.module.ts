@@ -22,6 +22,7 @@ import { LibrarySettingsModule } from './library-settings/library-settings.modul
 import { AiModule } from './ai/ai.module.js';
 import { AuditLogModule } from './audit-log/audit-log.module.js';
 import { OpacModule } from './opac/opac.module.js';
+import { EBooksModule } from './ebooks/ebooks.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -53,6 +54,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     AiModule,
     AuditLogModule,
     OpacModule,
+    EBooksModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthService],

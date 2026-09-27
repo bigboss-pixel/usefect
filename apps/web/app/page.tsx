@@ -396,7 +396,7 @@ const handleLogout = async () => {
             ({ icon: Icon, title, subtitle }) => (
 
               <a
-                href="#"
+                href={title === "E-Book" ? "/ebook" : "#"}
                 className="service-card"
                 key={title}
               >

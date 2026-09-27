@@ -1,0 +1,278 @@
+[
+  {
+    "id": "table.eBook",
+    "label": "Create table \"eBook\"",
+    "summary": "Creates table \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"eBook\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"eBook\"",
+        "sql": "CREATE TABLE \"public\".\"eBook\" (\n  \"accessType\" text DEFAULT 'READ_ONLY' NOT NULL,\n  \"author\" text NOT NULL,\n  \"category\" text,\n  \"coverUrl\" text,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"description\" text,\n  \"fileType\" text,\n  \"fileUrl\" text,\n  \"id\" SERIAL NOT NULL,\n  \"isbn\" text,\n  \"language\" text DEFAULT 'Indonesia' NOT NULL,\n  \"license\" text,\n  \"publicationYear\" int4,\n  \"publisher\" text,\n  \"source\" text,\n  \"status\" text DEFAULT 'DRAFT' NOT NULL,\n  \"title\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"eBook\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.eBook.eBook_isbn_key",
+    "label": "Add unique constraint on \"eBook\" (isbn)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "eBook_isbn_key",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"eBook_isbn_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "eBook_isbn_key",
+          "public",
+          "\"public\".\"eBook\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"eBook_isbn_key\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD CONSTRAINT \"eBook_isbn_key\" UNIQUE (\"isbn\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"eBook_isbn_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "eBook_isbn_key",
+          "public",
+          "\"public\".\"eBook\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_author_idx_d6f5b826",
+    "label": "Create index \"eBook_author_idx_d6f5b826\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_author_idx_d6f5b826",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_author_idx_d6f5b826\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_author_idx_d6f5b826\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_author_idx_d6f5b826\"",
+        "sql": "CREATE INDEX \"eBook_author_idx_d6f5b826\" ON \"public\".\"eBook\" (\"author\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_author_idx_d6f5b826\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_author_idx_d6f5b826\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_category_idx_f2600f8e",
+    "label": "Create index \"eBook_category_idx_f2600f8e\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_category_idx_f2600f8e",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_category_idx_f2600f8e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_category_idx_f2600f8e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_category_idx_f2600f8e\"",
+        "sql": "CREATE INDEX \"eBook_category_idx_f2600f8e\" ON \"public\".\"eBook\" (\"category\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_category_idx_f2600f8e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_category_idx_f2600f8e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_language_idx_28a6f524",
+    "label": "Create index \"eBook_language_idx_28a6f524\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_language_idx_28a6f524",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_language_idx_28a6f524\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_language_idx_28a6f524\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_language_idx_28a6f524\"",
+        "sql": "CREATE INDEX \"eBook_language_idx_28a6f524\" ON \"public\".\"eBook\" (\"language\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_language_idx_28a6f524\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_language_idx_28a6f524\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_status_idx_e98638ab",
+    "label": "Create index \"eBook_status_idx_e98638ab\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_status_idx_e98638ab",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"eBook_status_idx_e98638ab\" ON \"public\".\"eBook\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_title_idx_1c94c7b6",
+    "label": "Create index \"eBook_title_idx_1c94c7b6\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_title_idx_1c94c7b6",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_title_idx_1c94c7b6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_title_idx_1c94c7b6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_title_idx_1c94c7b6\"",
+        "sql": "CREATE INDEX \"eBook_title_idx_1c94c7b6\" ON \"public\".\"eBook\" (\"title\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_title_idx_1c94c7b6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_title_idx_1c94c7b6\""
+        ]
+      }
+    ]
+  }
+]

@@ -365,3 +365,41 @@ model AiMessageSource {
 
   @@index([messageId])
 }
+
+// USEFECT E-BOOK LIBRARY
+// Digital knowledge collection with license and access control
+
+model EBook {
+  id              Int                        @id @default(autoincrement())
+
+  title           String
+  author          String
+
+  isbn            String?                    @unique
+  publisher       String?
+  publicationYear Int?
+
+  category        String?
+  language        String                     @default("Indonesia")
+  description     String?
+
+  coverUrl        String?
+  fileUrl         String?
+  fileType        String?
+
+  license         String?
+  source          String?
+  accessType      String                     @default("READ_ONLY")
+  status          String                     @default("DRAFT")
+  uploadedByUserId Int?
+
+  createdAt       TimestamptzString          @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  @@index([title])
+  @@index([author])
+  @@index([category])
+  @@index([language])
+  @@index([status])
+  @@index([uploadedByUserId])
+}

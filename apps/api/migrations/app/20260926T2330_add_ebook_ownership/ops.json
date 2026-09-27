@@ -1,0 +1,83 @@
+[
+  {
+    "id": "column.public.eBook.uploadedByUserId",
+    "label": "Add column \"uploadedByUserId\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "uploadedByUserId",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"uploadedByUserId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "uploadedByUserId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"uploadedByUserId\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"uploadedByUserId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"uploadedByUserId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "uploadedByUserId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_uploadedByUserId_idx_b9c62f4a",
+    "label": "Create index \"eBook_uploadedByUserId_idx_b9c62f4a\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_uploadedByUserId_idx_b9c62f4a",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_uploadedByUserId_idx_b9c62f4a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_uploadedByUserId_idx_b9c62f4a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_uploadedByUserId_idx_b9c62f4a\"",
+        "sql": "CREATE INDEX \"eBook_uploadedByUserId_idx_b9c62f4a\" ON \"public\".\"eBook\" (\"uploadedByUserId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_uploadedByUserId_idx_b9c62f4a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_uploadedByUserId_idx_b9c62f4a\""
+        ]
+      }
+    ]
+  }
+]

@@ -32,6 +32,10 @@
       "model": "Category",
       "namespace": "public"
     },
+    "eBook": {
+      "model": "EBook",
+      "namespace": "public"
+    },
     "lecturerProfile": {
       "model": "LecturerProfile",
       "namespace": "public"
@@ -857,6 +861,207 @@
               },
               "namespaceId": "public",
               "table": "category"
+            }
+          },
+          "EBook": {
+            "fields": {
+              "accessType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "author": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "category": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "coverUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "description": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fileType": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "fileUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "isbn": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "language": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "license": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "publicationYear": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "publisher": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "source": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "title": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "uploadedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "accessType": {
+                  "column": "accessType"
+                },
+                "author": {
+                  "column": "author"
+                },
+                "category": {
+                  "column": "category"
+                },
+                "coverUrl": {
+                  "column": "coverUrl"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "description": {
+                  "column": "description"
+                },
+                "fileType": {
+                  "column": "fileType"
+                },
+                "fileUrl": {
+                  "column": "fileUrl"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "isbn": {
+                  "column": "isbn"
+                },
+                "language": {
+                  "column": "language"
+                },
+                "license": {
+                  "column": "license"
+                },
+                "publicationYear": {
+                  "column": "publicationYear"
+                },
+                "publisher": {
+                  "column": "publisher"
+                },
+                "source": {
+                  "column": "source"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "title": {
+                  "column": "title"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "uploadedByUserId": {
+                  "column": "uploadedByUserId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "eBook"
             }
           },
           "LecturerProfile": {
@@ -3061,6 +3266,188 @@
                 }
               ]
             },
+            "eBook": {
+              "columns": {
+                "accessType": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "READ_ONLY"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "author": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "category": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "coverUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "description": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "fileType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "fileUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "isbn": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "language": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "Indonesia"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "license": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "publicationYear": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "publisher": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "source": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "DRAFT"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "title": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "uploadedByUserId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "author"
+                  ],
+                  "name": "eBook_author_idx_d6f5b826",
+                  "prefix": "eBook_author_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "category"
+                  ],
+                  "name": "eBook_category_idx_f2600f8e",
+                  "prefix": "eBook_category_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "language"
+                  ],
+                  "name": "eBook_language_idx_28a6f524",
+                  "prefix": "eBook_language_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "eBook_status_idx_e98638ab",
+                  "prefix": "eBook_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "title"
+                  ],
+                  "name": "eBook_title_idx_1c94c7b6",
+                  "prefix": "eBook_title_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "uploadedByUserId"
+                  ],
+                  "name": "eBook_uploadedByUserId_idx_b9c62f4a",
+                  "prefix": "eBook_uploadedByUserId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "isbn"
+                  ]
+                }
+              ]
+            },
             "lecturerProfile": {
               "columns": {
                 "createdAt": {
@@ -4316,10 +4703,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3e4310c77c1de57909870e14639bb23be17db494ff64daab678d353d12a40a32"
+    "storageHash": "e4b16545ffa102a6caabccd646ae569c8f4b88d31150bc284c9fc10999545204"
   },
   "execution": {
-    "executionHash": "036c8e9f2157d78a913924685c129b1a5e9ad020b1909b60994a9f9436d6ccab",
+    "executionHash": "1de89d9f1c4f28fb1f4637cf987d31c4fe74eafac79bfe840ac09eae644c6970",
     "mutations": {
       "defaults": [
         {
@@ -4365,6 +4752,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "category"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "eBook"
           }
         },
         {
