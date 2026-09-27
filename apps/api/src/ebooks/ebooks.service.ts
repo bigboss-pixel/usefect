@@ -71,9 +71,10 @@ export class EBooksService {
           fileType: fileType ?? null,
           license: license ?? null,
           source: source ?? null,
-          accessType:
-            accessType ?? 'READ_ONLY',
-          status: status ?? 'DRAFT',
+          // Contributor tidak boleh menerbitkan atau
+          // mengaktifkan download saat upload.
+          accessType: 'READ_ONLY',
+          status: 'DRAFT',
           uploadedByUserId: userId,
         });
 
@@ -188,6 +189,12 @@ export class EBooksService {
 
     let ebooks =
       await db.orm.public.EBook.all();
+
+    // Public collection hanya menampilkan E-Book
+    // yang sudah lolos moderasi dan berstatus PUBLISHED.
+    ebooks = ebooks.filter(
+      (ebook) => ebook.status === 'PUBLISHED',
+    );
 
     // =========================
     // SEARCH
@@ -434,6 +441,133 @@ export class EBooksService {
   }
 
   // =========================
+  // GET ALL E-BOOKS FOR MODERATION
+  // ADMIN / SUPER ADMIN ONLY
+  // =========================
+  async findForModeration(
+    userId: number,
+    params?: EBookQueryDto,
+  ) {
+    const roles =
+      await this.getUserRoleNames(userId);
+
+    const isAdmin =
+      roles.includes('ADMIN');
+
+    const isSuperAdmin =
+      roles.includes('SUPER_ADMIN');
+
+    if (!isAdmin && !isSuperAdmin) {
+      throw new ForbiddenException(
+        'Akses moderasi E-Book hanya untuk Admin atau Super Admin',
+      );
+    }
+
+    // Moderation memakai koleksi lengkap.
+    // Filter dan pagination tetap mengikuti findAll,
+    // tetapi tidak membatasi status ke PUBLISHED.
+    const search =
+      params?.search?.trim().toLowerCase();
+
+    const category =
+      params?.category?.trim().toLowerCase();
+
+    const language =
+      params?.language?.trim().toLowerCase();
+
+    const status =
+      params?.status;
+
+    let ebooks =
+      await db.orm.public.EBook.all();
+
+    if (search) {
+      ebooks = ebooks.filter(
+        (ebook) =>
+          ebook.title
+            .toLowerCase()
+            .includes(search) ||
+          ebook.author
+            .toLowerCase()
+            .includes(search) ||
+          Boolean(
+            ebook.isbn
+              ?.toLowerCase()
+              .includes(search),
+          ) ||
+          Boolean(
+            ebook.description
+              ?.toLowerCase()
+              .includes(search),
+          ),
+      );
+    }
+
+    if (category) {
+      ebooks = ebooks.filter(
+        (ebook) =>
+          ebook.category
+            ?.toLowerCase()
+            .includes(category),
+      );
+    }
+
+    if (language) {
+      ebooks = ebooks.filter(
+        (ebook) =>
+          ebook.language
+            .toLowerCase()
+            .includes(language),
+      );
+    }
+
+    if (status) {
+      ebooks = ebooks.filter(
+        (ebook) =>
+          ebook.status === status,
+      );
+    }
+
+    ebooks.sort((a, b) =>
+      a.title.localeCompare(b.title),
+    );
+
+    return {
+      data: ebooks.map(
+        (ebook) => ({
+          id: ebook.id,
+          title: ebook.title,
+          author: ebook.author,
+          isbn: ebook.isbn,
+          publisher: ebook.publisher,
+          publicationYear:
+            ebook.publicationYear,
+          category: ebook.category,
+          language: ebook.language,
+          description:
+            ebook.description,
+          coverUrl: ebook.coverUrl,
+          fileUrl: ebook.fileUrl,
+          fileType: ebook.fileType,
+          license: ebook.license,
+          source: ebook.source,
+          accessType:
+            ebook.accessType,
+          status:
+            ebook.status,
+          uploadedByUserId:
+            ebook.uploadedByUserId,
+          createdAt:
+            ebook.createdAt,
+          updatedAt:
+            ebook.updatedAt,
+        }),
+      ),
+      total: ebooks.length,
+    };
+  }
+
+  // =========================
   // GET E-BOOK BY ID
   // =========================
   async findOne(id: number) {
@@ -442,7 +576,10 @@ export class EBooksService {
         .where({ id })
         .first();
 
-    if (!ebook) {
+    if (
+      !ebook ||
+      ebook.status !== 'PUBLISHED'
+    ) {
       throw new NotFoundException(
         'E-Book tidak ditemukan',
       );
@@ -478,6 +615,48 @@ export class EBooksService {
   }
 
   // =========================
+  // CHECK E-BOOK ACCESS
+  // =========================
+  async getAccess(id: number) {
+    const ebook =
+      await db.orm.public.EBook
+        .where({ id })
+        .first();
+
+    if (
+      !ebook ||
+      ebook.status !== 'PUBLISHED'
+    ) {
+      throw new NotFoundException(
+        'E-Book tidak tersedia untuk publik',
+      );
+    }
+
+    if (!ebook.fileUrl) {
+      throw new BadRequestException(
+        'File E-Book belum tersedia',
+      );
+    }
+
+    const canRead =
+      Boolean(ebook.fileUrl);
+
+    const canDownload =
+      ebook.accessType === 'DOWNLOAD' ||
+      ebook.accessType ===
+        'READ_AND_DOWNLOAD';
+
+    return {
+      id: ebook.id,
+      fileType: ebook.fileType,
+      accessType: ebook.accessType,
+      canRead,
+      canDownload,
+      fileUrl: ebook.fileUrl,
+    };
+  }
+
+  // =========================
   // UPDATE E-BOOK
   // =========================
   async update(
@@ -496,8 +675,22 @@ export class EBooksService {
       );
     }
 
+    const roles =
+      await this.getUserRoleNames(userId);
+
+    const isAdmin =
+      roles.includes('ADMIN');
+
+    const isSuperAdmin =
+      roles.includes('SUPER_ADMIN');
+
+    const isOwner =
+      ebook.uploadedByUserId === userId;
+
     if (
-      ebook.uploadedByUserId !== userId
+      !isOwner &&
+      !isAdmin &&
+      !isSuperAdmin
     ) {
       throw new ForbiddenException(
         'Anda hanya dapat mengubah E-Book yang Anda tambahkan sendiri',
@@ -609,14 +802,24 @@ export class EBooksService {
               ? source
               : ebook.source,
 
+          // Hanya Admin/Super Admin yang boleh
+          // menentukan hak akses download dan status moderasi.
           accessType:
-            accessType !== undefined
-              ? accessType
+            isAdmin || isSuperAdmin
+              ? (
+                  accessType !== undefined
+                    ? accessType
+                    : ebook.accessType
+                )
               : ebook.accessType,
 
           status:
-            status !== undefined
-              ? status
+            isAdmin || isSuperAdmin
+              ? (
+                  status !== undefined
+                    ? status
+                    : ebook.status
+                )
               : ebook.status,
 
           updatedAt:

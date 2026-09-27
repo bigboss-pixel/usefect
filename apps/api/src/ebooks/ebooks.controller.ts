@@ -52,6 +52,33 @@ export class EBooksController {
     );
   }
 
+  @Get('moderation')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
+  @Permissions('EBOOK_UPDATE')
+  async findForModeration(
+    @Req() req: any,
+    @Query() query: EBookQueryDto,
+  ) {
+    return this.ebooksService.findForModeration(
+      req.user.userId,
+      query,
+    );
+  }
+
+  @Get(':id/access')
+  async getAccess(
+    @Param(
+      'id',
+      ParseIntPipe,
+    )
+    id: number,
+  ) {
+    return this.ebooksService.getAccess(id);
+  }
+
   @Get(':id')
   async findOne(
     @Param(

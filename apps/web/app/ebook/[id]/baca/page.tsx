@@ -29,6 +29,15 @@ type EBook = {
   accessType: string;
 };
 
+type EBookAccess = {
+  id: number;
+  fileType: string | null;
+  accessType: string;
+  canRead: boolean;
+  canDownload: boolean;
+  fileUrl: string;
+};
+
 type PdfDocument = {
   numPages: number;
   getPage: (pageNumber: number) => Promise<PdfPage>;
@@ -62,6 +71,7 @@ export default function EBookReaderPage({
   } | null>(null);
 
   const [ebook, setEbook] = useState<EBook | null>(null);
+  const [access, setAccess] = useState<EBookAccess | null>(null);
   const [ebookId, setEbookId] = useState("");
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -90,8 +100,25 @@ export default function EBookReaderPage({
 
         const data: EBook = await response.json();
 
+        if (cancelled) return;
+
+        setEbook(data);
+
+        const accessResponse = await fetch(
+          `${API_URL}/ebooks/${id}/access`,
+        );
+
+        if (!accessResponse.ok) {
+          throw new Error(
+            "E-Book tidak tersedia untuk dibaca.",
+          );
+        }
+
+        const accessData: EBookAccess =
+          await accessResponse.json();
+
         if (!cancelled) {
-          setEbook(data);
+          setAccess(accessData);
         }
       } catch (err) {
         if (!cancelled) {
@@ -147,12 +174,21 @@ export default function EBookReaderPage({
 
   useEffect(() => {
     const currentEbook = ebook;
+    const currentAccess = access;
 
-    if (!currentEbook?.fileUrl) return;
+    if (!currentEbook || !currentAccess?.canRead) {
+      return;
+    }
+
+    const readableAccess = currentAccess;
+
+    if (!readableAccess.fileUrl) {
+      return;
+    }
 
     const isPdf =
-      currentEbook.fileType?.toUpperCase() === "PDF" ||
-      currentEbook.fileUrl.toLowerCase().includes(".pdf");
+      readableAccess.fileType?.toUpperCase() === "PDF" ||
+      readableAccess.fileUrl.toLowerCase().includes(".pdf");
 
     if (!isPdf) return;
 
@@ -168,14 +204,18 @@ export default function EBookReaderPage({
         pdfjsLib.GlobalWorkerOptions.workerSrc =
           "/pdf.worker.min.mjs";
 
-        const rawFileUrl = currentEbook?.fileUrl;
+        const rawFileUrl = readableAccess.fileUrl;
+
         if (!rawFileUrl) {
           throw new Error("File PDF tidak tersedia.");
         }
 
         const fileUrl =
           rawFileUrl.startsWith("http://127.0.0.1:3000/")
-            ? rawFileUrl.replace("http://127.0.0.1:3000", "")
+            ? rawFileUrl.replace(
+                "http://127.0.0.1:3000",
+                "",
+              )
             : rawFileUrl;
 
         const loadingTask = pdfjsLib.getDocument({
@@ -230,7 +270,7 @@ export default function EBookReaderPage({
       cancelled = true;
       pdfRef.current = null;
     };
-  }, [ebook, ebookId]);
+  }, [ebook, access, ebookId]);
 
   useEffect(() => {
     if (!pdfRef.current || !canvasRef.current || !totalPages) {
@@ -365,8 +405,10 @@ export default function EBookReaderPage({
   }
 
   const canDownload =
-    ebook.accessType === "DOWNLOAD" ||
-    ebook.accessType === "READ_AND_DOWNLOAD";
+    access?.canDownload === true;
+
+  const canRead =
+    access?.canRead === true;
 
   const isPdf =
     ebook.fileType?.toUpperCase() === "PDF" ||
@@ -407,9 +449,9 @@ export default function EBookReaderPage({
             </div>
           </div>
 
-          {canDownload && ebook.fileUrl && (
+          {canDownload && access?.fileUrl && (
             <a
-              href={ebook.fileUrl}
+              href={access.fileUrl}
               target="_blank"
               rel="noopener noreferrer"
               download
@@ -421,7 +463,15 @@ export default function EBookReaderPage({
           )}
         </section>
 
-        {!ebook.fileUrl ? (
+        {!canRead ? (
+          <section className="ebook-reader-empty">
+            <FileText size={46} />
+            <h2>Akses baca tidak tersedia</h2>
+            <p>
+              E-Book ini belum tersedia untuk dibaca secara online.
+            </p>
+          </section>
+        ) : !access?.fileUrl ? (
           <section className="ebook-reader-empty">
             <FileText size={46} />
             <h2>File E-Book belum tersedia</h2>
