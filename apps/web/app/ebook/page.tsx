@@ -1085,7 +1085,12 @@ function EbookCard({
         </div>
 
         <div className="ebook-card-actions">
-          <button type="button">
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = `/ebook/${ebook.id}/baca`;
+            }}
+          >
             <BookOpen size={15} />
             Baca
           </button>
