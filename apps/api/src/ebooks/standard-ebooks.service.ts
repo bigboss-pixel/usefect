@@ -40,6 +40,11 @@ export class StandardEbooksService {
         ],
         {
           maxBuffer: 20 * 1024 * 1024,
+          env: {
+            ...process.env,
+            QTWEBENGINE_CHROMIUM_FLAGS: '--no-sandbox',
+            QTWEBENGINE_DISABLE_SANDBOX: '1',
+          },
         },
       );
     } catch (error: any) {
