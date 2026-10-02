@@ -5,13 +5,57 @@ import {
 
 import * as cheerio from 'cheerio';
 
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, unlink } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { resolve } from 'node:path';
 
 import { db } from '../prisma/db.js';
 
 @Injectable()
 export class StandardEbooksService {
+
+
+  private async convertEpubToPdf(
+    epubPath: string,
+    pdfPath: string,
+  ): Promise<void> {
+    try {
+      await this.execFileAsync(
+        'ebook-convert',
+        [
+          epubPath,
+          pdfPath,
+          '--paper-size',
+          'a4',
+          '--pdf-page-numbers',
+          '--margin-top',
+          '36',
+          '--margin-bottom',
+          '36',
+          '--margin-left',
+          '36',
+          '--margin-right',
+          '36',
+        ],
+        {
+          maxBuffer: 20 * 1024 * 1024,
+        },
+      );
+    } catch (error: any) {
+      const stderr =
+        error?.stderr ||
+        error?.message ||
+        'Unknown ebook-convert error';
+
+      throw new BadRequestException(
+        `Gagal mengubah EPUB menjadi PDF: ${stderr}`,
+      );
+    }
+  }
+
+  private readonly execFileAsync = promisify(execFile);
+
   private readonly storageRoot = resolve(
     process.env.EBOOK_STORAGE_ROOT ??
       resolve(
@@ -246,17 +290,44 @@ export class StandardEbooksService {
     const filename =
       `${Date.now()}-${slug || 'standard-ebook'}.epub`;
 
+    const pdfFilename =
+      filename.replace(
+        /\\.epub$/i,
+        '.pdf',
+      );
+
     await mkdir(
       this.storageRoot,
       { recursive: true },
     );
 
-    await writeFile(
+    const epubPath =
       resolve(
         this.storageRoot,
         filename,
-      ),
+      );
+
+    const pdfPath =
+      resolve(
+        this.storageRoot,
+        pdfFilename,
+      );
+
+    // EPUB disimpan sementara.
+    await writeFile(
+      epubPath,
       buffer,
+    );
+
+    // Konversi EPUB menjadi PDF.
+    await this.convertEpubToPdf(
+      epubPath,
+      pdfPath,
+    );
+
+    // EPUB tidak diperlukan setelah PDF berhasil dibuat.
+    await unlink(epubPath).catch(
+      () => undefined,
     );
 
     const ebook = existing
@@ -270,8 +341,8 @@ export class StandardEbooksService {
               'Standard Ebooks',
             language: 'English',
             fileUrl:
-              `private-ebooks/${filename}`,
-            fileType: 'EPUB',
+              `private-ebooks/${pdfFilename}`,
+            fileType: 'PDF',
             license:
               existing.license ??
               'CC0 1.0 Universal Public Domain Dedication',
@@ -309,8 +380,8 @@ export class StandardEbooksService {
           description: null,
           coverUrl: null,
           fileUrl:
-            `private-ebooks/${filename}`,
-          fileType: 'EPUB',
+            `private-ebooks/${pdfFilename}`,
+          fileType: 'PDF',
           license:
             'CC0 1.0 Universal Public Domain Dedication',
           source:
