@@ -95,6 +95,60 @@ export default function EBookReaderPage({
   const [epubLocation, setEpubLocation] =
     useState<string | number>(0);
 
+  const [epubPage, setEpubPage] = useState(1);
+  const [epubTotalPages, setEpubTotalPages] = useState(0);
+  const [epubProgress, setEpubProgress] = useState(0);
+
+  const handleEpubRendition = (rendition: any) => {
+    const updateLocation = (location: any) => {
+      const start = location?.start;
+
+      if (!start) {
+        return;
+      }
+
+      const page = start.displayed?.page;
+      const total = start.displayed?.total;
+      const percentage = start.percentage;
+
+      if (typeof page === "number") {
+        setEpubPage(page);
+      }
+
+      if (typeof total === "number") {
+        setEpubTotalPages(total);
+      }
+
+      if (typeof percentage === "number") {
+        setEpubProgress(
+          Math.min(
+            100,
+            Math.max(
+              0,
+              Math.round(percentage * 100),
+            ),
+          ),
+        );
+      }
+    };
+
+    rendition.on(
+      "relocated",
+      updateLocation,
+    );
+
+    try {
+      const currentLocation =
+        rendition.currentLocation?.();
+
+      if (currentLocation) {
+        updateLocation(currentLocation);
+      }
+    } catch {
+      // Event relocated akan memperbarui lokasi.
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -548,6 +602,31 @@ export default function EBookReaderPage({
               </span>
             </div>
 
+            <section className="ebook-reader-progress">
+              <div className="ebook-reader-progress-info">
+                <span>
+                  Halaman <strong>{epubPage}</strong>
+                  {epubTotalPages > 0 ? (
+                    <>
+                      {" "}
+                      / <strong>{epubTotalPages}</strong>
+                    </>
+                  ) : null}
+                </span>
+
+                <span>{epubProgress}% selesai</span>
+              </div>
+
+              <div className="ebook-reader-progress-track">
+                <div
+                  className="ebook-reader-progress-bar"
+                  style={{
+                    width: `${epubProgress}%`,
+                  }}
+                />
+              </div>
+            </section>
+
             <div
               style={{
                 height: "75vh",
@@ -571,12 +650,14 @@ export default function EBookReaderPage({
                     );
                   }
                 }}
+                getRendition={handleEpubRendition}
                 epubInitOptions={{
                   openAs: "epub",
                 }}
                 epubOptions={{
-                  flow: "scrolled",
-                  manager: "continuous",
+                  flow: "paginated",
+                  manager: "default",
+                  spread: "none",
                 }}
               />
             </div>
