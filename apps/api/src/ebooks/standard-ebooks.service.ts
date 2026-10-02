@@ -50,7 +50,7 @@ export class StandardEbooksService {
             QT_QPA_PLATFORM: 'xcb',
             LIBGL_ALWAYS_SOFTWARE: '1',
             QTWEBENGINE_CHROMIUM_FLAGS:
-              '--no-sandbox --disable-gpu --disable-dev-shm-usage --headless',
+              '--no-sandbox --disable-dev-shm-usage',
             QTWEBENGINE_DISABLE_SANDBOX: '1',
           },
         },
