@@ -42,7 +42,9 @@ export class StandardEbooksService {
           maxBuffer: 20 * 1024 * 1024,
           env: {
             ...process.env,
-            QTWEBENGINE_CHROMIUM_FLAGS: '--no-sandbox',
+            QT_QPA_PLATFORM: 'offscreen',
+            LIBGL_ALWAYS_SOFTWARE: '1',
+            QTWEBENGINE_CHROMIUM_FLAGS: '--no-sandbox --disable-gpu --disable-dev-shm-usage --headless',
             QTWEBENGINE_DISABLE_SANDBOX: '1',
           },
         },
