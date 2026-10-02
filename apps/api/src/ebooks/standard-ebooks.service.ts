@@ -225,21 +225,28 @@ export class StandardEbooksService {
               `private-ebooks/${filename}`,
             fileType: 'EPUB',
             license:
+              existing.license ??
               'CC0 1.0 Universal Public Domain Dedication',
             source:
               'Standard Ebooks',
             permissionStatus:
-              'UNKNOWN',
+              existing.permissionStatus,
             permissionEvidence:
-              'Imported from Standard Ebooks. Legal verification required before publication.',
+              existing.permissionEvidence,
             sourceUrl,
             licenseUrl:
+              existing.licenseUrl ??
               'https://creativecommons.org/publicdomain/zero/1.0/',
-            translationAllowed: false,
-            downloadAllowed: false,
-            aiRagAllowed: false,
-            accessType: 'READ_ONLY',
-            status: 'DRAFT',
+            translationAllowed:
+              existing.translationAllowed,
+            downloadAllowed:
+              existing.downloadAllowed,
+            aiRagAllowed:
+              existing.aiRagAllowed,
+            accessType:
+              existing.accessType,
+            status:
+              existing.status,
           })
       : await db.orm.public.EBook.create({
           title:

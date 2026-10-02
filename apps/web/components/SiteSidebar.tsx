@@ -75,6 +75,11 @@ const managementItems: SidebarItem[] = [
     icon: BookOpen,
   },
   {
+    label: "E-Book",
+    href: "/admin/ebook",
+    icon: BookOpen,
+  },
+  {
     label: "Kategori",
     href: "/admin/kategori",
     icon: Tags,
