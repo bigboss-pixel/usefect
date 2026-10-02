@@ -22,8 +22,12 @@ export class StandardEbooksService {
   ): Promise<void> {
     try {
       await this.execFileAsync(
-        'ebook-convert',
+        'xvfb-run',
         [
+          '-a',
+          '-s',
+          '-screen 0 1280x1024x24',
+          'ebook-convert',
           epubPath,
           pdfPath,
           '--paper-size',
@@ -42,9 +46,11 @@ export class StandardEbooksService {
           maxBuffer: 20 * 1024 * 1024,
           env: {
             ...process.env,
-            QT_QPA_PLATFORM: 'offscreen',
+            DISPLAY: ':99',
+            QT_QPA_PLATFORM: 'xcb',
             LIBGL_ALWAYS_SOFTWARE: '1',
-            QTWEBENGINE_CHROMIUM_FLAGS: '--no-sandbox --disable-gpu --disable-dev-shm-usage --headless',
+            QTWEBENGINE_CHROMIUM_FLAGS:
+              '--no-sandbox --disable-gpu --disable-dev-shm-usage --headless',
             QTWEBENGINE_DISABLE_SANDBOX: '1',
           },
         },
