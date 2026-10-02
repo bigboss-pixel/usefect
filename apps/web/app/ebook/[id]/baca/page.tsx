@@ -555,7 +555,11 @@ export default function EBookReaderPage({
               }}
             >
               <ReactReader
-                url={access.fileUrl}
+                url={
+                  access.fileUrl.startsWith("http")
+                    ? access.fileUrl
+                    : `${API_URL}${access.fileUrl}`
+                }
                 location={epubLocation}
                 locationChanged={(location) => {
                   setEpubLocation(location);
