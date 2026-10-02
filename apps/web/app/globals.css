@@ -24428,3 +24428,97 @@ a {
   background: #b42318;
   color: #fff;
 }
+
+/* USEFECT E-BOOK LEGAL GOVERNANCE */
+
+.ebook-legal-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.ebook-legal-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 5px 9px;
+  border: 1px solid rgba(100, 116, 139, 0.24);
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.08);
+  color: #475569;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ebook-legal-badge.verified {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.10);
+  color: #047857;
+}
+
+.ebook-legal-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 10px 0 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(100, 116, 139, 0.16);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.72);
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.ebook-legal-summary strong {
+  color: #334155;
+}
+
+.ebook-legal-summary a {
+  width: fit-content;
+  color: #2563eb;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ebook-legal-summary a:hover {
+  text-decoration: underline;
+}
+
+.ebook-checkbox {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 12px 13px;
+  border: 1px solid rgba(100, 116, 139, 0.18);
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.8);
+}
+
+.ebook-checkbox input {
+  width: auto !important;
+  min-width: 16px;
+  margin-top: 2px;
+}
+
+.ebook-legal-note {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.ebook-legal-note strong {
+  color: #1e3a8a;
+}
+
+.ebook-legal-note span {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}

@@ -9,6 +9,7 @@ import {
   Post,
   Query,
   Req,
+  StreamableFile,
   UseGuards,
 } from '@nestjs/common';
 
@@ -18,8 +19,10 @@ import { CreateEBookDto } from './dto/create-ebook.dto.js';
 import { EBookQueryDto } from './dto/ebook-query.dto.js';
 import { UpdateEBookDto } from './dto/update-ebook.dto.js';
 import { ModerateEBookDto } from './dto/moderate-ebook.dto.js';
+import { ImportStandardEbookDto } from './dto/import-standard-ebook.dto.js';
 
 import { Permissions } from '../auth/decorators/permissions.decorator.js';
+import { StandardEbooksService } from './standard-ebooks.service.js';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { PermissionsGuard } from '../auth/guards/permissions.guard.js';
@@ -28,7 +31,24 @@ import { PermissionsGuard } from '../auth/guards/permissions.guard.js';
 export class EBooksController {
   constructor(
     private readonly ebooksService: EBooksService,
+    private readonly standardEbooksService: StandardEbooksService,
   ) {}
+
+  @Post('import/standard-ebooks')
+  @UseGuards(
+    JwtAuthGuard,
+    PermissionsGuard,
+  )
+  @Permissions('EBOOK_CREATE')
+  async importStandardEbook(
+    @Req() req: any,
+    @Body() dto: ImportStandardEbookDto,
+  ) {
+    return this.standardEbooksService.importBook(
+      Number(req.user.userId),
+      dto.url,
+    );
+  }
 
   // =========================================================
   // PUBLIC - E-BOOK COLLECTION
@@ -78,6 +98,27 @@ export class EBooksController {
     id: number,
   ) {
     return this.ebooksService.getAccess(id);
+  }
+
+  @Get(':id/file')
+  async getFile(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('token') token: string,
+  ) {
+    const result =
+      await this.ebooksService.getFile(
+        id,
+        token,
+      );
+
+    return new StreamableFile(
+      result.stream,
+      {
+        type: result.contentType,
+        disposition: result.disposition,
+        length: result.size,
+      },
+    );
   }
 
   @Get(':id')

@@ -1,0 +1,545 @@
+[
+  {
+    "id": "column.public.eBook.aiRagAllowed",
+    "label": "Add column \"aiRagAllowed\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "aiRagAllowed",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"aiRagAllowed\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "aiRagAllowed"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"aiRagAllowed\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"aiRagAllowed\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"aiRagAllowed\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "aiRagAllowed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.copyrightHolder",
+    "label": "Add column \"copyrightHolder\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "copyrightHolder",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"copyrightHolder\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "copyrightHolder"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"copyrightHolder\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"copyrightHolder\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"copyrightHolder\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "copyrightHolder"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.downloadAllowed",
+    "label": "Add column \"downloadAllowed\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "downloadAllowed",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"downloadAllowed\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "downloadAllowed"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"downloadAllowed\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"downloadAllowed\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"downloadAllowed\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "downloadAllowed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.licenseType",
+    "label": "Add column \"licenseType\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "licenseType",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"licenseType\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseType"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"licenseType\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"licenseType\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"licenseType\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseType"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.licenseUrl",
+    "label": "Add column \"licenseUrl\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "licenseUrl",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"licenseUrl\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseUrl"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"licenseUrl\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"licenseUrl\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"licenseUrl\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseUrl"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.licenseVerifiedAt",
+    "label": "Add column \"licenseVerifiedAt\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "licenseVerifiedAt",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"licenseVerifiedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseVerifiedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"licenseVerifiedAt\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"licenseVerifiedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"licenseVerifiedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "licenseVerifiedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.permissionEvidence",
+    "label": "Add column \"permissionEvidence\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "permissionEvidence",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"permissionEvidence\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionEvidence"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"permissionEvidence\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"permissionEvidence\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"permissionEvidence\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionEvidence"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.permissionGrantedAt",
+    "label": "Add column \"permissionGrantedAt\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "permissionGrantedAt",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"permissionGrantedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionGrantedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"permissionGrantedAt\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"permissionGrantedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"permissionGrantedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionGrantedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.permissionStatus",
+    "label": "Add column \"permissionStatus\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "permissionStatus",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"permissionStatus\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionStatus"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"permissionStatus\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"permissionStatus\" text DEFAULT 'UNKNOWN' NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"permissionStatus\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionStatus"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.permissionVerifiedByUserId",
+    "label": "Add column \"permissionVerifiedByUserId\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "permissionVerifiedByUserId",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"permissionVerifiedByUserId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionVerifiedByUserId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"permissionVerifiedByUserId\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"permissionVerifiedByUserId\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"permissionVerifiedByUserId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "permissionVerifiedByUserId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.sourceUrl",
+    "label": "Add column \"sourceUrl\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sourceUrl",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sourceUrl\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "sourceUrl"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sourceUrl\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"sourceUrl\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sourceUrl\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "sourceUrl"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.eBook.translationAllowed",
+    "label": "Add column \"translationAllowed\" to \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "translationAllowed",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"translationAllowed\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "translationAllowed"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"translationAllowed\"",
+        "sql": "ALTER TABLE \"public\".\"eBook\" ADD COLUMN \"translationAllowed\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"translationAllowed\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "eBook",
+          "translationAllowed"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.eBook.eBook_permissionStatus_idx_babd62cb",
+    "label": "Create index \"eBook_permissionStatus_idx_babd62cb\" on \"eBook\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "eBook_permissionStatus_idx_babd62cb",
+        "table": "eBook"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"eBook_permissionStatus_idx_babd62cb\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_permissionStatus_idx_babd62cb\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"eBook_permissionStatus_idx_babd62cb\"",
+        "sql": "CREATE INDEX \"eBook_permissionStatus_idx_babd62cb\" ON \"public\".\"eBook\" (\"permissionStatus\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"eBook_permissionStatus_idx_babd62cb\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"eBook_permissionStatus_idx_babd62cb\""
+        ]
+      }
+    ]
+  }
+]

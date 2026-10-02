@@ -42,7 +42,18 @@ type EBook = {
   fileUrl: string | null;
   fileType: string | null;
   license: string | null;
+  licenseUrl: string | null;
   source: string | null;
+  sourceUrl: string | null;
+  copyrightHolder: string | null;
+  permissionStatus: string | null;
+  permissionEvidence: string | null;
+  permissionGrantedAt: string | null;
+  permissionVerifiedByUserId: number | null;
+  licenseVerifiedAt: string | null;
+  translationAllowed: boolean;
+  downloadAllowed: boolean;
+  aiRagAllowed: boolean;
   accessType: string;
   status: string;
   uploadedByUserId: number | null;
@@ -81,7 +92,12 @@ type EBookForm = {
   fileUrl: string;
   fileType: string;
   license: string;
+  licenseUrl: string;
   source: string;
+  sourceUrl: string;
+  copyrightHolder: string;
+  permissionEvidence: string;
+  translationAllowed: boolean;
   accessType: string;
   status: string;
 };
@@ -99,7 +115,12 @@ const emptyForm: EBookForm = {
   fileUrl: "",
   fileType: "PDF",
   license: "",
+  licenseUrl: "",
   source: "",
+  sourceUrl: "",
+  copyrightHolder: "",
+  permissionEvidence: "",
+  translationAllowed: false,
   accessType: "READ_ONLY",
   status: "DRAFT",
 };
@@ -370,7 +391,12 @@ export default function EbookPage() {
       fileUrl: ebook.fileUrl ?? "",
       fileType: ebook.fileType ?? "PDF",
       license: ebook.license ?? "",
+      licenseUrl: ebook.licenseUrl ?? "",
       source: ebook.source ?? "",
+      sourceUrl: ebook.sourceUrl ?? "",
+      copyrightHolder: ebook.copyrightHolder ?? "",
+      permissionEvidence: ebook.permissionEvidence ?? "",
+      translationAllowed: Boolean(ebook.translationAllowed),
       accessType: ebook.accessType,
       status: ebook.status,
     });
@@ -621,6 +647,13 @@ export default function EbookPage() {
   async function handleModeration(
     ebook: EBook,
     status: string,
+    legal?: {
+      permissionStatus?: string;
+      permissionEvidence?: string;
+      translationAllowed?: boolean;
+      downloadAllowed?: boolean;
+      aiRagAllowed?: boolean;
+    },
   ) {
     if (!currentUser || !canModerate) {
       return;
@@ -660,6 +693,7 @@ export default function EbookPage() {
           },
           body: JSON.stringify({
             status,
+            ...(legal ?? {}),
           }),
         },
       );
@@ -1184,6 +1218,91 @@ export default function EbookPage() {
                 </label>
 
                 <label>
+                  License URL
+                  <input
+                    type="url"
+                    value={form.licenseUrl}
+                    placeholder="https://..."
+                    onChange={(event) =>
+                      updateForm(
+                        "licenseUrl",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  Copyright Holder
+                  <input
+                    value={form.copyrightHolder}
+                    placeholder="Pemegang hak cipta"
+                    onChange={(event) =>
+                      updateForm(
+                        "copyrightHolder",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+
+                <label>
+                  Source URL
+                  <input
+                    type="url"
+                    value={form.sourceUrl}
+                    placeholder="https://..."
+                    onChange={(event) =>
+                      updateForm(
+                        "sourceUrl",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+
+                <label className="ebook-form-full">
+                  Permission Evidence
+                  <textarea
+                    rows={3}
+                    maxLength={5000}
+                    value={form.permissionEvidence}
+                    placeholder="Dasar izin, lisensi, atau bukti hak penggunaan..."
+                    onChange={(event) =>
+                      updateForm(
+                        "permissionEvidence",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </label>
+
+                <label className="ebook-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={form.translationAllowed}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        translationAllowed:
+                          event.target.checked,
+                      }))
+                    }
+                  />
+                  <span>
+                    Terjemahan diizinkan berdasarkan lisensi/hak penggunaan
+                  </span>
+                </label>
+
+                <div className="ebook-legal-note">
+                  <strong>Legal &amp; Copyright</strong>
+                  <span>
+                    Status verifikasi, izin download, dan izin AI/RAG
+                    ditentukan oleh Admin melalui moderasi.
+                  </span>
+                </div>
+
+                <label>
                   File Type
                   <select
                     value={form.fileType}
@@ -1219,39 +1338,6 @@ export default function EbookPage() {
                     </option>
                     <option value="READ_AND_DOWNLOAD">
                       Read &amp; Download
-                    </option>
-                  </select>
-                </label>
-
-                <label>
-                  Status
-                  <select
-                    value={form.status}
-                    onChange={(event) =>
-                      updateForm(
-                        "status",
-                        event.target.value,
-                      )
-                    }
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PENDING_REVIEW">
-                      Pending Review
-                    </option>
-                    <option value="LICENSE_VERIFIED">
-                      License Verified
-                    </option>
-                    <option value="TRANSLATING">
-                      Translating
-                    </option>
-                    <option value="TRANSLATION_REVIEW">
-                      Translation Review
-                    </option>
-                    <option value="PUBLISHED">
-                      Published
-                    </option>
-                    <option value="SUSPENDED">
-                      Suspended
                     </option>
                   </select>
                 </label>
@@ -1365,6 +1451,13 @@ function EbookCard({
   onModerate: (
     ebook: EBook,
     status: string,
+    legal?: {
+      permissionStatus?: string;
+      permissionEvidence?: string;
+      translationAllowed?: boolean;
+      downloadAllowed?: boolean;
+      aiRagAllowed?: boolean;
+    },
   ) => void;
   onSubmitForReview: (
     ebook: EBook,
@@ -1376,6 +1469,27 @@ function EbookCard({
   const canEdit = isOwner;
   const canDelete =
     isOwner || canModerate;
+
+  const permissionStatus =
+    ebook.permissionStatus ?? "UNKNOWN";
+
+  const legalVerified =
+    permissionStatus === "VERIFIED";
+
+  const permissionLabels: Record<string, string> = {
+    UNKNOWN: "Legal belum diverifikasi",
+    PENDING: "Legal sedang diverifikasi",
+    VERIFIED: "Legal terverifikasi",
+    REJECTED: "Izin ditolak",
+    EXPIRED: "Izin kedaluwarsa",
+  };
+
+  const canDownload =
+    legalVerified &&
+    ebook.downloadAllowed === true &&
+    (ebook.accessType === "DOWNLOAD" ||
+      ebook.accessType === "READ_AND_DOWNLOAD") &&
+    Boolean(ebook.fileUrl);
 
   return (
     <article className="ebook-card">
@@ -1399,6 +1513,32 @@ function EbookCard({
           {ebook.license ??
             "License belum ditentukan"}
         </span>
+
+        <div className="ebook-legal-status-row">
+          <span
+            className={
+              legalVerified
+                ? "ebook-legal-badge verified"
+                : "ebook-legal-badge"
+            }
+          >
+            {legalVerified ? "✓" : "!"}{" "}
+            {permissionLabels[permissionStatus] ??
+              permissionStatus}
+          </span>
+
+          {ebook.translationAllowed && (
+            <span className="ebook-legal-badge">
+              Terjemahan diizinkan
+            </span>
+          )}
+
+          {legalVerified && ebook.aiRagAllowed && (
+            <span className="ebook-legal-badge">
+              AI/RAG diizinkan
+            </span>
+          )}
+        </div>
 
         <h3>
           {ebook.title}
@@ -1445,6 +1585,15 @@ function EbookCard({
                     onModerate(
                       ebook,
                       "LICENSE_VERIFIED",
+                      {
+                        permissionStatus: "VERIFIED",
+                        permissionEvidence:
+                          ebook.permissionEvidence ?? undefined,
+                        translationAllowed:
+                          Boolean(ebook.translationAllowed),
+                        downloadAllowed: false,
+                        aiRagAllowed: false,
+                      },
                     )
                   }
                 >
@@ -1601,6 +1750,48 @@ function EbookCard({
           </div>
         )}
 
+        <div className="ebook-legal-summary">
+          <span>
+            <strong>Pemegang hak:</strong>{" "}
+            {ebook.copyrightHolder ??
+              "Belum ditentukan"}
+          </span>
+
+          {ebook.licenseUrl && (
+            <a
+              href={ebook.licenseUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Lihat lisensi
+            </a>
+          )}
+
+          {(ebook.sourceUrl || ebook.source) && (
+            <a
+              href={ebook.sourceUrl ?? ebook.source ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Lihat sumber
+            </a>
+          )}
+
+          {canModerate && (
+            <span>
+              Download:{" "}
+              {ebook.downloadAllowed
+                ? "Diizinkan"
+                : "Tidak diizinkan"}
+              {" · "}
+              AI/RAG:{" "}
+              {ebook.aiRagAllowed
+                ? "Diizinkan"
+                : "Tidak diizinkan"}
+            </span>
+          )}
+        </div>
+
         <div className="ebook-card-actions">
           <button
             type="button"
@@ -1612,20 +1803,17 @@ function EbookCard({
             Baca
           </button>
 
-          {(ebook.accessType ===
-            "DOWNLOAD" ||
-            ebook.accessType ===
-              "READ_AND_DOWNLOAD") &&
-            ebook.fileUrl && (
-              <a
-                href={ebook.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Download size={15} />
-                Download
-              </a>
-            )}
+          {canDownload && (
+            <a
+              href={ebook.fileUrl ?? undefined}
+              target="_blank"
+              rel="noreferrer"
+              download
+            >
+              <Download size={15} />
+              Download
+            </a>
+          )}
 
           {canEdit && (
             <button

@@ -388,7 +388,24 @@ model EBook {
   fileType        String?
 
   license         String?
+  licenseType     String?
+  licenseUrl      String?
+
   source          String?
+  sourceUrl       String?
+
+  copyrightHolder String?
+
+  permissionStatus       String               @default("UNKNOWN")
+  permissionEvidence     String?
+  permissionGrantedAt    TimestamptzString?
+  permissionVerifiedByUserId Int?
+  licenseVerifiedAt     TimestamptzString?
+
+  translationAllowed Boolean                    @default(false)
+  downloadAllowed    Boolean                    @default(false)
+  aiRagAllowed       Boolean                    @default(false)
+
   accessType      String                     @default("READ_ONLY")
   status          String                     @default("DRAFT")
   uploadedByUserId Int?
@@ -401,5 +418,6 @@ model EBook {
   @@index([category])
   @@index([language])
   @@index([status])
+  @@index([permissionStatus])
   @@index([uploadedByUserId])
 }

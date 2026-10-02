@@ -18,3 +18,5 @@ apps/api/src/loans/loans.service.before-recovery.ts
 
 # Local ebook development files
 apps/web/public/dev-ebooks/*
+
+apps/api/storage/ebooks/*

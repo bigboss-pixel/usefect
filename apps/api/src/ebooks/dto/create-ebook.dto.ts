@@ -1,5 +1,6 @@
 import {
   IsIn,
+  IsBoolean,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -69,6 +70,19 @@ export class CreateEBookDto {
   license?: string;
 
   @IsOptional()
+  @IsUrl()
+  licenseUrl?: string;
+
+  @IsOptional()
+  @IsUrl()
+  sourceUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 300)
+  copyrightHolder?: string;
+
+  @IsOptional()
   @IsString()
   @Length(2, 500)
   source?: string;
@@ -76,22 +90,39 @@ export class CreateEBookDto {
   @IsOptional()
   @IsString()
   @IsIn([
-    'READ_ONLY',
-    'DOWNLOAD',
-    'READ_AND_DOWNLOAD',
+    'UNKNOWN',
+    'PENDING',
+    'VERIFIED',
+    'REJECTED',
+    'EXPIRED',
   ])
-  accessType?: string;
+  permissionStatus?: string;
 
   @IsOptional()
   @IsString()
-  @IsIn([
-    'DRAFT',
-    'PENDING_REVIEW',
-    'LICENSE_VERIFIED',
-    'TRANSLATING',
-    'TRANSLATION_REVIEW',
-    'PUBLISHED',
-    'SUSPENDED',
-  ])
-  status?: string;
+  @Length(0, 5000)
+  permissionEvidence?: string;
+
+  @IsOptional()
+  @IsUrl()
+  permissionEvidenceUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 100)
+  permissionGrantedAt?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  translationAllowed?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  downloadAllowed?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  aiRagAllowed?: boolean;
+
+  // accessType dan status ditentukan oleh backend/moderasi.
 }

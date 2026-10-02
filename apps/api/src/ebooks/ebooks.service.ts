@@ -11,9 +11,13 @@ import { CreateEBookDto } from './dto/create-ebook.dto.js';
 import { UpdateEBookDto } from './dto/update-ebook.dto.js';
 import { EBookQueryDto } from './dto/ebook-query.dto.js';
 import { ModerateEBookDto } from './dto/moderate-ebook.dto.js';
+import { EbookFileStorage } from './storage/ebook-file.storage.js';
 
 @Injectable()
 export class EBooksService {
+  constructor(
+    private readonly ebookFileStorage: EbookFileStorage,
+  ) {}
   // =========================
   // CREATE E-BOOK
   // =========================
@@ -35,8 +39,12 @@ export class EBooksService {
       fileType,
       license,
       source,
-      accessType,
-      status,
+      permissionStatus,
+      permissionEvidence,
+      permissionGrantedAt,
+      translationAllowed,
+      downloadAllowed,
+      aiRagAllowed,
     } = createEBookDto;
 
     // Cek ISBN jika diberikan
@@ -639,13 +647,50 @@ export class EBooksService {
       );
     }
 
+    const legalVerified =
+      ebook.permissionStatus === 'VERIFIED';
+
     const canRead =
-      Boolean(ebook.fileUrl);
+      Boolean(ebook.fileUrl) &&
+      legalVerified;
 
     const canDownload =
-      ebook.accessType === 'DOWNLOAD' ||
-      ebook.accessType ===
-        'READ_AND_DOWNLOAD';
+      legalVerified &&
+      ebook.downloadAllowed &&
+      (
+        ebook.accessType === 'DOWNLOAD' ||
+        ebook.accessType === 'READ_AND_DOWNLOAD'
+      );
+
+    if (!canRead) {
+      throw new ForbiddenException(
+        'E-Book belum memiliki izin publik yang terverifikasi',
+      );
+    }
+
+    const readToken =
+      this.ebookFileStorage.createSignedToken(
+        ebook.id,
+        'read',
+        300,
+      );
+
+    const fileUrl =
+      `/ebooks/${ebook.id}/file?token=${encodeURIComponent(readToken)}`;
+
+    let downloadUrl: string | null = null;
+
+    if (canDownload) {
+      const downloadToken =
+        this.ebookFileStorage.createSignedToken(
+          ebook.id,
+          'download',
+          300,
+        );
+
+      downloadUrl =
+        `/ebooks/${ebook.id}/file?token=${encodeURIComponent(downloadToken)}`;
+    }
 
     return {
       id: ebook.id,
@@ -653,7 +698,118 @@ export class EBooksService {
       accessType: ebook.accessType,
       canRead,
       canDownload,
-      fileUrl: ebook.fileUrl,
+      fileUrl,
+      downloadUrl,
+      aiRagAllowed:
+        legalVerified && ebook.aiRagAllowed,
+    };
+  }
+
+  async getFile(
+    id: number,
+    token: string,
+  ) {
+    if (!token) {
+      throw new BadRequestException(
+        'Token file wajib disertakan',
+      );
+    }
+
+    const ebook =
+      await db.orm.public.EBook
+        .where({ id })
+        .first();
+
+    if (
+      !ebook ||
+      ebook.status !== 'PUBLISHED'
+    ) {
+      throw new NotFoundException(
+        'E-Book tidak tersedia untuk publik',
+      );
+    }
+
+    if (!ebook.fileUrl) {
+      throw new NotFoundException(
+        'File E-Book belum tersedia',
+      );
+    }
+
+    const decodedToken =
+      Buffer.from(
+        token.split('.')[0] ?? '',
+        'base64url',
+      ).toString('utf8');
+
+    let purpose:
+      | 'read'
+      | 'download';
+
+    try {
+      const payload = JSON.parse(
+        decodedToken,
+      );
+
+      purpose =
+        payload.purpose === 'download'
+          ? 'download'
+          : 'read';
+    } catch {
+      throw new BadRequestException(
+        'Token file tidak valid',
+      );
+    }
+
+    this.ebookFileStorage.verifySignedToken(
+      token,
+      id,
+      purpose,
+    );
+
+    const legalVerified =
+      ebook.permissionStatus === 'VERIFIED';
+
+    if (!legalVerified) {
+      throw new ForbiddenException(
+        'Izin E-Book belum terverifikasi',
+      );
+    }
+
+    if (
+      purpose === 'download' &&
+      (
+        !ebook.downloadAllowed ||
+        (
+          ebook.accessType !== 'DOWNLOAD' &&
+          ebook.accessType !== 'READ_AND_DOWNLOAD'
+        )
+      )
+    ) {
+      throw new ForbiddenException(
+        'Download E-Book tidak diizinkan',
+      );
+    }
+
+    const file =
+      this.ebookFileStorage.openFile(
+        ebook.fileUrl,
+      );
+
+    const contentType =
+      ebook.fileType?.toLowerCase() === 'pdf'
+        ? 'application/pdf'
+        : ebook.fileType?.toLowerCase() === 'epub'
+          ? 'application/epub+zip'
+          : 'application/octet-stream';
+
+    return {
+      stream: file.stream,
+      size: file.size,
+      contentType,
+      disposition:
+        purpose === 'download'
+          ? 'attachment'
+          : 'inline',
     };
   }
 

@@ -1,5 +1,6 @@
 import {
   IsIn,
+  IsBoolean,
   IsInt,
   IsOptional,
   IsString,
@@ -68,7 +69,37 @@ export class UpdateEBookDto {
   license?: string;
 
   @IsOptional()
+  @IsUrl()
+  licenseUrl?: string;
+
+  @IsOptional()
+  @IsUrl()
+  sourceUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 300)
+  copyrightHolder?: string;
+
+  @IsOptional()
   @IsString()
   @Length(2, 500)
   source?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(0, 5000)
+  permissionEvidence?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  translationAllowed?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  downloadAllowed?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  aiRagAllowed?: boolean;
 }

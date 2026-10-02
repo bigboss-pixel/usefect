@@ -36,6 +36,7 @@ type EBookAccess = {
   canRead: boolean;
   canDownload: boolean;
   fileUrl: string;
+  downloadUrl: string | null;
 };
 
 type PdfDocument = {
@@ -449,9 +450,9 @@ export default function EBookReaderPage({
             </div>
           </div>
 
-          {canDownload && access?.fileUrl && (
+          {canDownload && access?.downloadUrl && (
             <a
-              href={access.fileUrl}
+              href={access.downloadUrl}
               target="_blank"
               rel="noopener noreferrer"
               download

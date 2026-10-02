@@ -872,6 +872,13 @@
                   "kind": "scalar"
                 }
               },
+              "aiRagAllowed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "author": {
                 "nullable": false,
                 "type": {
@@ -880,6 +887,13 @@
                 }
               },
               "category": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "copyrightHolder": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -904,6 +918,13 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "downloadAllowed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -949,6 +970,55 @@
                   "kind": "scalar"
                 }
               },
+              "licenseType": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "licenseUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "licenseVerifiedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "permissionEvidence": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "permissionGrantedAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "permissionStatus": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "permissionVerifiedByUserId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "publicationYear": {
                 "nullable": true,
                 "type": {
@@ -970,6 +1040,13 @@
                   "kind": "scalar"
                 }
               },
+              "sourceUrl": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -981,6 +1058,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "translationAllowed": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -1005,11 +1089,17 @@
                 "accessType": {
                   "column": "accessType"
                 },
+                "aiRagAllowed": {
+                  "column": "aiRagAllowed"
+                },
                 "author": {
                   "column": "author"
                 },
                 "category": {
                   "column": "category"
+                },
+                "copyrightHolder": {
+                  "column": "copyrightHolder"
                 },
                 "coverUrl": {
                   "column": "coverUrl"
@@ -1019,6 +1109,9 @@
                 },
                 "description": {
                   "column": "description"
+                },
+                "downloadAllowed": {
+                  "column": "downloadAllowed"
                 },
                 "fileType": {
                   "column": "fileType"
@@ -1038,6 +1131,27 @@
                 "license": {
                   "column": "license"
                 },
+                "licenseType": {
+                  "column": "licenseType"
+                },
+                "licenseUrl": {
+                  "column": "licenseUrl"
+                },
+                "licenseVerifiedAt": {
+                  "column": "licenseVerifiedAt"
+                },
+                "permissionEvidence": {
+                  "column": "permissionEvidence"
+                },
+                "permissionGrantedAt": {
+                  "column": "permissionGrantedAt"
+                },
+                "permissionStatus": {
+                  "column": "permissionStatus"
+                },
+                "permissionVerifiedByUserId": {
+                  "column": "permissionVerifiedByUserId"
+                },
                 "publicationYear": {
                   "column": "publicationYear"
                 },
@@ -1047,11 +1161,17 @@
                 "source": {
                   "column": "source"
                 },
+                "sourceUrl": {
+                  "column": "sourceUrl"
+                },
                 "status": {
                   "column": "status"
                 },
                 "title": {
                   "column": "title"
+                },
+                "translationAllowed": {
+                  "column": "translationAllowed"
                 },
                 "updatedAt": {
                   "column": "updatedAt"
@@ -3277,12 +3397,26 @@
                   "nativeType": "text",
                   "nullable": false
                 },
+                "aiRagAllowed": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "author": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": false
                 },
                 "category": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "copyrightHolder": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -3305,6 +3439,15 @@
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
+                },
+                "downloadAllowed": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
                 },
                 "fileType": {
                   "codecId": "pg/text@1",
@@ -3344,6 +3487,45 @@
                   "nativeType": "text",
                   "nullable": true
                 },
+                "licenseType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "licenseUrl": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "licenseVerifiedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "permissionEvidence": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "permissionGrantedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "permissionStatus": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "UNKNOWN"
+                  },
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "permissionVerifiedByUserId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "publicationYear": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -3355,6 +3537,11 @@
                   "nullable": true
                 },
                 "source": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "sourceUrl": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -3371,6 +3558,15 @@
                 "title": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
+                  "nullable": false
+                },
+                "translationAllowed": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
                   "nullable": false
                 },
                 "updatedAt": {
@@ -3408,6 +3604,14 @@
                   ],
                   "name": "eBook_language_idx_28a6f524",
                   "prefix": "eBook_language_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "permissionStatus"
+                  ],
+                  "name": "eBook_permissionStatus_idx_babd62cb",
+                  "prefix": "eBook_permissionStatus_idx",
                   "unique": false
                 },
                 {
@@ -4703,7 +4907,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e4b16545ffa102a6caabccd646ae569c8f4b88d31150bc284c9fc10999545204"
+    "storageHash": "c473d3aa73816e5069d79919f8fda275ed061d1666b189185f7e2915479089ab"
   },
   "execution": {
     "executionHash": "1de89d9f1c4f28fb1f4637cf987d31c4fe74eafac79bfe840ac09eae644c6970",
