@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import sys
+import re
 import zipfile
 import tempfile
-import shutil
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import unquote
 from xml.etree import ElementTree as ET
 
 from bs4 import BeautifulSoup
@@ -20,9 +20,12 @@ def find_opf(root: Path) -> Path:
     container = root / "META-INF" / "container.xml"
 
     if not container.exists():
-        raise RuntimeError("EPUB tidak memiliki META-INF/container.xml")
+        raise RuntimeError(
+            "EPUB tidak memiliki META-INF/container.xml"
+        )
 
     tree = ET.parse(container)
+
     ns = {
         "c": "urn:oasis:names:tc:opendocument:xmlns:container"
     }
@@ -33,14 +36,18 @@ def find_opf(root: Path) -> Path:
     )
 
     if node is None:
-        raise RuntimeError("OPF EPUB tidak ditemukan")
+        raise RuntimeError(
+            "OPF EPUB tidak ditemukan"
+        )
 
     full_path = node.attrib.get("full-path")
 
     if not full_path:
-        raise RuntimeError("Path OPF tidak ditemukan")
+        raise RuntimeError(
+            "Path OPF tidak ditemukan"
+        )
 
-    return root / full_path
+    return (root / unquote(full_path)).resolve()
 
 
 def local_name(tag):
@@ -55,68 +62,239 @@ def parse_opf(opf: Path):
     spine = []
 
     for element in root.iter():
-        if local_name(element.tag) == "item":
-            item_id = element.attrib.get("id")
-            href = element.attrib.get("href")
-            media = element.attrib.get("media-type")
+        if local_name(element.tag) != "item":
+            continue
 
-            if item_id and href:
-                manifest[item_id] = {
-                    "href": href,
-                    "media": media,
-                }
+        item_id = element.attrib.get("id")
+        href = element.attrib.get("href")
+        media = element.attrib.get("media-type")
+
+        if item_id and href:
+            manifest[item_id] = {
+                "href": href,
+                "media": media or "",
+            }
 
     for element in root.iter():
-        if local_name(element.tag) == "itemref":
-            item_id = element.attrib.get("idref")
+        if local_name(element.tag) != "itemref":
+            continue
 
-            if item_id in manifest:
-                spine.append(manifest[item_id])
+        item_id = element.attrib.get("idref")
+
+        if item_id in manifest:
+            spine.append(manifest[item_id])
 
     return manifest, spine
 
 
-def rewrite_resources(soup, chapter_path: Path):
-    for tag in soup.find_all(["img", "image"]):
-        attr = "src"
+def resolve_resource(base: Path, value: str):
+    if not value:
+        return None
 
-        if tag.name == "image":
-            attr = "href"
+    value = value.strip()
+
+    if value.startswith(
+        (
+            "data:",
+            "http:",
+            "https:",
+            "file:",
+            "#",
+        )
+    ):
+        return None
+
+    value = value.split("#", 1)[0]
+    value = unquote(value)
+
+    if not value:
+        return None
+
+    target = (
+        base.parent / value
+    ).resolve()
+
+    return target if target.exists() else None
+
+
+def rewrite_html_resources(
+    soup: BeautifulSoup,
+    html_path: Path,
+):
+    # Images
+    for tag in soup.find_all(
+        ["img", "image"]
+    ):
+        attr = (
+            "href"
+            if tag.name == "image"
+            else "src"
+        )
 
         value = tag.get(attr)
 
-        if not value:
-            continue
+        target = resolve_resource(
+            html_path,
+            value,
+        )
 
-        if value.startswith(("data:", "http:", "https:", "file:")):
-            continue
-
-        clean = value.split("#", 1)[0]
-
-        if not clean:
-            continue
-
-        target = (chapter_path.parent / clean).resolve()
-
-        if target.exists():
+        if target:
             tag[attr] = file_url(target)
 
-    for tag in soup.find_all(["link", "script"]):
-        href = tag.get("href") or tag.get("src")
+    # SVG href / xlink:href
+    for tag in soup.find_all(True):
+        for attr in (
+            "href",
+            "xlink:href",
+        ):
+            value = tag.get(attr)
 
-        if not href:
+            target = resolve_resource(
+                html_path,
+                value,
+            )
+
+            if target:
+                tag[attr] = file_url(target)
+
+    # Remove JavaScript
+    for tag in soup.find_all(
+        ["script", "noscript"]
+    ):
+        tag.decompose()
+
+    # Remove EPUB navigation metadata that
+    # is not needed in the printed document.
+    for tag in soup.find_all(
+        ["nav"]
+    ):
+        epub_type = (
+            tag.get("epub:type")
+            or tag.get("type")
+            or ""
+        )
+
+        if (
+            "toc" in epub_type
+            or "landmarks" in epub_type
+            or "page-list" in epub_type
+        ):
+            tag.decompose()
+
+
+def rewrite_css(
+    css: str,
+    css_path: Path,
+) -> str:
+    """
+    Rewrite relative url(...) resources inside
+    CSS to absolute file:// URLs.
+
+    This is important for:
+    - fonts
+    - background images
+    - SVG
+    - other EPUB assets
+    """
+
+    def replace_url(match):
+        raw = match.group(1).strip()
+
+        if (
+            raw.startswith(
+                (
+                    "data:",
+                    "http:",
+                    "https:",
+                    "file:",
+                    "#",
+                )
+            )
+        ):
+            return f"url({raw})"
+
+        clean = raw.strip(
+            "\"'"
+        )
+
+        target = resolve_resource(
+            css_path,
+            clean,
+        )
+
+        if target:
+            return (
+                "url("
+                + file_url(target)
+                + ")"
+            )
+
+        return f"url({raw})"
+
+    css = re.sub(
+        r"url\(\s*([^)]+?)\s*\)",
+        replace_url,
+        css,
+        flags=re.IGNORECASE,
+    )
+
+    return css
+
+
+def collect_css(
+    root: Path,
+    manifest: dict,
+):
+    css = []
+
+    for item in manifest.values():
+        if item.get("media") != "text/css":
             continue
 
-        if href.startswith(("data:", "http:", "https:", "file:")):
+        css_path = (
+            root / item["href"]
+        ).resolve()
+
+        if not css_path.exists():
             continue
 
-        target = (chapter_path.parent / href).resolve()
+        raw = css_path.read_text(
+            encoding="utf-8",
+            errors="replace",
+        )
 
-        if target.exists():
-            if tag.name == "link":
-                tag["href"] = file_url(target)
-            else:
-                tag["src"] = file_url(target)
+        raw = rewrite_css(
+            raw,
+            css_path,
+        )
+
+        css.append(
+            "\n/* USEFECT EPUB CSS */\n"
+            + raw
+        )
+
+    return "\n".join(css)
+
+
+def clean_document(
+    chapter: BeautifulSoup,
+    chapter_path: Path,
+):
+    rewrite_html_resources(
+        chapter,
+        chapter_path,
+    )
+
+    # If the EPUB chapter has a body,
+    # return only the body contents.
+    if chapter.body:
+        return list(
+            chapter.body.contents
+        )
+
+    return list(
+        chapter.contents
+    )
 
 
 def main():
@@ -127,8 +305,13 @@ def main():
         )
         sys.exit(2)
 
-    epub_path = Path(sys.argv[1]).resolve()
-    pdf_path = Path(sys.argv[2]).resolve()
+    epub_path = Path(
+        sys.argv[1]
+    ).resolve()
+
+    pdf_path = Path(
+        sys.argv[2]
+    ).resolve()
 
     if not epub_path.exists():
         raise RuntimeError(
@@ -142,9 +325,11 @@ def main():
 
     with tempfile.TemporaryDirectory(
         prefix="usefect-epub-"
-    ) as temp:
-        root = Path(temp)
+    ) as temp_dir:
 
+        root = Path(temp_dir)
+
+        # Extract EPUB
         with zipfile.ZipFile(
             epub_path,
             "r",
@@ -153,52 +338,152 @@ def main():
 
         opf = find_opf(root)
 
-        manifest, spine = parse_opf(opf)
+        manifest, spine = parse_opf(
+            opf
+        )
 
         if not spine:
             raise RuntimeError(
-                "EPUB tidak memiliki spine/chapter yang dapat dibaca"
+                "EPUB tidak memiliki spine"
             )
 
-        combined = BeautifulSoup(
-            "<!DOCTYPE html><html><head></head><body></body></html>",
+        # -------------------------------------------------
+        # Build complete HTML document
+        # -------------------------------------------------
+
+        document = BeautifulSoup(
+            """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>USEFECT E-Book</title>
+            </head>
+            <body></body>
+            </html>
+            """,
             "html.parser",
         )
 
-        head = combined.head
-        body = combined.body
+        head = document.head
+        body = document.body
 
-        # Metadata dasar
-        title = combined.new_tag("title")
-        title.string = epub_path.stem
-        head.append(title)
+        # -------------------------------------------------
+        # EPUB CSS
+        # -------------------------------------------------
 
-        # CSS dari EPUB
-        css_items = [
-            item
-            for item in manifest.values()
-            if item.get("media") == "text/css"
-        ]
+        css = collect_css(
+            root,
+            manifest,
+        )
 
-        for item in css_items:
-            css_path = (
-                opf.parent /
-                item["href"].split("#", 1)[0]
-            ).resolve()
+        style = document.new_tag(
+            "style"
+        )
 
-            if not css_path.exists():
-                continue
+        style.string = css
 
-            link = combined.new_tag("link")
-            link["rel"] = "stylesheet"
-            link["href"] = file_url(css_path)
-            head.append(link)
+        head.append(style)
 
-        # Render setiap chapter sesuai spine
-        for index, item in enumerate(spine):
+        # -------------------------------------------------
+        # USEFECT PDF layout
+        # -------------------------------------------------
+
+        usefect_style = document.new_tag(
+            "style"
+        )
+
+        usefect_style.string = """
+        @page {
+            size: A4;
+            margin: 22mm 18mm 22mm 22mm;
+        }
+
+        html {
+            background: white;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: white;
+            color: #111;
+        }
+
+        img,
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        svg {
+            display: block;
+        }
+
+        table {
+            max-width: 100%;
+            border-collapse: collapse;
+        }
+
+        pre,
+        code {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .usefect-chapter {
+            break-before: page;
+        }
+
+        .usefect-chapter:first-child {
+            break-before: auto;
+        }
+
+        /*
+         * Jangan biarkan elemen EPUB
+         * menjadi halaman kosong.
+         */
+        .usefect-chapter > * {
+            max-width: 100%;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            break-after: avoid;
+        }
+
+        p,
+        blockquote,
+        figure,
+        table {
+            break-inside: avoid;
+        }
+        """
+
+        head.append(
+            usefect_style
+        )
+
+        # -------------------------------------------------
+        # Render spine
+        # -------------------------------------------------
+
+        rendered = 0
+
+        for index, item in enumerate(
+            spine
+        ):
+            href = item.get(
+                "href",
+                "",
+            )
+
             chapter_path = (
-                opf.parent /
-                item["href"].split("#", 1)[0]
+                opf.parent / href
             ).resolve()
 
             if not chapter_path.exists():
@@ -214,92 +499,92 @@ def main():
                 "html.parser",
             )
 
-            rewrite_resources(
+            contents = clean_document(
                 chapter,
                 chapter_path,
             )
 
-            chapter_body = chapter.body
+            if not contents:
+                continue
 
-            if chapter_body:
-                wrapper = combined.new_tag(
-                    "section",
-                    attrs={
-                        "class": "epub-chapter",
-                        "data-chapter": str(index + 1),
-                    },
+            section = document.new_tag(
+                "section",
+                attrs={
+                    "class": "usefect-chapter",
+                    "data-chapter": str(
+                        index + 1
+                    ),
+                },
+            )
+
+            for child in contents:
+                section.append(
+                    child
                 )
 
-                for child in list(
-                    chapter_body.contents
-                ):
-                    wrapper.append(child)
+            body.append(section)
 
-                body.append(wrapper)
+            rendered += 1
 
-        style = combined.new_tag("style")
-        style.string = """
-        @page {
-            size: A4;
-            margin: 22mm 18mm 22mm 18mm;
-        }
+        if rendered == 0:
+            raise RuntimeError(
+                "Tidak ada chapter EPUB yang berhasil dirender"
+            )
 
-        html, body {
-            margin: 0;
-            padding: 0;
-        }
+        # -------------------------------------------------
+        # Write intermediate HTML
+        # -------------------------------------------------
 
-        img, svg {
-            max-width: 100%;
-            height: auto;
-        }
-
-        .epub-chapter {
-            break-before: page;
-        }
-
-        .epub-chapter:first-child {
-            break-before: auto;
-        }
-
-        table {
-            max-width: 100%;
-            border-collapse: collapse;
-        }
-
-        pre, code {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-        }
-        """
-        head.append(style)
-
-        html_path = root / "combined.html"
+        html_path = (
+            root / "usefect-render.html"
+        )
 
         html_path.write_text(
-            str(combined),
+            str(document),
             encoding="utf-8",
         )
 
+        # -------------------------------------------------
+        # Generate PDF
+        # -------------------------------------------------
+
         HTML(
-            filename=str(html_path),
+            filename=str(
+                html_path
+            ),
             base_url=str(root),
         ).write_pdf(
             str(pdf_path)
         )
 
+    # -----------------------------------------------------
+    # Validate output
+    # -----------------------------------------------------
+
     if not pdf_path.exists():
         raise RuntimeError(
-            "PDF gagal dibuat"
+            "PDF tidak berhasil dibuat"
         )
 
-    if pdf_path.stat().st_size < 1024:
+    size = pdf_path.stat().st_size
+
+    if size < 10_000:
         raise RuntimeError(
-            "PDF yang dihasilkan terlalu kecil"
+            f"PDF terlalu kecil: {size} bytes"
+        )
+
+    with pdf_path.open(
+        "rb"
+    ) as f:
+        header = f.read(5)
+
+    if header != b"%PDF-":
+        raise RuntimeError(
+            "File output bukan PDF valid"
         )
 
     print(
-        f"PDF berhasil dibuat: {pdf_path}"
+        f"EPUB_TO_PDF_SUCCESS: {pdf_path} ({size} bytes)"
     )
 
 
