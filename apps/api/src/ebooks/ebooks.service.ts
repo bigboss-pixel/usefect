@@ -918,7 +918,12 @@ export class EBooksService {
 
     if (
       status === undefined &&
-      accessType === undefined
+      accessType === undefined &&
+      moderateEBookDto.permissionStatus === undefined &&
+      moderateEBookDto.permissionEvidence === undefined &&
+      moderateEBookDto.translationAllowed === undefined &&
+      moderateEBookDto.downloadAllowed === undefined &&
+      moderateEBookDto.aiRagAllowed === undefined
     ) {
       throw new BadRequestException(
         'Tidak ada perubahan moderasi yang diberikan',
@@ -984,6 +989,31 @@ export class EBooksService {
             accessType !== undefined
               ? accessType
               : ebook.accessType,
+
+          permissionStatus:
+            moderateEBookDto.permissionStatus !== undefined
+              ? moderateEBookDto.permissionStatus
+              : ebook.permissionStatus,
+
+          permissionEvidence:
+            moderateEBookDto.permissionEvidence !== undefined
+              ? moderateEBookDto.permissionEvidence
+              : ebook.permissionEvidence,
+
+          translationAllowed:
+            moderateEBookDto.translationAllowed !== undefined
+              ? moderateEBookDto.translationAllowed
+              : ebook.translationAllowed,
+
+          downloadAllowed:
+            moderateEBookDto.downloadAllowed !== undefined
+              ? moderateEBookDto.downloadAllowed
+              : ebook.downloadAllowed,
+
+          aiRagAllowed:
+            moderateEBookDto.aiRagAllowed !== undefined
+              ? moderateEBookDto.aiRagAllowed
+              : ebook.aiRagAllowed,
 
           updatedAt:
             new Date().toISOString(),
