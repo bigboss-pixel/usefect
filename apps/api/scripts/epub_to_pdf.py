@@ -245,36 +245,10 @@ def collect_css(
     root: Path,
     manifest: dict,
 ):
-    css = []
-
-    for item in manifest.values():
-        if item.get("media") != "text/css":
-            continue
-
-        css_path = (
-            root / item["href"]
-        ).resolve()
-
-        if not css_path.exists():
-            continue
-
-        raw = css_path.read_text(
-            encoding="utf-8",
-            errors="replace",
-        )
-
-        raw = rewrite_css(
-            raw,
-            css_path,
-        )
-
-        css.append(
-            "\n/* USEFECT EPUB CSS */\n"
-            + raw
-        )
-
-    return "\n".join(css)
-
+    # CSS asli EPUB sengaja tidak digunakan.
+    # Standard Ebooks mempunyai stylesheet yang kompleks
+    # dan tidak semuanya cocok untuk rendering WeasyPrint.
+    return ""
 
 def clean_document(
     chapter: BeautifulSoup,
@@ -372,18 +346,8 @@ def main():
         # EPUB CSS
         # -------------------------------------------------
 
-        css = collect_css(
-            root,
-            manifest,
-        )
-
-        style = document.new_tag(
-            "style"
-        )
-
-        style.string = css
-
-        head.append(style)
+        # CSS EPUB tidak digunakan.
+        # Kita menggunakan stylesheet PDF USEFECT sendiri.
 
         # -------------------------------------------------
         # USEFECT PDF layout
