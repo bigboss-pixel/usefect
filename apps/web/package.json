@@ -16,7 +16,8 @@
     "qrcode.react": "^4.2.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "react-reader": "^2.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

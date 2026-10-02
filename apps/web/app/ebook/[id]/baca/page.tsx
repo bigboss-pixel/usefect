@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -15,6 +16,16 @@ import SiteHeader from "../../../../components/SiteHeader";
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+const ReactReader = dynamic(
+  () =>
+    import("react-reader").then(
+      (module) => module.ReactReader,
+    ),
+  {
+    ssr: false,
+  },
+);
 
 type EBook = {
   id: number;
@@ -81,6 +92,8 @@ export default function EBookReaderPage({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [zoom, setZoom] = useState(1);
+  const [epubLocation, setEpubLocation] =
+    useState<string | number>(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +169,18 @@ export default function EBookReaderPage({
       if (Number.isFinite(page) && page > 0) {
         setCurrentPage(page);
       }
+    }
+  }, [ebookId]);
+
+  useEffect(() => {
+    if (!ebookId) return;
+
+    const savedLocation = window.localStorage.getItem(
+      `usefect-ebook-epub-progress-${ebookId}`,
+    );
+
+    if (savedLocation) {
+      setEpubLocation(savedLocation);
     }
   }, [ebookId]);
 
@@ -415,6 +440,10 @@ export default function EBookReaderPage({
     ebook.fileType?.toUpperCase() === "PDF" ||
     ebook.fileUrl?.toLowerCase().includes(".pdf");
 
+  const isEpub =
+    ebook.fileType?.toUpperCase() === "EPUB" ||
+    ebook.fileUrl?.toLowerCase().includes(".epub");
+
   const progress =
     totalPages > 0
       ? Math.round((currentPage / totalPages) * 100)
@@ -481,13 +510,79 @@ export default function EBookReaderPage({
               belum tersedia.
             </p>
           </section>
+        ) : isEpub ? (
+          <section
+            style={{
+              background: "#ffffff",
+              border: "1px solid #e2e8f0",
+              borderRadius: 18,
+              overflow: "hidden",
+              minHeight: "75vh",
+            }}
+          >
+            <div
+              style={{
+                padding: "14px 18px",
+                borderBottom: "1px solid #e2e8f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <strong
+                style={{
+                  color: "#0f172a",
+                }}
+              >
+                Reader EPUB
+              </strong>
+
+              <span
+                style={{
+                  color: "#64748b",
+                  fontSize: 13,
+                }}
+              >
+                Progress tersimpan otomatis
+              </span>
+            </div>
+
+            <div
+              style={{
+                height: "75vh",
+                minHeight: 520,
+              }}
+            >
+              <ReactReader
+                url={access.fileUrl}
+                location={epubLocation}
+                locationChanged={(location) => {
+                  setEpubLocation(location);
+
+                  if (ebookId) {
+                    window.localStorage.setItem(
+                      `usefect-ebook-epub-progress-${ebookId}`,
+                      String(location),
+                    );
+                  }
+                }}
+                epubInitOptions={{
+                  openAs: "epub",
+                }}
+                epubOptions={{
+                  flow: "scrolled",
+                  manager: "continuous",
+                }}
+              />
+            </div>
+          </section>
         ) : !isPdf ? (
           <section className="ebook-reader-empty">
             <FileText size={46} />
             <h2>Format belum didukung</h2>
             <p>
-              Reader saat ini mendukung PDF. Dukungan EPUB akan
-              ditambahkan kemudian.
+              Reader saat ini mendukung PDF dan EPUB.
             </p>
           </section>
         ) : pdfError ? (
