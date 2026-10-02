@@ -150,7 +150,7 @@ export class StandardEbooksService {
         })
         .first();
 
-    const epubResponse =
+    let epubResponse =
       await fetch(epubUrl);
 
     if (!epubResponse.ok) {
@@ -159,21 +159,7 @@ export class StandardEbooksService {
       );
     }
 
-    const contentType =
-      epubResponse.headers.get(
-        'content-type',
-      ) ?? '';
-
-    if (
-      !contentType.includes('epub') &&
-      !epubUrl.toLowerCase().endsWith('.epub')
-    ) {
-      throw new BadRequestException(
-        'Resource yang diterima bukan EPUB',
-      );
-    }
-
-    const buffer =
+    let buffer =
       Buffer.from(
         await epubResponse.arrayBuffer(),
       );
@@ -181,6 +167,68 @@ export class StandardEbooksService {
     if (!buffer.length) {
       throw new BadRequestException(
         'File EPUB kosong',
+      );
+    }
+
+    const isZipBuffer = (
+      value: Buffer,
+    ) =>
+      value.length >= 4 &&
+      value[0] === 0x50 &&
+      value[1] === 0x4b &&
+      value[2] === 0x03 &&
+      value[3] === 0x04;
+
+    /*
+     * Standard Ebooks dapat mengembalikan halaman
+     * "Your Download Has Started!" terlebih dahulu.
+     * Halaman tersebut mengarahkan ke URL .epub sebenarnya.
+     *
+     * Jika respons pertama bukan ZIP/EPUB, cari redirect
+     * download yang sebenarnya dari halaman HTML tersebut.
+     */
+    if (!isZipBuffer(buffer)) {
+      const html =
+        buffer.toString('utf8');
+
+      const downloadMatch =
+        html.match(
+          /<meta[^>]+http-equiv=["']refresh["'][^>]+content=["'][^"']*url=([^"']+)["']/i,
+        );
+
+      const downloadHref =
+        downloadMatch?.[1]?.trim();
+
+      if (!downloadHref) {
+        throw new BadRequestException(
+          'Resource Standard Ebooks bukan file EPUB dan URL download sebenarnya tidak ditemukan',
+        );
+      }
+
+      const realEpubUrl =
+        new URL(
+          downloadHref,
+          epubResponse.url || epubUrl,
+        ).toString();
+
+      epubResponse =
+        await fetch(realEpubUrl);
+
+      if (!epubResponse.ok) {
+        throw new BadRequestException(
+          `Gagal mengunduh file EPUB sebenarnya (${epubResponse.status})`,
+        );
+      }
+
+      buffer =
+        Buffer.from(
+          await epubResponse.arrayBuffer(),
+        );
+    }
+
+    if (!isZipBuffer(buffer)) {
+      throw new BadRequestException(
+        'File yang diterima bukan EPUB yang valid',
       );
     }
 
