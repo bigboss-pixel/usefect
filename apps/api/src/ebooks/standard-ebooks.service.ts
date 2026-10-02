@@ -22,38 +22,17 @@ export class StandardEbooksService {
   ): Promise<void> {
     try {
       await this.execFileAsync(
-        'xvfb-run',
+        'python3',
         [
-          '-a',
-          '-s',
-          '-screen 0 1280x1024x24',
-          'ebook-convert',
+          'apps/api/scripts/epub_to_pdf.py',
           epubPath,
           pdfPath,
-          '--paper-size',
-          'a4',
-          '--pdf-page-numbers',
-          '--margin-top',
-          '36',
-          '--margin-bottom',
-          '36',
-          '--margin-left',
-          '36',
-          '--margin-right',
-          '36',
         ],
         {
           maxBuffer: 20 * 1024 * 1024,
           env: {
             ...process.env,
-            DISPLAY: ':99',
-            XDG_RUNTIME_DIR: '/tmp/runtime-root',
-            QT_OPENGL: 'software',
-            LIBGL_ALWAYS_SOFTWARE: '1',
-            QT_QPA_PLATFORM: 'xcb',
-            QTWEBENGINE_CHROMIUM_FLAGS:
-              '--no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox',
-            QTWEBENGINE_DISABLE_SANDBOX: '1',
+            PYTHONUNBUFFERED: '1',
           },
         },
       );
@@ -61,7 +40,7 @@ export class StandardEbooksService {
       const stderr =
         error?.stderr ||
         error?.message ||
-        'Unknown ebook-convert error';
+        'Unknown EPUB to PDF conversion error';
 
       throw new BadRequestException(
         `Gagal mengubah EPUB menjadi PDF: ${stderr}`,
