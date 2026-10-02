@@ -24,7 +24,7 @@ export class StandardEbooksService {
       await this.execFileAsync(
         'python3',
         [
-          'apps/api/scripts/epub_to_pdf.py',
+          'scripts/epub_to_pdf.py',
           epubPath,
           pdfPath,
         ],
