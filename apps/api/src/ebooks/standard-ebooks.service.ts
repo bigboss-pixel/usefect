@@ -47,10 +47,12 @@ export class StandardEbooksService {
           env: {
             ...process.env,
             DISPLAY: ':99',
-            QT_QPA_PLATFORM: 'xcb',
+            XDG_RUNTIME_DIR: '/tmp/runtime-root',
+            QT_OPENGL: 'software',
             LIBGL_ALWAYS_SOFTWARE: '1',
+            QT_QPA_PLATFORM: 'xcb',
             QTWEBENGINE_CHROMIUM_FLAGS:
-              '--no-sandbox --disable-dev-shm-usage',
+              '--no-sandbox --disable-dev-shm-usage --disable-gpu-sandbox',
             QTWEBENGINE_DISABLE_SANDBOX: '1',
           },
         },
