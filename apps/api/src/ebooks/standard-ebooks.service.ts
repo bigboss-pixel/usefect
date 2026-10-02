@@ -292,7 +292,7 @@ export class StandardEbooksService {
 
     const pdfFilename =
       filename.replace(
-        /\\.epub$/i,
+        /\.epub$/i,
         '.pdf',
       );
 
