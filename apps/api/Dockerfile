@@ -4,6 +4,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
        calibre \
        xvfb \
+       xauth \
        libgl1 \
        libegl1 \
        libopengl0 \
