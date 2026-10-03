@@ -9,18 +9,32 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import idl from './idl/programs_usefect.json' with { type: 'json' };
 import { db } from '../prisma/db.js';
 
+function requireEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(
+      `Missing required DEX environment variable: ${name}`,
+    );
+  }
+
+  return value;
+}
+
 const PROGRAM_ID = new PublicKey(
-  process.env['DEX_PROGRAM_ID'] ??
-    'FLYaSSPbQKzqq3BYNF7Jgn7CxPyEK7YTtr8jMmQtivfa',
+  requireEnv('DEX_PROGRAM_ID'),
 );
 
-const RPC_URL =
-  process.env['DEX_SOLANA_RPC_URL'] ??
-  'https://api.devnet.solana.com';
+const RPC_URL = requireEnv(
+  'DEX_SOLANA_RPC_URL',
+);
 
 const KNOWN_POOL_ADDRESS = new PublicKey(
-  'EKrcVktRfLiiT9qMjYDGof9Rt5uvxdUH1CrG3C1u4GZu',
+  requireEnv('DEX_KNOWN_POOL_ADDRESS'),
 );
+
+const DEX_NETWORK =
+  process.env['DEX_NETWORK'] ?? 'devnet';
 
 const BASE58_ALPHABET =
   '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -175,7 +189,7 @@ export class DexIndexerService {
       blockTime,
       programId: PROGRAM_ID.toBase58(),
       network:
-        process.env['DEX_NETWORK'] ?? 'devnet',
+        DEX_NETWORK,
     };
   }
 
@@ -955,7 +969,7 @@ export class DexIndexerService {
         const stateData = {
           programId: PROGRAM_ID.toBase58(),
           network:
-            process.env['DEX_NETWORK'] ?? 'devnet',
+            DEX_NETWORK,
           lastProcessedSlot: latest.slot,
           lastProcessedSignature:
             latest.signature,
