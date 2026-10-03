@@ -380,7 +380,7 @@ export class DexIndexerService {
     let before: string | undefined;
     let checkpointFound = !checkpoint;
 
-    while (true) {
+    discoveryLoop: while (true) {
       const signatures =
         await this.connection.getSignaturesForAddress(
           KNOWN_POOL_ADDRESS,
@@ -411,7 +411,9 @@ export class DexIndexerService {
           );
 
         if (!transaction) {
-          continue;
+          // Do not advance the checkpoint past a signature
+          // that the RPC has not returned yet.
+          break discoveryLoop;
         }
 
         const instructions = [];
