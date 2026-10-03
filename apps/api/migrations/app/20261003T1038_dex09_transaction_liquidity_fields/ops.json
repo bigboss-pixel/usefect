@@ -1,0 +1,254 @@
+[
+  {
+    "id": "column.public.dexTransaction.amountA",
+    "label": "Add column \"amountA\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "amountA",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"amountA\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "amountA"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"amountA\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"amountA\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"amountA\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "amountA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.dexTransaction.amountB",
+    "label": "Add column \"amountB\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "amountB",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"amountB\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "amountB"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"amountB\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"amountB\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"amountB\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "amountB"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.dexTransaction.lpAmount",
+    "label": "Add column \"lpAmount\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lpAmount",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lpAmount\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "lpAmount"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lpAmount\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"lpAmount\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lpAmount\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "lpAmount"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.dexTransaction.lpMint",
+    "label": "Add column \"lpMint\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "lpMint",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"lpMint\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "lpMint"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"lpMint\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"lpMint\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"lpMint\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "lpMint"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.dexTransaction.tokenA",
+    "label": "Add column \"tokenA\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tokenA",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tokenA\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "tokenA"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tokenA\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"tokenA\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tokenA\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "tokenA"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.dexTransaction.tokenB",
+    "label": "Add column \"tokenB\" to \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tokenB",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tokenB\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "tokenB"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tokenB\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD COLUMN \"tokenB\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tokenB\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "dexTransaction",
+          "tokenB"
+        ]
+      }
+    ]
+  }
+]

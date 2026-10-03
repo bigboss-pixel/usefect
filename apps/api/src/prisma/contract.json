@@ -32,6 +32,18 @@
       "model": "Category",
       "namespace": "public"
     },
+    "dexIndexerState": {
+      "model": "DexIndexerState",
+      "namespace": "public"
+    },
+    "dexPool": {
+      "model": "DexPool",
+      "namespace": "public"
+    },
+    "dexTransaction": {
+      "model": "DexTransaction",
+      "namespace": "public"
+    },
     "eBook": {
       "model": "EBook",
       "namespace": "public"
@@ -861,6 +873,512 @@
               },
               "namespaceId": "public",
               "table": "category"
+            }
+          },
+          "DexIndexerState": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastProcessedSignature": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lastProcessedSlot": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "network": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "programId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "lastProcessedSignature": {
+                  "column": "lastProcessedSignature"
+                },
+                "lastProcessedSlot": {
+                  "column": "lastProcessedSlot"
+                },
+                "network": {
+                  "column": "network"
+                },
+                "programId": {
+                  "column": "programId"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dexIndexerState"
+            }
+          },
+          "DexPool": {
+            "fields": {
+              "blockTime": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dexAddress": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "feeBps": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lpMint": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lpSupply": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "poolAddress": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reserveA": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "reserveB": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "slot": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenA": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenADecimals": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenB": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenBDecimals": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "vaultA": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "vaultB": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "transactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "poolId"
+                  ]
+                },
+                "to": {
+                  "model": "DexTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "blockTime": {
+                  "column": "blockTime"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "dexAddress": {
+                  "column": "dexAddress"
+                },
+                "feeBps": {
+                  "column": "feeBps"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lpMint": {
+                  "column": "lpMint"
+                },
+                "lpSupply": {
+                  "column": "lpSupply"
+                },
+                "poolAddress": {
+                  "column": "poolAddress"
+                },
+                "reserveA": {
+                  "column": "reserveA"
+                },
+                "reserveB": {
+                  "column": "reserveB"
+                },
+                "slot": {
+                  "column": "slot"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "tokenA": {
+                  "column": "tokenA"
+                },
+                "tokenADecimals": {
+                  "column": "tokenADecimals"
+                },
+                "tokenB": {
+                  "column": "tokenB"
+                },
+                "tokenBDecimals": {
+                  "column": "tokenBDecimals"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                },
+                "vaultA": {
+                  "column": "vaultA"
+                },
+                "vaultB": {
+                  "column": "vaultB"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dexPool"
+            }
+          },
+          "DexTransaction": {
+            "fields": {
+              "amountA": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "amountB": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "amountIn": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "amountOut": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "blockTime": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lpAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "lpMint": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "poolAddress": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "poolId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "signature": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "slot": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenA": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenB": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenIn": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tokenOut": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "type": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userAddress": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "pool": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "poolId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "DexPool",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "amountA": {
+                  "column": "amountA"
+                },
+                "amountB": {
+                  "column": "amountB"
+                },
+                "amountIn": {
+                  "column": "amountIn"
+                },
+                "amountOut": {
+                  "column": "amountOut"
+                },
+                "blockTime": {
+                  "column": "blockTime"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lpAmount": {
+                  "column": "lpAmount"
+                },
+                "lpMint": {
+                  "column": "lpMint"
+                },
+                "poolAddress": {
+                  "column": "poolAddress"
+                },
+                "poolId": {
+                  "column": "poolId"
+                },
+                "signature": {
+                  "column": "signature"
+                },
+                "slot": {
+                  "column": "slot"
+                },
+                "tokenA": {
+                  "column": "tokenA"
+                },
+                "tokenB": {
+                  "column": "tokenB"
+                },
+                "tokenIn": {
+                  "column": "tokenIn"
+                },
+                "tokenOut": {
+                  "column": "tokenOut"
+                },
+                "type": {
+                  "column": "type"
+                },
+                "userAddress": {
+                  "column": "userAddress"
+                }
+              },
+              "namespaceId": "public",
+              "table": "dexTransaction"
             }
           },
           "EBook": {
@@ -3386,6 +3904,400 @@
                 }
               ]
             },
+            "dexIndexerState": {
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lastProcessedSignature": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lastProcessedSlot": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "network": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "programId": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "programId"
+                  ]
+                }
+              ]
+            },
+            "dexPool": {
+              "columns": {
+                "blockTime": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dexAddress": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "feeBps": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lpMint": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "lpSupply": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "poolAddress": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "reserveA": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "reserveB": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "slot": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "status": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "tokenA": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "tokenADecimals": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "tokenB": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "tokenBDecimals": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "vaultA": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "vaultB": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "slot"
+                  ],
+                  "name": "dexPool_slot_idx_c5200595",
+                  "prefix": "dexPool_slot_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "dexPool_status_idx_e98638ab",
+                  "prefix": "dexPool_status_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tokenA",
+                    "tokenB"
+                  ],
+                  "name": "dexPool_tokenA_tokenB_idx_352f51d3",
+                  "prefix": "dexPool_tokenA_tokenB_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "updatedAt"
+                  ],
+                  "name": "dexPool_updatedAt_idx_8c508b31",
+                  "prefix": "dexPool_updatedAt_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "poolAddress"
+                  ]
+                }
+              ]
+            },
+            "dexTransaction": {
+              "columns": {
+                "amountA": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "amountB": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "amountIn": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "amountOut": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "blockTime": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lpAmount": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "lpMint": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "poolAddress": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "poolId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "signature": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "slot": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "tokenA": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "tokenB": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "tokenIn": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "tokenOut": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "type": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "userAddress": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "poolId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dexTransaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "dexPool"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "blockTime"
+                  ],
+                  "name": "dexTransaction_blockTime_idx_6e83d95b",
+                  "prefix": "dexTransaction_blockTime_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "poolAddress"
+                  ],
+                  "name": "dexTransaction_poolAddress_idx_77694a02",
+                  "prefix": "dexTransaction_poolAddress_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "poolId"
+                  ],
+                  "name": "dexTransaction_poolId_idx_d8a048f6",
+                  "prefix": "dexTransaction_poolId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "slot"
+                  ],
+                  "name": "dexTransaction_slot_idx_c5200595",
+                  "prefix": "dexTransaction_slot_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "type"
+                  ],
+                  "name": "dexTransaction_type_idx_b6b604ea",
+                  "prefix": "dexTransaction_type_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "userAddress"
+                  ],
+                  "name": "dexTransaction_userAddress_idx_3f459b97",
+                  "prefix": "dexTransaction_userAddress_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "signature"
+                  ]
+                }
+              ]
+            },
             "eBook": {
               "columns": {
                 "accessType": {
@@ -4907,10 +5819,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "c473d3aa73816e5069d79919f8fda275ed061d1666b189185f7e2915479089ab"
+    "storageHash": "d5127ccaa8d40103655f5539f579e94b8a1c00e368792139e6d224d48fa88a37"
   },
   "execution": {
-    "executionHash": "1de89d9f1c4f28fb1f4637cf987d31c4fe74eafac79bfe840ac09eae644c6970",
+    "executionHash": "24e214c3d4aa780a91294dfe89821569ad7d5cc2da7f6cfd47fa0bde808424f1",
     "mutations": {
       "defaults": [
         {
@@ -4956,6 +5868,36 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "category"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "dexIndexerState"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "dexPool"
           }
         },
         {

@@ -34,7 +34,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d5127ccaa8d40103655f5539f579e94b8a1c00e368792139e6d224d48fa88a37'>;
+  StorageHashBase<'a865ad5f89664bc0fd397a8f3abc2bd54827ad4d00127a845757cc2d8d008dc1'>;
 export type ExecutionHash =
   ExecutionHashBase<'24e214c3d4aa780a91294dfe89821569ad7d5cc2da7f6cfd47fa0bde808424f1'>;
 export type ProfileHash =
@@ -348,12 +348,6 @@ export type FieldOutputTypes = {
       readonly tokenOut: CodecTypes['pg/text@1']['output'] | null;
       readonly amountIn: CodecTypes['pg/text@1']['output'] | null;
       readonly amountOut: CodecTypes['pg/text@1']['output'] | null;
-      readonly tokenA: CodecTypes['pg/text@1']['output'] | null;
-      readonly amountA: CodecTypes['pg/text@1']['output'] | null;
-      readonly tokenB: CodecTypes['pg/text@1']['output'] | null;
-      readonly amountB: CodecTypes['pg/text@1']['output'] | null;
-      readonly lpMint: CodecTypes['pg/text@1']['output'] | null;
-      readonly lpAmount: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
     readonly EBook: {
@@ -623,12 +617,6 @@ export type FieldInputTypes = {
       readonly tokenOut: CodecTypes['pg/text@1']['input'] | null;
       readonly amountIn: CodecTypes['pg/text@1']['input'] | null;
       readonly amountOut: CodecTypes['pg/text@1']['input'] | null;
-      readonly tokenA: CodecTypes['pg/text@1']['input'] | null;
-      readonly amountA: CodecTypes['pg/text@1']['input'] | null;
-      readonly tokenB: CodecTypes['pg/text@1']['input'] | null;
-      readonly amountB: CodecTypes['pg/text@1']['input'] | null;
-      readonly lpMint: CodecTypes['pg/text@1']['input'] | null;
-      readonly lpAmount: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly EBook: {
@@ -886,21 +874,15 @@ export type StorageColumnTypes = {
       readonly vaultB: CodecTypes['pg/text@1']['output'];
     };
     readonly dexTransaction: {
-      readonly amountA: CodecTypes['pg/text@1']['output'] | null;
-      readonly amountB: CodecTypes['pg/text@1']['output'] | null;
       readonly amountIn: CodecTypes['pg/text@1']['output'] | null;
       readonly amountOut: CodecTypes['pg/text@1']['output'] | null;
       readonly blockTime: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly lpAmount: CodecTypes['pg/text@1']['output'] | null;
-      readonly lpMint: CodecTypes['pg/text@1']['output'] | null;
       readonly poolAddress: CodecTypes['pg/text@1']['output'];
       readonly poolId: CodecTypes['pg/int4@1']['output'];
       readonly signature: CodecTypes['pg/text@1']['output'];
       readonly slot: CodecTypes['pg/text@1']['output'];
-      readonly tokenA: CodecTypes['pg/text@1']['output'] | null;
-      readonly tokenB: CodecTypes['pg/text@1']['output'] | null;
       readonly tokenIn: CodecTypes['pg/text@1']['output'] | null;
       readonly tokenOut: CodecTypes['pg/text@1']['output'] | null;
       readonly type: CodecTypes['pg/text@1']['output'];
@@ -1161,21 +1143,15 @@ export type StorageColumnInputTypes = {
       readonly vaultB: CodecTypes['pg/text@1']['input'];
     };
     readonly dexTransaction: {
-      readonly amountA: CodecTypes['pg/text@1']['input'] | null;
-      readonly amountB: CodecTypes['pg/text@1']['input'] | null;
       readonly amountIn: CodecTypes['pg/text@1']['input'] | null;
       readonly amountOut: CodecTypes['pg/text@1']['input'] | null;
       readonly blockTime: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly lpAmount: CodecTypes['pg/text@1']['input'] | null;
-      readonly lpMint: CodecTypes['pg/text@1']['input'] | null;
       readonly poolAddress: CodecTypes['pg/text@1']['input'];
       readonly poolId: CodecTypes['pg/int4@1']['input'];
       readonly signature: CodecTypes['pg/text@1']['input'];
       readonly slot: CodecTypes['pg/text@1']['input'];
-      readonly tokenA: CodecTypes['pg/text@1']['input'] | null;
-      readonly tokenB: CodecTypes['pg/text@1']['input'] | null;
       readonly tokenIn: CodecTypes['pg/text@1']['input'] | null;
       readonly tokenOut: CodecTypes['pg/text@1']['input'] | null;
       readonly type: CodecTypes['pg/text@1']['input'];
@@ -1670,12 +1646,6 @@ export namespace Models {
     tokenOut: CodecTypes['pg/text@1']['output'] | null;
     amountIn: CodecTypes['pg/text@1']['output'] | null;
     amountOut: CodecTypes['pg/text@1']['output'] | null;
-    tokenA: CodecTypes['pg/text@1']['output'] | null;
-    amountA: CodecTypes['pg/text@1']['output'] | null;
-    tokenB: CodecTypes['pg/text@1']['output'] | null;
-    amountB: CodecTypes['pg/text@1']['output'] | null;
-    lpMint: CodecTypes['pg/text@1']['output'] | null;
-    lpAmount: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     pool: public_DexPool;
     readonly [RelationKeys]?: 'pool';
@@ -2477,36 +2447,6 @@ type ContractBase = Omit<
                   readonly nullable: true;
                 };
                 readonly amountOut: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly tokenA: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly amountA: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly tokenB: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly amountB: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly lpMint: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly lpAmount: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
@@ -4604,30 +4544,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly tokenA: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly amountA: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly tokenB: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly amountB: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly lpMint: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly lpAmount: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -4666,12 +4582,6 @@ type ContractBase = Omit<
                 readonly tokenOut: { readonly column: 'tokenOut' };
                 readonly amountIn: { readonly column: 'amountIn' };
                 readonly amountOut: { readonly column: 'amountOut' };
-                readonly tokenA: { readonly column: 'tokenA' };
-                readonly amountA: { readonly column: 'amountA' };
-                readonly tokenB: { readonly column: 'tokenB' };
-                readonly amountB: { readonly column: 'amountB' };
-                readonly lpMint: { readonly column: 'lpMint' };
-                readonly lpAmount: { readonly column: 'lpAmount' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };

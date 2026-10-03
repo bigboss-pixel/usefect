@@ -421,3 +421,94 @@ model EBook {
   @@index([permissionStatus])
   @@index([uploadedByUserId])
 }
+
+
+// USEFECT DEX
+// DEX-09 — Solana indexed read model
+
+model DexPool {
+  id               Int               @id @default(autoincrement())
+
+  poolAddress      String            @unique
+  dexAddress       String
+
+  tokenA           String
+  tokenB           String
+  vaultA           String
+  vaultB           String
+  lpMint           String
+
+  reserveA         String
+  reserveB         String
+  lpSupply         String
+
+  feeBps           Int
+  tokenADecimals   Int
+  tokenBDecimals   Int
+  status           Int
+
+  slot             String
+  blockTime        TimestamptzString?
+
+  createdAt        TimestamptzString @default(now())
+  updatedAt        temporal.updatedAtString()
+
+  transactions     DexTransaction[]
+
+  @@index([tokenA, tokenB])
+  @@index([status])
+  @@index([slot])
+  @@index([updatedAt])
+}
+
+model DexTransaction {
+  id             Int               @id @default(autoincrement())
+
+  signature      String            @unique
+  type           String
+
+  pool           DexPool           @relation(fields:[poolId], references:[id])
+  poolId         Int
+
+  poolAddress    String
+  userAddress    String
+
+  slot           String
+  blockTime      TimestamptzString?
+
+  tokenIn        String?
+  tokenOut       String?
+
+  amountIn       String?
+  amountOut      String?
+
+  tokenA         String?
+  amountA        String?
+
+  tokenB         String?
+  amountB        String?
+
+  lpMint         String?
+  lpAmount       String?
+
+  createdAt      TimestamptzString @default(now())
+
+  @@index([poolId])
+  @@index([poolAddress])
+  @@index([userAddress])
+  @@index([type])
+  @@index([slot])
+  @@index([blockTime])
+}
+
+model DexIndexerState {
+  id                    Int               @id @default(autoincrement())
+
+  programId             String            @unique
+  network                String
+
+  lastProcessedSlot     String
+  lastProcessedSignature String?
+
+  updatedAt              temporal.updatedAtString()
+}

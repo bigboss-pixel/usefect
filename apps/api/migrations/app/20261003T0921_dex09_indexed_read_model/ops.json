@@ -1,0 +1,677 @@
+[
+  {
+    "id": "table.dexIndexerState",
+    "label": "Create table \"dexIndexerState\"",
+    "summary": "Creates table \"dexIndexerState\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dexIndexerState"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dexIndexerState\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexIndexerState\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dexIndexerState\"",
+        "sql": "CREATE TABLE \"public\".\"dexIndexerState\" (\n  \"id\" SERIAL NOT NULL,\n  \"lastProcessedSignature\" text,\n  \"lastProcessedSlot\" text NOT NULL,\n  \"network\" text NOT NULL,\n  \"programId\" text NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dexIndexerState\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexIndexerState\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.dexPool",
+    "label": "Create table \"dexPool\"",
+    "summary": "Creates table \"dexPool\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dexPool\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dexPool\"",
+        "sql": "CREATE TABLE \"public\".\"dexPool\" (\n  \"blockTime\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dexAddress\" text NOT NULL,\n  \"feeBps\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"lpMint\" text NOT NULL,\n  \"lpSupply\" text NOT NULL,\n  \"poolAddress\" text NOT NULL,\n  \"reserveA\" text NOT NULL,\n  \"reserveB\" text NOT NULL,\n  \"slot\" text NOT NULL,\n  \"status\" int4 NOT NULL,\n  \"tokenA\" text NOT NULL,\n  \"tokenADecimals\" int4 NOT NULL,\n  \"tokenB\" text NOT NULL,\n  \"tokenBDecimals\" int4 NOT NULL,\n  \"updatedAt\" timestamptz NOT NULL,\n  \"vaultA\" text NOT NULL,\n  \"vaultB\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dexPool\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.dexTransaction",
+    "label": "Create table \"dexTransaction\"",
+    "summary": "Creates table \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"dexTransaction\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"dexTransaction\"",
+        "sql": "CREATE TABLE \"public\".\"dexTransaction\" (\n  \"amountIn\" text,\n  \"amountOut\" text,\n  \"blockTime\" timestamptz,\n  \"createdAt\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"poolAddress\" text NOT NULL,\n  \"poolId\" int4 NOT NULL,\n  \"signature\" text NOT NULL,\n  \"slot\" text NOT NULL,\n  \"tokenIn\" text,\n  \"tokenOut\" text,\n  \"type\" text NOT NULL,\n  \"userAddress\" text NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"dexTransaction\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dexIndexerState.dexIndexerState_programId_key",
+    "label": "Add unique constraint on \"dexIndexerState\" (programId)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dexIndexerState_programId_key",
+        "table": "dexIndexerState"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dexIndexerState_programId_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexIndexerState_programId_key",
+          "public",
+          "\"public\".\"dexIndexerState\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dexIndexerState_programId_key\"",
+        "sql": "ALTER TABLE \"public\".\"dexIndexerState\" ADD CONSTRAINT \"dexIndexerState_programId_key\" UNIQUE (\"programId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dexIndexerState_programId_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexIndexerState_programId_key",
+          "public",
+          "\"public\".\"dexIndexerState\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dexPool.dexPool_poolAddress_key",
+    "label": "Add unique constraint on \"dexPool\" (poolAddress)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dexPool_poolAddress_key",
+        "table": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dexPool_poolAddress_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexPool_poolAddress_key",
+          "public",
+          "\"public\".\"dexPool\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dexPool_poolAddress_key\"",
+        "sql": "ALTER TABLE \"public\".\"dexPool\" ADD CONSTRAINT \"dexPool_poolAddress_key\" UNIQUE (\"poolAddress\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dexPool_poolAddress_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexPool_poolAddress_key",
+          "public",
+          "\"public\".\"dexPool\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.dexTransaction.dexTransaction_signature_key",
+    "label": "Add unique constraint on \"dexTransaction\" (signature)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "dexTransaction_signature_key",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"dexTransaction_signature_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexTransaction_signature_key",
+          "public",
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"dexTransaction_signature_key\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\" ADD CONSTRAINT \"dexTransaction_signature_key\" UNIQUE (\"signature\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"dexTransaction_signature_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexTransaction_signature_key",
+          "public",
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexPool.dexPool_slot_idx_c5200595",
+    "label": "Create index \"dexPool_slot_idx_c5200595\" on \"dexPool\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexPool_slot_idx_c5200595",
+        "table": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexPool_slot_idx_c5200595\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_slot_idx_c5200595\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexPool_slot_idx_c5200595\"",
+        "sql": "CREATE INDEX \"dexPool_slot_idx_c5200595\" ON \"public\".\"dexPool\" (\"slot\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexPool_slot_idx_c5200595\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_slot_idx_c5200595\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexPool.dexPool_status_idx_e98638ab",
+    "label": "Create index \"dexPool_status_idx_e98638ab\" on \"dexPool\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexPool_status_idx_e98638ab",
+        "table": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexPool_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexPool_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"dexPool_status_idx_e98638ab\" ON \"public\".\"dexPool\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexPool_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexPool.dexPool_tokenA_tokenB_idx_352f51d3",
+    "label": "Create index \"dexPool_tokenA_tokenB_idx_352f51d3\" on \"dexPool\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexPool_tokenA_tokenB_idx_352f51d3",
+        "table": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexPool_tokenA_tokenB_idx_352f51d3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_tokenA_tokenB_idx_352f51d3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexPool_tokenA_tokenB_idx_352f51d3\"",
+        "sql": "CREATE INDEX \"dexPool_tokenA_tokenB_idx_352f51d3\" ON \"public\".\"dexPool\" (\"tokenA\", \"tokenB\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexPool_tokenA_tokenB_idx_352f51d3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_tokenA_tokenB_idx_352f51d3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexPool.dexPool_updatedAt_idx_8c508b31",
+    "label": "Create index \"dexPool_updatedAt_idx_8c508b31\" on \"dexPool\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexPool_updatedAt_idx_8c508b31",
+        "table": "dexPool"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexPool_updatedAt_idx_8c508b31\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_updatedAt_idx_8c508b31\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexPool_updatedAt_idx_8c508b31\"",
+        "sql": "CREATE INDEX \"dexPool_updatedAt_idx_8c508b31\" ON \"public\".\"dexPool\" (\"updatedAt\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexPool_updatedAt_idx_8c508b31\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexPool_updatedAt_idx_8c508b31\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_blockTime_idx_6e83d95b",
+    "label": "Create index \"dexTransaction_blockTime_idx_6e83d95b\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_blockTime_idx_6e83d95b",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_blockTime_idx_6e83d95b\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_blockTime_idx_6e83d95b\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_blockTime_idx_6e83d95b\"",
+        "sql": "CREATE INDEX \"dexTransaction_blockTime_idx_6e83d95b\" ON \"public\".\"dexTransaction\" (\"blockTime\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_blockTime_idx_6e83d95b\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_blockTime_idx_6e83d95b\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_poolAddress_idx_77694a02",
+    "label": "Create index \"dexTransaction_poolAddress_idx_77694a02\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_poolAddress_idx_77694a02",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_poolAddress_idx_77694a02\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_poolAddress_idx_77694a02\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_poolAddress_idx_77694a02\"",
+        "sql": "CREATE INDEX \"dexTransaction_poolAddress_idx_77694a02\" ON \"public\".\"dexTransaction\" (\"poolAddress\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_poolAddress_idx_77694a02\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_poolAddress_idx_77694a02\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_poolId_idx_d8a048f6",
+    "label": "Create index \"dexTransaction_poolId_idx_d8a048f6\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_poolId_idx_d8a048f6",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_poolId_idx_d8a048f6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_poolId_idx_d8a048f6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_poolId_idx_d8a048f6\"",
+        "sql": "CREATE INDEX \"dexTransaction_poolId_idx_d8a048f6\" ON \"public\".\"dexTransaction\" (\"poolId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_poolId_idx_d8a048f6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_poolId_idx_d8a048f6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_slot_idx_c5200595",
+    "label": "Create index \"dexTransaction_slot_idx_c5200595\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_slot_idx_c5200595",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_slot_idx_c5200595\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_slot_idx_c5200595\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_slot_idx_c5200595\"",
+        "sql": "CREATE INDEX \"dexTransaction_slot_idx_c5200595\" ON \"public\".\"dexTransaction\" (\"slot\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_slot_idx_c5200595\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_slot_idx_c5200595\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_type_idx_b6b604ea",
+    "label": "Create index \"dexTransaction_type_idx_b6b604ea\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_type_idx_b6b604ea",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_type_idx_b6b604ea\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_type_idx_b6b604ea\"",
+        "sql": "CREATE INDEX \"dexTransaction_type_idx_b6b604ea\" ON \"public\".\"dexTransaction\" (\"type\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_type_idx_b6b604ea\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_type_idx_b6b604ea\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.dexTransaction.dexTransaction_userAddress_idx_3f459b97",
+    "label": "Create index \"dexTransaction_userAddress_idx_3f459b97\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "dexTransaction_userAddress_idx_3f459b97",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"dexTransaction_userAddress_idx_3f459b97\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_userAddress_idx_3f459b97\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"dexTransaction_userAddress_idx_3f459b97\"",
+        "sql": "CREATE INDEX \"dexTransaction_userAddress_idx_3f459b97\" ON \"public\".\"dexTransaction\" (\"userAddress\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"dexTransaction_userAddress_idx_3f459b97\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"dexTransaction_userAddress_idx_3f459b97\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.dexTransaction.dexTransaction_poolId_fkey",
+    "label": "Add foreign key \"dexTransaction_poolId_fkey\" on \"dexTransaction\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "dexTransaction_poolId_fkey",
+        "table": "dexTransaction"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"dexTransaction_poolId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexTransaction_poolId_fkey",
+          "public",
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"dexTransaction_poolId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"dexTransaction\"\nADD CONSTRAINT \"dexTransaction_poolId_fkey\"\nFOREIGN KEY (\"poolId\")\nREFERENCES \"public\".\"dexPool\" (\"id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"dexTransaction_poolId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "dexTransaction_poolId_fkey",
+          "public",
+          "\"public\".\"dexTransaction\""
+        ]
+      }
+    ]
+  }
+]
