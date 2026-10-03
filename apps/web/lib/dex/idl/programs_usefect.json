@@ -1,0 +1,966 @@
+{
+  "address": "FLYaSSPbQKzqq3BYNF7Jgn7CxPyEK7YTtr8jMmQtivfa",
+  "metadata": {
+    "name": "programs_usefect",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "add_liquidity",
+      "discriminator": [
+        181,
+        157,
+        89,
+        67,
+        143,
+        182,
+        52,
+        72
+      ],
+      "accounts": [
+        {
+          "name": "provider",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "dex_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  120,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_a",
+                "account": "Pool"
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_b",
+                "account": "Pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_a"
+        },
+        {
+          "name": "token_b"
+        },
+        {
+          "name": "vault_a",
+          "writable": true
+        },
+        {
+          "name": "vault_b",
+          "writable": true
+        },
+        {
+          "name": "user_token_a",
+          "writable": true
+        },
+        {
+          "name": "user_token_b",
+          "writable": true
+        },
+        {
+          "name": "lp_mint",
+          "writable": true
+        },
+        {
+          "name": "user_lp_token_account",
+          "writable": true
+        },
+        {
+          "name": "lp_lock_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  45,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_a",
+          "type": "u64"
+        },
+        {
+          "name": "amount_b",
+          "type": "u64"
+        },
+        {
+          "name": "lp_amount_min",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "increment",
+      "discriminator": [
+        11,
+        18,
+        104,
+        9,
+        104,
+        174,
+        59,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "counter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "counter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_dex",
+      "discriminator": [
+        34,
+        119,
+        13,
+        209,
+        50,
+        165,
+        251,
+        179
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "dex_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  120,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "fee_bps",
+          "type": "u16"
+        },
+        {
+          "name": "protocol_fee_bps",
+          "type": "u16"
+        }
+      ]
+    },
+    {
+      "name": "initialize_pool",
+      "discriminator": [
+        95,
+        180,
+        10,
+        172,
+        84,
+        174,
+        232,
+        40
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "dex_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  120,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "token_a"
+              },
+              {
+                "kind": "account",
+                "path": "token_b"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_a"
+        },
+        {
+          "name": "token_b"
+        },
+        {
+          "name": "vault_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  45,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "vault_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116,
+                  45,
+                  98
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_mint",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  45,
+                  109,
+                  105,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lp_lock_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  112,
+                  45,
+                  108,
+                  111,
+                  99,
+                  107
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "remove_liquidity",
+      "discriminator": [
+        80,
+        85,
+        209,
+        72,
+        24,
+        206,
+        177,
+        108
+      ],
+      "accounts": [
+        {
+          "name": "dex_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  120,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_a",
+                "account": "Pool"
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_b",
+                "account": "Pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_a"
+        },
+        {
+          "name": "token_b"
+        },
+        {
+          "name": "vault_a",
+          "writable": true
+        },
+        {
+          "name": "vault_b",
+          "writable": true
+        },
+        {
+          "name": "lp_mint",
+          "writable": true
+        },
+        {
+          "name": "user_lp_token_account",
+          "writable": true
+        },
+        {
+          "name": "user_token_a",
+          "writable": true
+        },
+        {
+          "name": "user_token_b",
+          "writable": true
+        },
+        {
+          "name": "provider",
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "lp_amount",
+          "type": "u64"
+        },
+        {
+          "name": "amount_a_min",
+          "type": "u64"
+        },
+        {
+          "name": "amount_b_min",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "swap",
+      "discriminator": [
+        248,
+        198,
+        158,
+        145,
+        225,
+        117,
+        135,
+        200
+      ],
+      "accounts": [
+        {
+          "name": "dex_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  120,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_a",
+                "account": "Pool"
+              },
+              {
+                "kind": "account",
+                "path": "pool.token_b",
+                "account": "Pool"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_a"
+        },
+        {
+          "name": "token_b"
+        },
+        {
+          "name": "vault_a",
+          "writable": true
+        },
+        {
+          "name": "vault_b",
+          "writable": true
+        },
+        {
+          "name": "user_token_a",
+          "writable": true
+        },
+        {
+          "name": "user_token_b",
+          "writable": true
+        },
+        {
+          "name": "user",
+          "signer": true
+        },
+        {
+          "name": "token_program",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount_in",
+          "type": "u64"
+        },
+        {
+          "name": "amount_out_min",
+          "type": "u64"
+        },
+        {
+          "name": "a_to_b",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Counter",
+      "discriminator": [
+        255,
+        176,
+        4,
+        245,
+        188,
+        253,
+        124,
+        25
+      ]
+    },
+    {
+      "name": "DexConfig",
+      "discriminator": [
+        80,
+        197,
+        252,
+        196,
+        142,
+        152,
+        251,
+        72
+      ]
+    },
+    {
+      "name": "Pool",
+      "discriminator": [
+        241,
+        154,
+        109,
+        4,
+        17,
+        177,
+        109,
+        188
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Only the counter authority can update this counter"
+    },
+    {
+      "code": 6001,
+      "name": "CounterOverflow",
+      "msg": "Counter has reached the maximum value"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidFee",
+      "msg": "Fee cannot exceed 10000 basis points"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidProtocolFee",
+      "msg": "Protocol fee cannot exceed the swap fee"
+    },
+    {
+      "code": 6004,
+      "name": "DexPaused",
+      "msg": "The DEX is currently paused"
+    },
+    {
+      "code": 6005,
+      "name": "SameToken",
+      "msg": "Token A and Token B cannot be the same"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidTokenOrder",
+      "msg": "Token A must be ordered before Token B"
+    },
+    {
+      "code": 6007,
+      "name": "ZeroLiquidityAmount",
+      "msg": "Liquidity amount must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "InsufficientInitialLiquidity",
+      "msg": "Initial liquidity is too small"
+    },
+    {
+      "code": 6009,
+      "name": "InsufficientLpOutput",
+      "msg": "Requested LP amount is below the minimum"
+    },
+    {
+      "code": 6010,
+      "name": "PoolInactive",
+      "msg": "Pool is not active"
+    },
+    {
+      "code": 6011,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6012,
+      "name": "InsufficientLpBalance",
+      "msg": "Insufficient LP token balance"
+    },
+    {
+      "code": 6013,
+      "name": "InsufficientTokenOutput",
+      "msg": "Token output is below the minimum requested amount"
+    }
+  ],
+  "types": [
+    {
+      "name": "Counter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "count",
+            "type": "u64"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DexConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "protocol_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pool",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "dex",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_a",
+            "type": "pubkey"
+          },
+          {
+            "name": "token_b",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_a",
+            "type": "pubkey"
+          },
+          {
+            "name": "vault_b",
+            "type": "pubkey"
+          },
+          {
+            "name": "lp_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "reserve_a",
+            "type": "u64"
+          },
+          {
+            "name": "reserve_b",
+            "type": "u64"
+          },
+          {
+            "name": "lp_supply",
+            "type": "u64"
+          },
+          {
+            "name": "fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "token_a_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "token_b_decimals",
+            "type": "u8"
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "COUNTER_SEED",
+      "type": "bytes",
+      "value": "[99, 111, 117, 110, 116, 101, 114]"
+    },
+    {
+      "name": "DEX_CONFIG_SEED",
+      "type": "bytes",
+      "value": "[100, 101, 120, 45, 99, 111, 110, 102, 105, 103]"
+    },
+    {
+      "name": "HELLO_WORLD_LAMPORTS",
+      "type": "u64",
+      "value": "1"
+    },
+    {
+      "name": "LP_LOCK_SEED",
+      "type": "bytes",
+      "value": "[108, 112, 45, 108, 111, 99, 107]"
+    },
+    {
+      "name": "LP_MINT_SEED",
+      "type": "bytes",
+      "value": "[108, 112, 45, 109, 105, 110, 116]"
+    },
+    {
+      "name": "MAX_COUNT",
+      "type": "u64",
+      "value": "10"
+    },
+    {
+      "name": "POOL_SEED",
+      "type": "bytes",
+      "value": "[112, 111, 111, 108]"
+    },
+    {
+      "name": "VAULT_A_SEED",
+      "type": "bytes",
+      "value": "[118, 97, 117, 108, 116, 45, 97]"
+    },
+    {
+      "name": "VAULT_B_SEED",
+      "type": "bytes",
+      "value": "[118, 97, 117, 108, 116, 45, 98]"
+    }
+  ]
+}

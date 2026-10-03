@@ -22,6 +22,7 @@ import { AiModule } from './ai/ai.module.js';
 import { AuditLogModule } from './audit-log/audit-log.module.js';
 import { OpacModule } from './opac/opac.module.js';
 import { EBooksModule } from './ebooks/ebooks.module.js';
+import { DexModule } from './dex/dex.module.js';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { EBooksModule } from './ebooks/ebooks.module.js';
     AuditLogModule,
     OpacModule,
     EBooksModule,
+    DexModule,
   ],
   controllers: [AppController],
   providers: [AppService, HealthService],

@@ -20,3 +20,17 @@ apps/api/src/loans/loans.service.before-recovery.ts
 apps/web/public/dev-ebooks/*
 
 apps/api/storage/ebooks/*
+
+# Local/generated DEX development files
+apps/api/apps/api/storage/ebooks/*
+apps/api/migrations/app/20261003T1031_migration/
+
+# Local Solana backups
+programs-usefect/backups/
+
+# Local test backups
+programs-usefect/programs/**/tests/*.bak
+programs-usefect/programs/**/tests/*.dex07*-backup
+
+# Nested Git metadata backup
+programs-usefect/.git.nested-backup/
