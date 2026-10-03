@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
   ParseIntPipe,
   Query,
@@ -65,7 +66,7 @@ export class DexController {
     );
   }
 
-  @Get('indexer/transactions/sync')
+  @Post('indexer/transactions/sync')
   syncTransactions(
     @Query('limit', new ParseIntPipe({ optional: true }))
     limit?: number,
@@ -80,7 +81,7 @@ export class DexController {
     return this.dexIndexerService.getIndexerDatabaseState();
   }
 
-  @Get('indexer/sync')
+  @Post('indexer/sync')
   syncKnownPool() {
     return this.dexIndexerService.syncKnownPool();
   }
