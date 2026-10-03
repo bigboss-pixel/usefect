@@ -40,6 +40,11 @@ export class DexController {
     );
   }
 
+  @Get('health')
+  getDexHealth() {
+    return this.dexIndexerService.getDexHealth();
+  }
+
   @Get('indexer')
   getIndexerState() {
     return this.dexService.getIndexerState();

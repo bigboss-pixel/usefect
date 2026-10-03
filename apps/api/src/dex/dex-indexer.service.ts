@@ -1015,6 +1015,123 @@ export class DexIndexerService {
     };
   }
 
+  async getDexHealth() {
+    const checkedAt = new Date().toISOString();
+
+    let rpc: {
+      status: 'ok' | 'error';
+      slot?: number;
+      error?: string;
+    };
+
+    try {
+      const slot = await this.connection.getSlot('confirmed');
+
+      rpc = {
+        status: 'ok',
+        slot,
+      };
+    } catch (error) {
+      rpc = {
+        status: 'error',
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      };
+    }
+
+    let pool: {
+      status: 'ok' | 'error';
+      address: string;
+      owner?: string;
+      exists?: boolean;
+      error?: string;
+    };
+
+    try {
+      const account =
+        await this.connection.getAccountInfo(
+          KNOWN_POOL_ADDRESS,
+          'confirmed',
+        );
+
+      if (!account) {
+        pool = {
+          status: 'error',
+          address:
+            KNOWN_POOL_ADDRESS.toBase58(),
+          exists: false,
+          error: 'Known DEX pool account not found',
+        };
+      } else if (
+        !account.owner.equals(PROGRAM_ID)
+      ) {
+        pool = {
+          status: 'error',
+          address:
+            KNOWN_POOL_ADDRESS.toBase58(),
+          exists: true,
+          owner: account.owner.toBase58(),
+          error:
+            'Known DEX pool account owner does not match DEX program',
+        };
+      } else {
+        pool = {
+          status: 'ok',
+          address:
+            KNOWN_POOL_ADDRESS.toBase58(),
+          exists: true,
+          owner: account.owner.toBase58(),
+        };
+      }
+    } catch (error) {
+      pool = {
+        status: 'error',
+        address:
+          KNOWN_POOL_ADDRESS.toBase58(),
+        error:
+          error instanceof Error
+            ? error.message
+            : String(error),
+      };
+    }
+
+    const indexerState =
+      await db.orm.public.DexIndexerState.where({
+        programId: PROGRAM_ID.toBase58(),
+      }).first();
+
+    const healthy =
+      rpc.status === 'ok' &&
+      pool.status === 'ok';
+
+    return {
+      status: healthy ? 'ok' : 'degraded',
+      network: DEX_NETWORK,
+      programId: PROGRAM_ID.toBase58(),
+      pool,
+      rpc,
+      indexer: indexerState
+        ? {
+            status: 'ok',
+            lastProcessedSlot:
+              indexerState.lastProcessedSlot,
+            lastProcessedSignature:
+              indexerState.lastProcessedSignature,
+            updatedAt:
+              indexerState.updatedAt,
+          }
+        : {
+            status: 'not_initialized',
+            lastProcessedSlot: null,
+            lastProcessedSignature: null,
+            updatedAt: null,
+          },
+      checkedAt,
+    };
+  }
+
   async getIndexerDatabaseState() {
     return db.orm.public.DexIndexerState.all();
   }
