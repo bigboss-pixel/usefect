@@ -1025,7 +1025,9 @@ export class DexIndexerService {
     };
 
     try {
-      const slot = await this.connection.getSlot('confirmed');
+      const slot = await this.connection.getSlot(
+        'confirmed',
+      );
 
       rpc = {
         status: 'ok',
@@ -1102,9 +1104,34 @@ export class DexIndexerService {
         programId: PROGRAM_ID.toBase58(),
       }).first();
 
+    const indexerSlot =
+      indexerState?.lastProcessedSlot
+        ? Number(indexerState.lastProcessedSlot)
+        : null;
+
+    const rpcSlot =
+      rpc.status === 'ok' &&
+      rpc.slot !== undefined
+        ? rpc.slot
+        : null;
+
+    const slotLag =
+      rpcSlot !== null &&
+      indexerSlot !== null
+        ? Math.max(0, rpcSlot - indexerSlot)
+        : null;
+
+    const INDEXER_LAG_THRESHOLD = 500;
+
+    const indexerHealthy =
+      indexerState !== null &&
+      slotLag !== null &&
+      slotLag <= INDEXER_LAG_THRESHOLD;
+
     const healthy =
       rpc.status === 'ok' &&
-      pool.status === 'ok';
+      pool.status === 'ok' &&
+      indexerHealthy;
 
     return {
       status: healthy ? 'ok' : 'degraded',
@@ -1114,11 +1141,15 @@ export class DexIndexerService {
       rpc,
       indexer: indexerState
         ? {
-            status: 'ok',
+            status: indexerHealthy
+              ? 'ok'
+              : 'degraded',
             lastProcessedSlot:
               indexerState.lastProcessedSlot,
             lastProcessedSignature:
               indexerState.lastProcessedSignature,
+            slotLag,
+            lagThreshold: INDEXER_LAG_THRESHOLD,
             updatedAt:
               indexerState.updatedAt,
           }
@@ -1126,6 +1157,8 @@ export class DexIndexerService {
             status: 'not_initialized',
             lastProcessedSlot: null,
             lastProcessedSignature: null,
+            slotLag: null,
+            lagThreshold: INDEXER_LAG_THRESHOLD,
             updatedAt: null,
           },
       checkedAt,
