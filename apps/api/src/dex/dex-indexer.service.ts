@@ -951,8 +951,18 @@ export class DexIndexerService {
       }
     }
 
+    const persistedSignatures = new Set(
+      persisted
+        .filter((item) => item !== null)
+        .map((item) => item.signature),
+    );
+
     const latest = discovered
-      .filter((item) => item.err === null)
+      .filter(
+        (item) =>
+          item.err === null &&
+          persistedSignatures.has(item.signature),
+      )
       .sort((a, b) => {
         const slotA = BigInt(a.slot);
         const slotB = BigInt(b.slot);
