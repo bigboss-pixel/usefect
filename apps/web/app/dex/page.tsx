@@ -5,7 +5,10 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 
-import { getDexTokenAddresses } from "../../lib/dex/config";
+import {
+  DEX_NETWORK,
+  getDexTokenAddresses,
+} from "../../lib/dex/config";
 import {
   formatTokenAmount,
   parseTokenAmount,
@@ -57,11 +60,63 @@ function formatPercent(value: number): string {
 }
 
 function extractErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes("user rejected") ||
+    normalized.includes("user declined") ||
+    normalized.includes("rejected the request")
+  ) {
+    return "Transaction was cancelled in your wallet.";
   }
 
-  return String(error);
+  if (
+    normalized.includes("insufficient funds") ||
+    normalized.includes("insufficient lamports") ||
+    normalized.includes("insufficient balance")
+  ) {
+    return "Insufficient balance to complete this transaction.";
+  }
+
+  if (
+    normalized.includes("blockhash") ||
+    normalized.includes("block height exceeded") ||
+    normalized.includes("transaction expired")
+  ) {
+    return "The transaction expired before confirmation. Please try again.";
+  }
+
+  if (
+    normalized.includes("fetch failed") ||
+    normalized.includes("failed to fetch") ||
+    normalized.includes("network error") ||
+    normalized.includes("failed to connect") ||
+    normalized.includes("timeout")
+  ) {
+    return "Network connection failed. Please check your connection and try again.";
+  }
+
+  if (
+    normalized.includes("429") ||
+    normalized.includes("rate limit") ||
+    normalized.includes("too many requests")
+  ) {
+    return "The Solana RPC is temporarily rate-limited. Please try again shortly.";
+  }
+
+  if (
+    normalized.includes("pool account not found") ||
+    normalized.includes("pool is not available")
+  ) {
+    return "The liquidity pool is currently unavailable.";
+  }
+
+  return "The transaction or DEX request could not be completed. Please try again.";
 }
 
 export default function DexPage() {
@@ -1546,7 +1601,13 @@ export default function DexPage() {
                 </p>
 
                 <a
-                  href={`https://explorer.solana.com/tx/${successSignature}?cluster=devnet`}
+                  href={`https://explorer.solana.com/tx/${successSignature}${
+                    DEX_NETWORK === "devnet"
+                      ? "?cluster=devnet"
+                      : DEX_NETWORK === "testnet"
+                        ? "?cluster=testnet"
+                        : ""
+                  }`}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 block truncate text-xs text-emerald-400 underline"
@@ -1615,7 +1676,13 @@ export default function DexPage() {
                       </div>
 
                       <a
-                        href={`https://explorer.solana.com/tx/${activity.signature}?cluster=devnet`}
+                        href={`https://explorer.solana.com/tx/${activity.signature}${
+                          DEX_NETWORK === "devnet"
+                            ? "?cluster=devnet"
+                            : DEX_NETWORK === "testnet"
+                              ? "?cluster=testnet"
+                              : ""
+                        }`}
                         target="_blank"
                         rel="noreferrer"
                         className="shrink-0 text-[10px] font-semibold text-cyan-400 transition hover:text-cyan-300"
@@ -1633,7 +1700,12 @@ export default function DexPage() {
                 <span>Network</span>
 
                 <span className="text-emerald-400">
-                  Solana Devnet
+                  Solana{" "}
+                  {DEX_NETWORK === "mainnet-beta"
+                    ? "Mainnet"
+                    : DEX_NETWORK === "testnet"
+                      ? "Testnet"
+                      : "Devnet"}
                 </span>
               </div>
 
