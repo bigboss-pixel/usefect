@@ -812,7 +812,13 @@ export class DexIndexerService {
             mint.mintAuthority ===
               transaction.poolAddress &&
             mint.account !==
-              'HZFzNT3HVgrptLEjyxdX9jPfUdz8UiAQZHo9GKD6FgA2',
+              PublicKey.findProgramAddressSync(
+                    [
+                      Buffer.from("lp-lock"),
+                      new PublicKey(transaction.poolAddress).toBuffer(),
+                    ],
+                    PROGRAM_ID,
+                  )[0].toBase58(),
         );
 
         if (lpMints.length > 0) {
