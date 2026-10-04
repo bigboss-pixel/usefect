@@ -746,6 +746,8 @@ fn test_swap_rejects_fee_10000_boundary() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: user_token_a.pubkey(),
+            protocol_fee_token_b: user_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }

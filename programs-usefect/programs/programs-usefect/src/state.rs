@@ -11,6 +11,7 @@ pub struct Counter {
 #[derive(InitSpace)]
 pub struct DexConfig {
     pub authority: Pubkey,
+    pub treasury: Pubkey,
     pub fee_bps: u16,
     pub protocol_fee_bps: u16,
     pub paused: bool,

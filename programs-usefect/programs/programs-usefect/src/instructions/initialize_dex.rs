@@ -15,6 +15,12 @@ pub fn handle_initialize_dex(
     let dex_config = &mut ctx.accounts.dex_config;
 
     dex_config.authority = ctx.accounts.authority.key();
+
+    // Initial protocol treasury follows the DEX authority.
+    // A dedicated treasury setter can be added later without
+    // changing the swap accounting architecture.
+    dex_config.treasury = ctx.accounts.authority.key();
+
     dex_config.fee_bps = fee_bps;
     dex_config.protocol_fee_bps = protocol_fee_bps;
     dex_config.paused = false;

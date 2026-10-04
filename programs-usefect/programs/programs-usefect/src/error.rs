@@ -11,6 +11,9 @@ pub enum ErrorCode {
     #[msg("Protocol fee cannot exceed the swap fee")]
     InvalidProtocolFee,
 
+    #[msg("Invalid protocol fee token account")]
+    InvalidProtocolFeeAccount,
+
     #[msg("The DEX is currently paused")]
     DexPaused,
 

@@ -64,6 +64,28 @@ pub struct Swap<'info> {
     )]
     pub user_token_b: Box<Account<'info, TokenAccount>>,
 
+    /// Token-A protocol fee destination.
+    /// Must belong to the configured treasury.
+    #[account(
+        mut,
+        constraint = protocol_fee_token_a.mint == token_a.key()
+            @ ErrorCode::InvalidProtocolFeeAccount,
+        constraint = protocol_fee_token_a.owner == dex_config.treasury
+            @ ErrorCode::InvalidProtocolFeeAccount,
+    )]
+    pub protocol_fee_token_a: Box<Account<'info, TokenAccount>>,
+
+    /// Token-B protocol fee destination.
+    /// Must belong to the configured treasury.
+    #[account(
+        mut,
+        constraint = protocol_fee_token_b.mint == token_b.key()
+            @ ErrorCode::InvalidProtocolFeeAccount,
+        constraint = protocol_fee_token_b.owner == dex_config.treasury
+            @ ErrorCode::InvalidProtocolFeeAccount,
+    )]
+    pub protocol_fee_token_b: Box<Account<'info, TokenAccount>>,
+
     pub user: Signer<'info>,
 
     pub token_program: Program<'info, Token>,
@@ -100,6 +122,30 @@ pub fn handle_swap(
         .ok_or(ErrorCode::MathOverflow)?;
 
     require!(amount_in_after_fee > 0, ErrorCode::InsufficientTokenOutput);
+
+    /*
+     * Total trading fee is the difference between the gross input
+     * and the amount used by the constant-product curve.
+     *
+     * protocol_fee_bps is a share of the trading fee, not an
+     * additional fee charged on top of fee_bps.
+     */
+    let total_fee = amount_in_u128
+        .checked_sub(amount_in_after_fee)
+        .ok_or(ErrorCode::MathOverflow)?;
+
+    let protocol_fee = if ctx.accounts.dex_config.protocol_fee_bps == 0 {
+        0u128
+    } else {
+        total_fee
+            .checked_mul(ctx.accounts.dex_config.protocol_fee_bps as u128)
+            .ok_or(ErrorCode::MathOverflow)?
+            .checked_div(fee_bps)
+            .ok_or(ErrorCode::MathOverflow)?
+    };
+
+    let protocol_fee_u64 =
+        u64::try_from(protocol_fee).map_err(|_| error!(ErrorCode::MathOverflow))?;
 
     let (reserve_in, reserve_out) = if a_to_b {
         (pool.reserve_a as u128, pool.reserve_b as u128)
@@ -157,6 +203,24 @@ pub fn handle_swap(
 
         token::transfer_checked(transfer_in_ctx, amount_in, pool.token_a_decimals)?;
 
+        if protocol_fee_u64 > 0 {
+            // Pool PDA signs the transfer from the pool vault.
+            token::transfer_checked(
+                CpiContext::new_with_signer(
+                    ctx.accounts.token_program.key(),
+                    TransferChecked {
+                        from: ctx.accounts.vault_a.to_account_info(),
+                        mint: ctx.accounts.token_a.to_account_info(),
+                        to: ctx.accounts.protocol_fee_token_a.to_account_info(),
+                        authority: pool_account_info.clone(),
+                    },
+                    signer,
+                ),
+                protocol_fee_u64,
+                pool.token_a_decimals,
+            )?;
+        }
+
         let transfer_out_ctx = CpiContext::new_with_signer(
             ctx.accounts.token_program.key(),
             TransferChecked {
@@ -172,7 +236,14 @@ pub fn handle_swap(
 
         pool.reserve_a = pool
             .reserve_a
-            .checked_add(amount_in)
+            .checked_add(
+                u64::try_from(
+                    amount_in_u128
+                        .checked_sub(protocol_fee)
+                        .ok_or(ErrorCode::MathOverflow)?,
+                )
+                .map_err(|_| error!(ErrorCode::MathOverflow))?,
+            )
             .ok_or(ErrorCode::MathOverflow)?;
 
         pool.reserve_b = pool
@@ -192,6 +263,23 @@ pub fn handle_swap(
 
         token::transfer_checked(transfer_in_ctx, amount_in, pool.token_b_decimals)?;
 
+        if protocol_fee_u64 > 0 {
+            token::transfer_checked(
+                CpiContext::new_with_signer(
+                    ctx.accounts.token_program.key(),
+                    TransferChecked {
+                        from: ctx.accounts.vault_b.to_account_info(),
+                        mint: ctx.accounts.token_b.to_account_info(),
+                        to: ctx.accounts.protocol_fee_token_b.to_account_info(),
+                        authority: pool_account_info.clone(),
+                    },
+                    signer,
+                ),
+                protocol_fee_u64,
+                pool.token_b_decimals,
+            )?;
+        }
+
         let transfer_out_ctx = CpiContext::new_with_signer(
             ctx.accounts.token_program.key(),
             TransferChecked {
@@ -207,7 +295,14 @@ pub fn handle_swap(
 
         pool.reserve_b = pool
             .reserve_b
-            .checked_add(amount_in)
+            .checked_add(
+                u64::try_from(
+                    amount_in_u128
+                        .checked_sub(protocol_fee)
+                        .ok_or(ErrorCode::MathOverflow)?,
+                )
+                .map_err(|_| error!(ErrorCode::MathOverflow))?,
+            )
             .ok_or(ErrorCode::MathOverflow)?;
 
         pool.reserve_a = pool

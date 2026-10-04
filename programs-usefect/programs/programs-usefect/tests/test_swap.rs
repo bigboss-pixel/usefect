@@ -198,9 +198,14 @@ fn test_swap() {
     let user_token_a = Keypair::new();
     let user_token_b = Keypair::new();
 
+    let treasury_token_a = Keypair::new();
+    let treasury_token_b = Keypair::new();
+
     create_token_account(&mut svm, &payer, &user_token_a, &token_a, &payer.pubkey());
 
     create_token_account(&mut svm, &payer, &user_token_b, &token_b, &payer.pubkey());
+    create_token_account(&mut svm, &payer, &treasury_token_a, &token_a, &payer.pubkey());
+    create_token_account(&mut svm, &payer, &treasury_token_b, &token_b, &payer.pubkey());
 
     // ---------------------------------------------------------
     // 3. USER BALANCES
@@ -234,7 +239,7 @@ fn test_swap() {
         program_id,
         &programs_usefect::instruction::InitializeDex {
             fee_bps: 30,
-            protocol_fee_bps: 0,
+            protocol_fee_bps: 5,
         }
         .data(),
         accounts::InitializeDex {
@@ -256,7 +261,7 @@ fn test_swap() {
     let dex_state = DexConfig::try_deserialize(&mut dex_data).expect("Gagal deserialize DexConfig");
 
     assert_eq!(dex_state.fee_bps, 30);
-    assert_eq!(dex_state.protocol_fee_bps, 0);
+    assert_eq!(dex_state.protocol_fee_bps, 5);
     assert!(!dex_state.paused);
 
     // ---------------------------------------------------------
@@ -408,6 +413,9 @@ fn test_swap() {
 
     let vault_b_before = token_amount(&svm, &vault_b);
 
+    let treasury_a_before = token_amount(&svm, &treasury_token_a.pubkey());
+    let treasury_b_before = token_amount(&svm, &treasury_token_b.pubkey());
+
     let swap_a_to_b = Instruction::new_with_bytes(
         program_id,
         &programs_usefect::instruction::Swap {
@@ -425,6 +433,8 @@ fn test_swap() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: treasury_token_a.pubkey(),
+            protocol_fee_token_b: treasury_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }
@@ -435,7 +445,7 @@ fn test_swap() {
 
     let pool_after_a_to_b = read_pool(&svm, &pool);
 
-    assert_eq!(pool_after_a_to_b.reserve_a, 3_300_000);
+    assert_eq!(pool_after_a_to_b.reserve_a, 3_299_850);
 
     assert_eq!(
         pool_after_a_to_b.reserve_b,
@@ -454,7 +464,12 @@ fn test_swap() {
 
     assert_eq!(
         token_amount(&svm, &vault_a),
-        vault_a_before + swap_a_to_b_in
+        vault_a_before + swap_a_to_b_in - 150
+    );
+
+    assert_eq!(
+        token_amount(&svm, &treasury_token_a.pubkey()),
+        treasury_a_before + 150
     );
 
     assert_eq!(
@@ -530,6 +545,8 @@ fn test_swap() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: treasury_token_a.pubkey(),
+            protocol_fee_token_b: treasury_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }
@@ -542,7 +559,7 @@ fn test_swap() {
 
     assert_eq!(
         pool_after_b_to_a.reserve_b,
-        pool_after_a_to_b.reserve_b + swap_b_to_a_in
+        pool_after_a_to_b.reserve_b + swap_b_to_a_in - 500
     );
 
     assert_eq!(
@@ -558,6 +575,16 @@ fn test_swap() {
     assert_eq!(
         token_amount(&svm, &user_token_a.pubkey()),
         user_a_before_b_to_a + expected_b_to_a_out
+    );
+
+    assert_eq!(
+        token_amount(&svm, &vault_b),
+        vault_b_before - expected_a_to_b_out + swap_b_to_a_in - 500
+    );
+
+    assert_eq!(
+        token_amount(&svm, &treasury_token_b.pubkey()),
+        treasury_b_before + 500
     );
 
     // ---------------------------------------------------------
@@ -606,6 +633,8 @@ fn test_swap() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: treasury_token_a.pubkey(),
+            protocol_fee_token_b: treasury_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }
@@ -680,6 +709,8 @@ fn test_swap() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: treasury_token_a.pubkey(),
+            protocol_fee_token_b: treasury_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }
@@ -719,6 +750,8 @@ fn test_swap() {
             vault_b,
             user_token_a: user_token_a.pubkey(),
             user_token_b: user_token_b.pubkey(),
+            protocol_fee_token_a: treasury_token_a.pubkey(),
+            protocol_fee_token_b: treasury_token_b.pubkey(),
             user: payer.pubkey(),
             token_program: spl_token::ID,
         }
