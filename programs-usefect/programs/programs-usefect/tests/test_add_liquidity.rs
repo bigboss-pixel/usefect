@@ -1822,3 +1822,579 @@ fn test_fase_17_lp_economics_invariants() {
     println!("FASE-17 reserve/vault consistency: PASSED");
     println!("FASE-17 LP ECONOMICS: PASSED");
 }
+
+
+#[test]
+fn test_fase_18_transaction_state_robustness() {
+    let program_id = programs_usefect::id();
+    let payer = Keypair::new();
+    let mut svm = LiteSVM::new();
+
+    let program_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../target/deploy/programs_usefect_litesvm.so"
+    );
+
+    svm.add_program_from_file(program_id, program_path)
+        .expect("Gagal load program USEFECT");
+
+    svm.airdrop(&payer.pubkey(), 20_000_000_000)
+        .expect("Airdrop gagal");
+
+    // ---------------------------------------------------------
+    // 1. CREATE MINTS
+    // ---------------------------------------------------------
+
+    let mint_x = Keypair::new();
+    let mint_y = Keypair::new();
+
+    create_mint(&mut svm, &payer, &mint_x, 6, &payer.pubkey());
+    create_mint(&mut svm, &payer, &mint_y, 6, &payer.pubkey());
+
+    let (token_a, token_b, mint_a, mint_b) =
+        if mint_x.pubkey().to_bytes() < mint_y.pubkey().to_bytes() {
+            (mint_x.pubkey(), mint_y.pubkey(), &mint_x, &mint_y)
+        } else {
+            (mint_y.pubkey(), mint_x.pubkey(), &mint_y, &mint_x)
+        };
+
+    let user_token_a = Keypair::new();
+    let user_token_b = Keypair::new();
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_token_a,
+        &token_a,
+        &payer.pubkey(),
+    );
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_token_b,
+        &token_b,
+        &payer.pubkey(),
+    );
+
+    // ---------------------------------------------------------
+    // 2. INITIAL BALANCE
+    // ---------------------------------------------------------
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_a.pubkey(),
+        &user_token_a.pubkey(),
+        &payer,
+        3_000_000,
+    );
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_b.pubkey(),
+        &user_token_b.pubkey(),
+        &payer,
+        12_000_000,
+    );
+
+    // ---------------------------------------------------------
+    // 3. DEX
+    // ---------------------------------------------------------
+
+    let dex_config =
+        Pubkey::find_program_address(&[DEX_CONFIG_SEED], &program_id).0;
+
+    let initialize_dex = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::InitializeDex {
+            fee_bps: 30,
+            protocol_fee_bps: 0,
+        }
+        .data(),
+        accounts::InitializeDex {
+            dex_config,
+            authority: payer.pubkey(),
+            system_program: system_program::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[initialize_dex], &[&payer]);
+
+    // ---------------------------------------------------------
+    // 4. POOL
+    // ---------------------------------------------------------
+
+    let pool = Pubkey::find_program_address(
+        &[POOL_SEED, token_a.as_ref(), token_b.as_ref()],
+        &program_id,
+    )
+    .0;
+
+    let vault_a =
+        Pubkey::find_program_address(&[VAULT_A_SEED, pool.as_ref()], &program_id).0;
+
+    let vault_b =
+        Pubkey::find_program_address(&[VAULT_B_SEED, pool.as_ref()], &program_id).0;
+
+    let lp_mint =
+        Pubkey::find_program_address(&[LP_MINT_SEED, pool.as_ref()], &program_id).0;
+
+    let lp_lock_account =
+        Pubkey::find_program_address(&[LP_LOCK_SEED, pool.as_ref()], &program_id).0;
+
+    let initialize_pool = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::InitializePool {}.data(),
+        accounts::InitializePool {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            authority: payer.pubkey(),
+            token_program: spl_token::ID,
+            system_program: system_program::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[initialize_pool], &[&payer]);
+
+    let user_lp = Keypair::new();
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_lp,
+        &lp_mint,
+        &payer.pubkey(),
+    );
+
+    // ---------------------------------------------------------
+    // 5. INITIAL LIQUIDITY
+    // ---------------------------------------------------------
+
+    let add_initial = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 2_000_000,
+            amount_b: 8_000_000,
+            lp_amount_min: 3_999_000,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[add_initial], &[&payer]);
+
+    // ---------------------------------------------------------
+    // 6. BASELINE SNAPSHOT
+    // ---------------------------------------------------------
+
+    let baseline_pool = read_pool(&svm, &pool);
+    let baseline_user_a = token_amount(&svm, &user_token_a.pubkey());
+    let baseline_user_b = token_amount(&svm, &user_token_b.pubkey());
+    let baseline_user_lp = token_amount(&svm, &user_lp.pubkey());
+    let baseline_vault_a = token_amount(&svm, &vault_a);
+    let baseline_vault_b = token_amount(&svm, &vault_b);
+    let baseline_locked_lp = token_amount(&svm, &lp_lock_account);
+
+    // ---------------------------------------------------------
+    // 7. FAILED ADD LIQUIDITY
+    // ---------------------------------------------------------
+    //
+    // Correct LP output would be 2,000,000.
+    // Demand 2,000,001.
+    //
+    // Nothing may change.
+
+    let failed_add = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 1_000_000,
+            amount_b: 4_000_000,
+            lp_amount_min: 2_000_001,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[failed_add], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Failed AddLiquidity harus ditolak"
+    );
+
+    let after_failed_add = read_pool(&svm, &pool);
+
+    assert_eq!(after_failed_add.reserve_a, baseline_pool.reserve_a);
+    assert_eq!(after_failed_add.reserve_b, baseline_pool.reserve_b);
+    assert_eq!(after_failed_add.lp_supply, baseline_pool.lp_supply);
+
+    assert_eq!(token_amount(&svm, &user_token_a.pubkey()), baseline_user_a);
+    assert_eq!(token_amount(&svm, &user_token_b.pubkey()), baseline_user_b);
+    assert_eq!(token_amount(&svm, &user_lp.pubkey()), baseline_user_lp);
+    assert_eq!(token_amount(&svm, &vault_a), baseline_vault_a);
+    assert_eq!(token_amount(&svm, &vault_b), baseline_vault_b);
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        baseline_locked_lp
+    );
+
+    println!("FASE-18 failed AddLiquidity atomicity: PASSED");
+
+    // ---------------------------------------------------------
+    // 8. FAILED REMOVE LIQUIDITY
+    // ---------------------------------------------------------
+    //
+    // Burning 1,000,000 LP gives:
+    // A = 500,000
+    // B = 2,000,000
+    //
+    // Demand 500,001 A.
+    //
+    // Nothing may change.
+
+    let failed_remove = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::RemoveLiquidity {
+            lp_amount: 1_000_000,
+            amount_a_min: 500_001,
+            amount_b_min: 2_000_000,
+        }
+        .data(),
+        accounts::RemoveLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            user_lp_token_account: user_lp.pubkey(),
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[failed_remove], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Failed RemoveLiquidity harus ditolak"
+    );
+
+    let after_failed_remove = read_pool(&svm, &pool);
+
+    assert_eq!(
+        after_failed_remove.reserve_a,
+        baseline_pool.reserve_a
+    );
+    assert_eq!(
+        after_failed_remove.reserve_b,
+        baseline_pool.reserve_b
+    );
+    assert_eq!(
+        after_failed_remove.lp_supply,
+        baseline_pool.lp_supply
+    );
+
+    assert_eq!(token_amount(&svm, &user_token_a.pubkey()), baseline_user_a);
+    assert_eq!(token_amount(&svm, &user_token_b.pubkey()), baseline_user_b);
+    assert_eq!(token_amount(&svm, &user_lp.pubkey()), baseline_user_lp);
+    assert_eq!(token_amount(&svm, &vault_a), baseline_vault_a);
+    assert_eq!(token_amount(&svm, &vault_b), baseline_vault_b);
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        baseline_locked_lp
+    );
+
+    println!("FASE-18 failed RemoveLiquidity atomicity: PASSED");
+
+    // ---------------------------------------------------------
+    // 9. POOL INACTIVE MUST NOT MUTATE STATE
+    // ---------------------------------------------------------
+
+    let set_inactive = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetPoolStatus {
+            status: POOL_STATUS_INACTIVE,
+        }
+        .data(),
+        accounts::SetPoolStatus {
+            dex_config,
+            pool,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[set_inactive], &[&payer]);
+
+    let inactive_pool = read_pool(&svm, &pool);
+
+    assert_eq!(inactive_pool.status, POOL_STATUS_INACTIVE);
+    assert_eq!(inactive_pool.reserve_a, baseline_pool.reserve_a);
+    assert_eq!(inactive_pool.reserve_b, baseline_pool.reserve_b);
+    assert_eq!(inactive_pool.lp_supply, baseline_pool.lp_supply);
+
+    let blocked_add = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 1,
+            amount_b: 4,
+            lp_amount_min: 0,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[blocked_add], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "AddLiquidity harus gagal saat pool INACTIVE"
+    );
+
+    let after_inactive_rejection = read_pool(&svm, &pool);
+
+    assert_eq!(
+        after_inactive_rejection.reserve_a,
+        baseline_pool.reserve_a
+    );
+    assert_eq!(
+        after_inactive_rejection.reserve_b,
+        baseline_pool.reserve_b
+    );
+    assert_eq!(
+        after_inactive_rejection.lp_supply,
+        baseline_pool.lp_supply
+    );
+
+    assert_eq!(token_amount(&svm, &user_token_a.pubkey()), baseline_user_a);
+    assert_eq!(token_amount(&svm, &user_token_b.pubkey()), baseline_user_b);
+    assert_eq!(token_amount(&svm, &user_lp.pubkey()), baseline_user_lp);
+    assert_eq!(token_amount(&svm, &vault_a), baseline_vault_a);
+    assert_eq!(token_amount(&svm, &vault_b), baseline_vault_b);
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        baseline_locked_lp
+    );
+
+    println!("FASE-18 inactive pool state preservation: PASSED");
+
+    // ---------------------------------------------------------
+    // 10. GLOBAL PAUSE MUST NOT MUTATE ECONOMIC STATE
+    // ---------------------------------------------------------
+
+    let set_active = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetPoolStatus {
+            status: POOL_STATUS_ACTIVE,
+        }
+        .data(),
+        accounts::SetPoolStatus {
+            dex_config,
+            pool,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[set_active], &[&payer]);
+
+    let pause = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: true,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[pause], &[&payer]);
+
+    let paused_add = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 1,
+            amount_b: 4,
+            lp_amount_min: 0,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[paused_add], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "AddLiquidity harus gagal saat DEX PAUSED"
+    );
+
+    let after_pause_rejection = read_pool(&svm, &pool);
+
+    assert_eq!(
+        after_pause_rejection.reserve_a,
+        baseline_pool.reserve_a
+    );
+    assert_eq!(
+        after_pause_rejection.reserve_b,
+        baseline_pool.reserve_b
+    );
+    assert_eq!(
+        after_pause_rejection.lp_supply,
+        baseline_pool.lp_supply
+    );
+
+    assert_eq!(token_amount(&svm, &user_token_a.pubkey()), baseline_user_a);
+    assert_eq!(token_amount(&svm, &user_token_b.pubkey()), baseline_user_b);
+    assert_eq!(token_amount(&svm, &user_lp.pubkey()), baseline_user_lp);
+    assert_eq!(token_amount(&svm, &vault_a), baseline_vault_a);
+    assert_eq!(token_amount(&svm, &vault_b), baseline_vault_b);
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        baseline_locked_lp
+    );
+
+    println!("FASE-18 global pause state preservation: PASSED");
+
+    // ---------------------------------------------------------
+    // 11. RESTORE NORMAL STATE
+    // ---------------------------------------------------------
+
+    let unpause = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: false,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[unpause], &[&payer]);
+
+    let final_pool = read_pool(&svm, &pool);
+
+    assert_eq!(final_pool.reserve_a, baseline_pool.reserve_a);
+    assert_eq!(final_pool.reserve_b, baseline_pool.reserve_b);
+    assert_eq!(final_pool.lp_supply, baseline_pool.lp_supply);
+    assert_eq!(final_pool.status, POOL_STATUS_ACTIVE);
+
+    assert_eq!(token_amount(&svm, &user_token_a.pubkey()), baseline_user_a);
+    assert_eq!(token_amount(&svm, &user_token_b.pubkey()), baseline_user_b);
+    assert_eq!(token_amount(&svm, &user_lp.pubkey()), baseline_user_lp);
+    assert_eq!(token_amount(&svm, &vault_a), baseline_vault_a);
+    assert_eq!(token_amount(&svm, &vault_b), baseline_vault_b);
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        baseline_locked_lp
+    );
+
+    println!("FASE-18 final state restoration: PASSED");
+    println!("========================================");
+    println!("FASE-18 TRANSACTION & STATE ROBUSTNESS: PASSED");
+    println!("========================================");
+}
