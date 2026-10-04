@@ -65,7 +65,8 @@ pub struct InitializePool<'info> {
 
     #[account(
         seeds = [DEX_CONFIG_SEED],
-        bump = dex_config.bump
+        bump = dex_config.bump,
+        has_one = authority @ ErrorCode::Unauthorized
     )]
     pub dex_config: Account<'info, DexConfig>,
 
