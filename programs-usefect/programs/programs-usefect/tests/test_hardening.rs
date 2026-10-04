@@ -1267,3 +1267,127 @@ fn test_admin_authority_hardening() {
     println!("FASE-14 new authority accepted: PASSED");
     println!("FASE-14 ADMIN AUTHORITY HARDENING: PASSED");
 }
+
+
+#[test]
+fn test_initialize_pool_rejects_unauthorized_authority() {
+    use programs_usefect::constants::{
+        DEX_CONFIG_SEED, LP_LOCK_SEED, LP_MINT_SEED, POOL_SEED, VAULT_A_SEED, VAULT_B_SEED,
+    };
+
+    let program_id = programs_usefect::id();
+    let (mut svm, payer) = setup_svm();
+
+    let attacker = Keypair::new();
+    svm.airdrop(&attacker.pubkey(), 5_000_000_000)
+        .expect("Airdrop attacker gagal");
+
+    // Initialize DEX menggunakan authority yang benar.
+    let dex_ix = initialize_dex_instruction(program_id, &payer, 30, 5);
+
+    let blockhash = svm.latest_blockhash();
+    let message = Message::new_with_blockhash(
+        &[dex_ix],
+        Some(&payer.pubkey()),
+        &blockhash,
+    );
+
+    let tx =
+        VersionedTransaction::try_new(
+            VersionedMessage::Legacy(message),
+            &[&payer],
+        )
+        .unwrap();
+
+    svm.send_transaction(tx)
+        .expect("Initialize DEX gagal");
+
+    // Mint A dan B.
+    let mint_a = Keypair::new();
+    let mint_b = Keypair::new();
+
+    create_mint(&mut svm, &payer, &mint_a);
+    create_mint(&mut svm, &payer, &mint_b);
+
+    let (token_a, token_b) =
+        if mint_a.pubkey().to_bytes() < mint_b.pubkey().to_bytes() {
+            (mint_a.pubkey(), mint_b.pubkey())
+        } else {
+            (mint_b.pubkey(), mint_a.pubkey())
+        };
+
+    let pool = Pubkey::find_program_address(
+        &[POOL_SEED, token_a.as_ref(), token_b.as_ref()],
+        &program_id,
+    )
+    .0;
+
+    let vault_a =
+        Pubkey::find_program_address(
+            &[VAULT_A_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let vault_b =
+        Pubkey::find_program_address(
+            &[VAULT_B_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let lp_mint =
+        Pubkey::find_program_address(
+            &[LP_MINT_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let lp_lock_account =
+        Pubkey::find_program_address(
+            &[LP_LOCK_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let dex_config =
+        Pubkey::find_program_address(
+            &[DEX_CONFIG_SEED],
+            &program_id,
+        )
+        .0;
+
+    // Attacker mencoba membuat pool pada DEX milik payer.
+    let initialize_pool =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::InitializePool {}.data(),
+            accounts::InitializePool {
+                authority: attacker.pubkey(),
+                dex_config,
+                pool,
+                token_a,
+                token_b,
+                vault_a,
+                vault_b,
+                lp_mint,
+                lp_lock_account,
+                token_program: spl_token::ID,
+                system_program: system_program::ID,
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &attacker,
+        initialize_pool,
+    );
+
+    assert!(
+        svm.get_account(&pool).is_none(),
+        "Pool tidak boleh dibuat oleh authority yang tidak sah"
+    );
+
+    println!("FASE-16 unauthorized InitializePool: PASSED");
+}
