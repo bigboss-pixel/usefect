@@ -1343,3 +1343,482 @@ fn test_add_liquidity() {
     println!("Locked LP  : {}", token_amount(&svm, &lp_lock_account));
     println!("========================================");
 }
+
+
+#[test]
+fn test_fase_17_lp_economics_invariants() {
+    let program_id = programs_usefect::id();
+    let payer = Keypair::new();
+    let mut svm = LiteSVM::new();
+
+    let program_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../target/deploy/programs_usefect_litesvm.so"
+    );
+
+    svm.add_program_from_file(program_id, program_path)
+        .expect("Gagal load program USEFECT");
+
+    svm.airdrop(&payer.pubkey(), 20_000_000_000)
+        .expect("Airdrop gagal");
+
+    // ---------------------------------------------------------
+    // 1. MINTS
+    // ---------------------------------------------------------
+
+    let mint_x = Keypair::new();
+    let mint_y = Keypair::new();
+
+    create_mint(&mut svm, &payer, &mint_x, 6, &payer.pubkey());
+    create_mint(&mut svm, &payer, &mint_y, 6, &payer.pubkey());
+
+    let (token_a, token_b, mint_a, mint_b) =
+        if mint_x.pubkey().to_bytes() < mint_y.pubkey().to_bytes() {
+            (mint_x.pubkey(), mint_y.pubkey(), &mint_x, &mint_y)
+        } else {
+            (mint_y.pubkey(), mint_x.pubkey(), &mint_y, &mint_x)
+        };
+
+    // ---------------------------------------------------------
+    // 2. USER TOKEN ACCOUNTS
+    // ---------------------------------------------------------
+
+    let user_token_a = Keypair::new();
+    let user_token_b = Keypair::new();
+    let user_lp = Keypair::new();
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_token_a,
+        &token_a,
+        &payer.pubkey(),
+    );
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_token_b,
+        &token_b,
+        &payer.pubkey(),
+    );
+
+    // ---------------------------------------------------------
+    // 3. DEX
+    // ---------------------------------------------------------
+
+    let dex_config =
+        Pubkey::find_program_address(&[DEX_CONFIG_SEED], &program_id).0;
+
+    let initialize_dex = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::InitializeDex {
+            fee_bps: 30,
+            protocol_fee_bps: 0,
+        }
+        .data(),
+        accounts::InitializeDex {
+            dex_config,
+            authority: payer.pubkey(),
+            system_program: system_program::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[initialize_dex],
+        &[&payer],
+    );
+
+    // ---------------------------------------------------------
+    // 4. POOL PDAs
+    // ---------------------------------------------------------
+
+    let pool = Pubkey::find_program_address(
+        &[POOL_SEED, token_a.as_ref(), token_b.as_ref()],
+        &program_id,
+    )
+    .0;
+
+    let vault_a =
+        Pubkey::find_program_address(
+            &[VAULT_A_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let vault_b =
+        Pubkey::find_program_address(
+            &[VAULT_B_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let lp_mint =
+        Pubkey::find_program_address(
+            &[LP_MINT_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    let lp_lock_account =
+        Pubkey::find_program_address(
+            &[LP_LOCK_SEED, pool.as_ref()],
+            &program_id,
+        )
+        .0;
+
+    // ---------------------------------------------------------
+    // 5. INITIALIZE POOL
+    // ---------------------------------------------------------
+
+    let initialize_pool = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::InitializePool {}.data(),
+        accounts::InitializePool {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            authority: payer.pubkey(),
+            token_program: spl_token::ID,
+            system_program: system_program::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[initialize_pool],
+        &[&payer],
+    );
+
+    create_token_account(
+        &mut svm,
+        &payer,
+        &user_lp,
+        &lp_mint,
+        &payer.pubkey(),
+    );
+
+    // ---------------------------------------------------------
+    // 6. INITIAL LIQUIDITY
+    // ---------------------------------------------------------
+
+    let initial_a = 2_000_000u64;
+    let initial_b = 8_000_000u64;
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_a.pubkey(),
+        &user_token_a.pubkey(),
+        &payer,
+        initial_a,
+    );
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_b.pubkey(),
+        &user_token_b.pubkey(),
+        &payer,
+        initial_b,
+    );
+
+    let initial_lp = 3_999_000u64;
+
+    let add_initial = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: initial_a,
+            amount_b: initial_b,
+            lp_amount_min: initial_lp,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[add_initial],
+        &[&payer],
+    );
+
+    let pool_state = read_pool(&svm, &pool);
+
+    assert_eq!(pool_state.reserve_a, 2_000_000);
+    assert_eq!(pool_state.reserve_b, 8_000_000);
+    assert_eq!(pool_state.lp_supply, 4_000_000);
+
+    assert_eq!(
+        token_amount(&svm, &user_lp.pubkey()),
+        3_999_000
+    );
+
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        MINIMUM_LIQUIDITY
+    );
+
+    println!("FASE-17 initial LP accounting: PASSED");
+
+    // ---------------------------------------------------------
+    // 7. SECOND LIQUIDITY
+    // ---------------------------------------------------------
+
+    let second_a = 1_000_000u64;
+    let second_b = 4_000_000u64;
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_a.pubkey(),
+        &user_token_a.pubkey(),
+        &payer,
+        second_a,
+    );
+
+    mint_tokens(
+        &mut svm,
+        &payer,
+        &mint_b.pubkey(),
+        &user_token_b.pubkey(),
+        &payer,
+        second_b,
+    );
+
+    let add_second = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: second_a,
+            amount_b: second_b,
+            lp_amount_min: 2_000_000,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[add_second],
+        &[&payer],
+    );
+
+    let pool_state = read_pool(&svm, &pool);
+
+    assert_eq!(pool_state.reserve_a, 3_000_000);
+    assert_eq!(pool_state.reserve_b, 12_000_000);
+    assert_eq!(pool_state.lp_supply, 6_000_000);
+
+    assert_eq!(
+        token_amount(&svm, &user_lp.pubkey()),
+        5_999_000
+    );
+
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        MINIMUM_LIQUIDITY
+    );
+
+    println!("FASE-17 proportional LP minting: PASSED");
+
+    // ---------------------------------------------------------
+    // 8. PARTIAL REMOVE
+    // ---------------------------------------------------------
+    //
+    // Burn 1,000,000 LP from 6,000,000:
+    //
+    // A = 1,000,000 * 3,000,000 / 6,000,000
+    //   = 500,000
+    //
+    // B = 1,000,000 * 12,000,000 / 6,000,000
+    //   = 2,000,000
+
+    let remove_partial = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::RemoveLiquidity {
+            lp_amount: 1_000_000,
+            amount_a_min: 500_000,
+            amount_b_min: 2_000_000,
+        }
+        .data(),
+        accounts::RemoveLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            user_lp_token_account: user_lp.pubkey(),
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[remove_partial],
+        &[&payer],
+    );
+
+    let pool_state = read_pool(&svm, &pool);
+
+    assert_eq!(pool_state.reserve_a, 2_500_000);
+    assert_eq!(pool_state.reserve_b, 10_000_000);
+    assert_eq!(pool_state.lp_supply, 5_000_000);
+
+    assert_eq!(
+        token_amount(&svm, &user_lp.pubkey()),
+        4_999_000
+    );
+
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        MINIMUM_LIQUIDITY
+    );
+
+    assert_eq!(
+        token_amount(&svm, &vault_a),
+        pool_state.reserve_a
+    );
+
+    assert_eq!(
+        token_amount(&svm, &vault_b),
+        pool_state.reserve_b
+    );
+
+    println!("FASE-17 partial LP redemption: PASSED");
+
+    // ---------------------------------------------------------
+    // 9. REDEEM ALL PROVIDER LP
+    // ---------------------------------------------------------
+    //
+    // Provider owns 4,999,000 LP.
+    // Total supply = 5,000,000.
+    //
+    // The remaining 1,000 LP is permanently locked.
+    //
+    // Expected:
+    //
+    // A = 2,500,000 * 4,999,000 / 5,000,000
+    //   = 2,499,500
+    //
+    // B = 10,000,000 * 4,999,000 / 5,000,000
+    //   = 9,998,000
+    //
+    // Remaining pool reserves:
+    //
+    // A = 500
+    // B = 2,000
+    //
+    // LP supply:
+    //
+    // 1,000 locked LP
+
+    let remove_all = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::RemoveLiquidity {
+            lp_amount: 4_999_000,
+            amount_a_min: 2_499_500,
+            amount_b_min: 9_998_000,
+        }
+        .data(),
+        accounts::RemoveLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            user_lp_token_account: user_lp.pubkey(),
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &payer,
+        &[remove_all],
+        &[&payer],
+    );
+
+    let pool_state = read_pool(&svm, &pool);
+
+    assert_eq!(pool_state.reserve_a, 500);
+    assert_eq!(pool_state.reserve_b, 2_000);
+    assert_eq!(pool_state.lp_supply, MINIMUM_LIQUIDITY);
+
+    assert_eq!(
+        token_amount(&svm, &user_lp.pubkey()),
+        0
+    );
+
+    assert_eq!(
+        token_amount(&svm, &lp_lock_account),
+        MINIMUM_LIQUIDITY
+    );
+
+    assert_eq!(
+        token_amount(&svm, &vault_a),
+        pool_state.reserve_a
+    );
+
+    assert_eq!(
+        token_amount(&svm, &vault_b),
+        pool_state.reserve_b
+    );
+
+    println!("FASE-17 locked liquidity invariant: PASSED");
+    println!("FASE-17 reserve/vault consistency: PASSED");
+    println!("FASE-17 LP ECONOMICS: PASSED");
+}
