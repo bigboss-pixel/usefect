@@ -6,3 +6,8 @@ node_modules
 test-ledger
 .yarn
 .surfpool
+
+# Solana deployment secrets
+**/target/deploy/*-keypair.json
+.env.mainnet
+.env.mainnet.local
