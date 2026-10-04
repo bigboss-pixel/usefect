@@ -71,4 +71,59 @@ pub mod programs_usefect {
     ) -> Result<()> {
         crate::instructions::initialize_dex::handle_initialize_dex(ctx, fee_bps, protocol_fee_bps)
     }
+
+    pub fn initialize_launch(
+        ctx: Context<InitializeLaunch>,
+        token_mint: Pubkey,
+        treasury: Pubkey,
+        total_allocation: u64,
+        graduation_allocation: u64,
+        start_price_lamports_per_token: u64,
+        end_price_lamports_per_token: u64,
+        duration_seconds: u64,
+    ) -> Result<()> {
+        crate::instructions::launch::handle_initialize_launch(
+            ctx,
+            token_mint,
+            treasury,
+            total_allocation,
+            graduation_allocation,
+            start_price_lamports_per_token,
+            end_price_lamports_per_token,
+            duration_seconds,
+        )
+    }
+
+    pub fn fund_launch(ctx: Context<FundLaunch>, amount: u64) -> Result<()> {
+        crate::instructions::launch::handle_fund_launch(ctx, amount)
+    }
+
+    pub fn fund_graduation_liquidity(
+        ctx: Context<FundGraduationLiquidity>,
+        amount: u64,
+    ) -> Result<()> {
+        crate::instructions::launch::handle_fund_graduation_liquidity(ctx, amount)
+    }
+
+    pub fn graduate_launch(
+        ctx: Context<GraduateLaunch>,
+        sol_liquidity_amount: u64,
+    ) -> Result<()> {
+        crate::instructions::graduate_launch::handle_graduate_launch(
+            ctx,
+            sol_liquidity_amount,
+        )
+    }
+
+    pub fn buy(ctx: Context<Buy>, amount_use_tokens: u64, max_sol_in: u64) -> Result<()> {
+        crate::instructions::launch::handle_buy(ctx, amount_use_tokens, max_sol_in)
+    }
+
+    pub fn sell(ctx: Context<Sell>, amount_use_tokens: u64, min_sol_out: u64) -> Result<()> {
+        crate::instructions::launch::handle_sell(ctx, amount_use_tokens, min_sol_out)
+    }
+
+    pub fn expire_launch(ctx: Context<ExpireLaunch>) -> Result<()> {
+        crate::instructions::launch::handle_expire_launch(ctx)
+    }
 }

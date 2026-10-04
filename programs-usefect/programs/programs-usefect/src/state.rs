@@ -35,3 +35,23 @@ pub struct Pool {
     pub status: u8,
     pub bump: u8,
 }
+
+#[account]
+#[derive(InitSpace)]
+pub struct Launch {
+    pub authority: Pubkey,
+    pub token_mint: Pubkey,
+    pub treasury: Pubkey,
+    pub use_vault: Pubkey,
+    pub graduation_vault: Pubkey,
+    pub total_allocation: u64,
+    pub graduation_allocation: u64,
+    pub tokens_sold: u64,
+    pub sol_raised: u64,
+    pub start_price_lamports_per_token: u64,
+    pub end_price_lamports_per_token: u64,
+    pub started_at: i64,
+    pub deadline: i64,
+    pub status: u8,
+    pub bump: u8,
+}
