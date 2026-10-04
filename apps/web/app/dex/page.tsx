@@ -17,6 +17,11 @@ import {
   fetchDexPool,
   type DexPoolSnapshot,
 } from "../../lib/dex/pool";
+import { buildDexMarketData, type DexMarketData } from "../../lib/dex/market-data";
+import {
+  fetchDexConfig,
+  type DexConfigSnapshot,
+} from "../../lib/dex/dex-config";
 import {
   buildSwapQuote,
   type DexSwapQuote,
@@ -30,13 +35,23 @@ import {
   type LiquidityQuote,
   type RemoveLiquidityQuote,
 } from "../../lib/dex/liquidity";
-import { fetchWalletTokenBalance } from "../../lib/dex/token";
+import {
+  fetchMintDecimals,
+  fetchWalletTokenBalance,
+} from "../../lib/dex/token";
 
 const tokenConfig = getDexTokenAddresses();
 
 const DEFAULT_SLIPPAGE_BPS = 50;
 
 type DexTab = "swap" | "liquidity";
+type TransactionStage =
+  | "idle"
+  | "signing"
+  | "confirming"
+  | "confirmed"
+  | "failed";
+
 type LiquidityMode = "add" | "remove";
 
 type DexActivity = {
@@ -132,6 +147,12 @@ export default function DexPage() {
   const [pool, setPool] =
     useState<DexPoolSnapshot | null>(null);
 
+  const [dexConfig, setDexConfig] =
+    useState<DexConfigSnapshot | null>(null);
+
+  const [lpDecimals, setLpDecimals] =
+    useState(9);
+
   const [activeTab, setActiveTab] =
     useState<DexTab>("swap");
 
@@ -164,6 +185,8 @@ export default function DexPage() {
 
   const [lpBalance, setLpBalance] =
     useState(BigInt(0));
+  const [marketData, setMarketData] =
+    useState<DexMarketData | null>(null);
 
   const [swapQuote, setSwapQuote] =
     useState<DexSwapQuote | null>(null);
@@ -195,6 +218,10 @@ export default function DexPage() {
   const [liquidityLoading, setLiquidityLoading] =
     useState(false);
 
+  const [transactionStage, setTransactionStage] =
+    useState<TransactionStage>("idle");
+
+
   const [error, setError] =
     useState<string | null>(null);
 
@@ -207,7 +234,11 @@ export default function DexPage() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    const timer = window.setTimeout(() => {
+      setMounted(true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   const outputMint = useMemo(() => {
@@ -243,20 +274,35 @@ export default function DexPage() {
   const loadPool = useCallback(async () => {
     if (!tokenConfig) {
       setPool(null);
+      setDexConfig(null);
       return;
     }
 
     setLoadingPool(true);
 
     try {
-      const nextPool = await fetchDexPool(
-        tokenConfig.tokenA,
-        tokenConfig.tokenB,
-      );
+      const [nextPool, nextDexConfig] =
+        await Promise.all([
+          fetchDexPool(
+            tokenConfig.tokenA,
+            tokenConfig.tokenB,
+          ),
+          fetchDexConfig(),
+        ]);
 
       setPool(nextPool);
+      setDexConfig(nextDexConfig);
+
+      if (nextPool) {
+        const decimals = await fetchMintDecimals(
+          nextPool.lpMint,
+        );
+
+        setLpDecimals(decimals);
+      }
     } catch (err) {
       setPool(null);
+      setDexConfig(null);
       setError(extractErrorMessage(err));
     } finally {
       setLoadingPool(false);
@@ -329,11 +375,19 @@ export default function DexPage() {
   ]);
 
   useEffect(() => {
-    void loadPool();
+    const timer = window.setTimeout(() => {
+      void loadPool();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadPool]);
 
   useEffect(() => {
-    void loadBalances();
+    const timer = window.setTimeout(() => {
+      void loadBalances();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [loadBalances]);
 
   useEffect(() => {
@@ -443,7 +497,7 @@ export default function DexPage() {
       try {
         const lpAmount = parseTokenAmount(
           liquidityLpInput,
-          9,
+          lpDecimals,
         );
 
         const nextQuote = quoteRemoveLiquidity(
@@ -466,6 +520,7 @@ export default function DexPage() {
     liquidityMode,
     pool,
     liquidityLpInput,
+    lpDecimals,
   ]);
 
   function flipTokens() {
@@ -509,13 +564,14 @@ export default function DexPage() {
 
   function setMaxLp() {
     setLiquidityLpInput(
-      formatTokenAmount(lpBalance, 9),
+      formatTokenAmount(lpBalance, lpDecimals),
     );
   }
 
   async function handleSwap() {
     setError(null);
     setSuccessSignature(null);
+    setTransactionStage("idle");
 
     if (
       !connected ||
@@ -548,6 +604,7 @@ export default function DexPage() {
     }
 
     setSwapping(true);
+    setTransactionStage("signing");
 
     try {
       const signature = await executeSwap({
@@ -562,6 +619,7 @@ export default function DexPage() {
         slippageBps: BigInt(slippageBps),
       });
 
+      setTransactionStage("confirming");
       setSuccessSignature(signature);
 
       setActivities((current) => [
@@ -581,18 +639,24 @@ export default function DexPage() {
       setInputValue("");
       setSwapQuote(null);
 
-      await loadPool();
+      await Promise.allSettled([
+        loadPool(),
+        loadBalances(),
+      ]);
+
+      setTransactionStage("confirmed");
     } catch (err) {
+      setTransactionStage("failed");
       setError(extractErrorMessage(err));
     } finally {
       setSwapping(false);
-      await loadBalances();
     }
   }
 
   async function handleAddLiquidity() {
     setError(null);
     setSuccessSignature(null);
+    setTransactionStage("idle");
 
     if (
       !connected ||
@@ -623,6 +687,7 @@ export default function DexPage() {
     }
 
     setLiquidityLoading(true);
+    setTransactionStage("signing");
 
     try {
       const result = await executeAddLiquidity({
@@ -637,6 +702,7 @@ export default function DexPage() {
         slippageBps: DEFAULT_SLIPPAGE_BPS,
       });
 
+      setTransactionStage("confirming");
       setSuccessSignature(result.signature);
 
       setActivities((current) => [
@@ -660,18 +726,24 @@ export default function DexPage() {
       setLiquidityAmountB("");
       setLiquidityQuote(null);
 
-      await loadPool();
+      await Promise.allSettled([
+        loadPool(),
+        loadBalances(),
+      ]);
+
+      setTransactionStage("confirmed");
     } catch (err) {
+      setTransactionStage("failed");
       setError(extractErrorMessage(err));
     } finally {
       setLiquidityLoading(false);
-      await loadBalances();
     }
   }
 
   async function handleRemoveLiquidity() {
     setError(null);
     setSuccessSignature(null);
+    setTransactionStage("idle");
 
     if (
       !connected ||
@@ -694,6 +766,7 @@ export default function DexPage() {
     }
 
     setLiquidityLoading(true);
+    setTransactionStage("signing");
 
     try {
       const result = await executeRemoveLiquidity({
@@ -707,6 +780,7 @@ export default function DexPage() {
         slippageBps: DEFAULT_SLIPPAGE_BPS,
       });
 
+      setTransactionStage("confirming");
       setSuccessSignature(result.signature);
 
       setActivities((current) => [
@@ -715,7 +789,7 @@ export default function DexPage() {
           type: "remove" as const,
           description: `Remove ${formatTokenAmount(
             removeQuote.lpAmount,
-            9,
+            lpDecimals,
           )} LP`,
           signature: result.signature,
           timestamp: Date.now(),
@@ -726,14 +800,26 @@ export default function DexPage() {
       setLiquidityLpInput("");
       setRemoveQuote(null);
 
-      await loadPool();
+      await Promise.allSettled([
+        loadPool(),
+        loadBalances(),
+      ]);
+
+      setTransactionStage("confirmed");
     } catch (err) {
+      setTransactionStage("failed");
       setError(extractErrorMessage(err));
     } finally {
       setLiquidityLoading(false);
-      await loadBalances();
     }
   }
+
+  const minimumReceived =
+    swapQuote
+      ? swapQuote.amountOut -
+        (swapQuote.amountOut * BigInt(slippageBps)) /
+          BigInt(10_000)
+      : BigInt(0);
 
   const poolPrice = swapQuote?.spotPrice ?? 0;
   const executionPrice =
@@ -758,6 +844,8 @@ export default function DexPage() {
     !connected ||
     !pool ||
     !swapQuote ||
+    dexConfig?.paused === true ||
+    pool.status !== 1 ||
     insufficientSwapBalance ||
     inputBalance <= BigInt(0);
 
@@ -773,6 +861,8 @@ export default function DexPage() {
     liquidityLoading ||
     !connected ||
     !pool ||
+    dexConfig?.paused === true ||
+    pool.status !== 1 ||
     !liquidityQuote ||
     insufficientAddA ||
     insufficientAddB;
@@ -785,6 +875,8 @@ export default function DexPage() {
     liquidityLoading ||
     !connected ||
     !pool ||
+    dexConfig?.paused === true ||
+    pool.status !== 1 ||
     !removeQuote ||
     insufficientLp ||
     lpBalance <= BigInt(0);
@@ -840,7 +932,111 @@ export default function DexPage() {
     }
   }
 
+  useEffect(() => {
+    if (!pool) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setMarketData(
+      buildDexMarketData(
+        pool,
+        lpBalance,
+        dexConfig?.protocolFeeBps ?? 0,
+      ),
+    );
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [pool, lpBalance, dexConfig?.protocolFeeBps]);
+
   return (
+    <div>
+      {marketData && (
+        <section
+          data-testid="dex-market-data"
+          className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4"
+        >
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs text-white/50">Reserve A</p>
+            <p className="mt-1 text-sm font-medium">
+              {marketData.totalLiquidityA.toLocaleString(undefined, {
+                maximumFractionDigits: 6,
+              })}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs text-white/50">Reserve B</p>
+            <p className="mt-1 text-sm font-medium">
+              {marketData.totalLiquidityB.toLocaleString(undefined, {
+                maximumFractionDigits: 6,
+              })}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs text-white/50">LP Share</p>
+            <p className="mt-1 text-sm font-medium">
+              {marketData.walletLpShare.toFixed(2)}%
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+            <p className="text-xs text-white/50">Pool Fee</p>
+            <p className="mt-1 text-sm font-medium">
+              {(marketData.feeBps / 100).toFixed(2)}%
+            </p>
+          </div>
+
+          <div className="col-span-2 rounded-xl border border-white/10 bg-white/[0.03] p-4 md:col-span-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="text-xs text-white/50">Price A → B</p>
+                <p className="mt-1 font-medium">
+                  {marketData.priceAToB === null
+                    ? "—"
+                    : marketData.priceAToB.toLocaleString(undefined, {
+                        maximumFractionDigits: 8,
+                      })}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-white/50">Price B → A</p>
+                <p className="mt-1 font-medium">
+                  {marketData.priceBToA === null
+                    ? "—"
+                    : marketData.priceBToA.toLocaleString(undefined, {
+                        maximumFractionDigits: 8,
+                      })}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-white/50">Pool Status</p>
+                <p className="mt-1 font-medium">
+                  {marketData.poolActive ? "Active" : "Inactive"}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs text-white/50">Your LP Position</p>
+                <p className="mt-1 font-medium">
+                  {marketData.walletLiquidityA.toLocaleString(undefined, {
+                    maximumFractionDigits: 6,
+                  })}
+                  {" / "}
+                  {marketData.walletLiquidityB.toLocaleString(undefined, {
+                    maximumFractionDigits: 6,
+                  })}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
     <main className="usefect-dex text-white">
       <div className="usefect-dex-shell mx-auto flex min-h-screen max-w-[1440px] flex-col px-4 py-5 sm:px-6 lg:px-8">
         <header className="usefect-dex-header -mx-4 mb-8 flex items-center justify-between gap-4 px-4 py-3 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
@@ -899,6 +1095,28 @@ export default function DexPage() {
                 Liquidity
               </button>
             </div>
+
+            {dexConfig?.paused ? (
+              <div className="mb-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+                <div className="font-semibold">
+                  DEX is temporarily paused
+                </div>
+                <div className="mt-1 text-amber-200/70">
+                  Trading and liquidity transactions are disabled until the administrator resumes the DEX.
+                </div>
+              </div>
+            ) : null}
+
+            {pool && pool.status !== 1 ? (
+              <div className="mb-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
+                <div className="font-semibold">
+                  Pool is inactive
+                </div>
+                <div className="mt-1 text-amber-200/70">
+                  This pool is currently unavailable for trading and liquidity operations.
+                </div>
+              </div>
+            ) : null}
 
             {!tokenConfig ? (
               <div className="rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-200">
@@ -1146,6 +1364,21 @@ export default function DexPage() {
 
                     <div>
                       <p className="text-slate-500">
+                        Minimum received
+                      </p>
+
+                      <p className="mt-1 text-slate-200">
+                        {swapQuote
+                          ? formatTokenAmount(
+                              minimumReceived,
+                              outputDecimals,
+                            )
+                          : "—"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className="text-slate-500">
                         Price impact
                       </p>
 
@@ -1171,9 +1404,17 @@ export default function DexPage() {
                         Pool status
                       </p>
 
-                      <p className="mt-1 text-emerald-300">
-                        {pool?.status === 1
-                          ? "Active"
+                      <p
+                        className={`mt-1 font-medium ${
+                          pool?.status === 1
+                            ? "text-emerald-300"
+                            : "text-rose-300"
+                        }`}
+                      >
+                        {pool
+                          ? pool.status === 1
+                            ? "Active"
+                            : "Inactive"
                           : "—"}
                       </p>
                     </div>
@@ -1244,6 +1485,20 @@ export default function DexPage() {
                   </p>
                 </div>
 
+                {(dexConfig?.paused || pool?.status !== 1) && (
+                  <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-2.5">
+                    <p className="text-xs font-medium text-amber-300">
+                      Liquidity is currently unavailable.
+                    </p>
+
+                    <p className="mt-1 text-[11px] text-amber-200/60">
+                      {dexConfig?.paused
+                        ? "The DEX is temporarily paused."
+                        : "This pool is currently inactive."}
+                    </p>
+                  </div>
+                )}
+
                 <div className="mb-4 flex rounded-2xl border border-white/10 bg-black/20 p-1">
                   <button
                     type="button"
@@ -1278,6 +1533,14 @@ export default function DexPage() {
                   </button>
                 </div>
 
+                {!connected && (
+                  <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.025] px-3 py-2.5">
+                    <p className="text-xs text-slate-400">
+                      Connect your wallet to manage liquidity and view your LP position.
+                    </p>
+                  </div>
+                )}
+
                 {liquidityMode === "add" ? (
                   <>
                     <div className="space-y-3">
@@ -1293,6 +1556,7 @@ export default function DexPage() {
                               tokenABalance <= BigInt(0)
                             }
                             className="text-cyan-400 disabled:text-slate-600"
+                            title="Use maximum available Token A balance"
                           >
                             Balance:{" "}
                             {formatTokenAmount(
@@ -1340,6 +1604,7 @@ export default function DexPage() {
                               tokenBBalance <= BigInt(0)
                             }
                             className="text-cyan-400 disabled:text-slate-600"
+                            title="Use maximum available Token B balance"
                           >
                             Balance:{" "}
                             {formatTokenAmount(
@@ -1382,7 +1647,7 @@ export default function DexPage() {
                           {liquidityQuote
                             ? formatTokenAmount(
                                 liquidityQuote.lpAmount,
-                                9,
+                                lpDecimals,
                               )
                             : "—"}
                         </span>
@@ -1397,7 +1662,7 @@ export default function DexPage() {
                           {liquidityQuote
                             ? formatTokenAmount(
                                 liquidityQuote.lpAmountMin,
-                                9,
+                                lpDecimals,
                               )
                             : "—"}
                         </span>
@@ -1419,7 +1684,7 @@ export default function DexPage() {
                         <span>
                           {formatTokenAmount(
                             lpBalance,
-                            9,
+                            lpDecimals,
                           )}
                         </span>
                       </div>
@@ -1466,11 +1731,12 @@ export default function DexPage() {
                             lpBalance <= BigInt(0)
                           }
                           className="text-cyan-400 disabled:text-slate-600"
+                          title="Use maximum available LP balance"
                         >
                           Balance:{" "}
                           {formatTokenAmount(
                             lpBalance,
-                            9,
+                            lpDecimals,
                           )}
                         </button>
                       </div>
@@ -1558,6 +1824,26 @@ export default function DexPage() {
 
                       <div className="mt-3 flex justify-between text-sm">
                         <span className="text-slate-400">
+                          Pool share
+                        </span>
+
+                        <span>
+                          {removeQuote &&
+                          pool &&
+                          pool.lpSupply > BigInt(0)
+                            ? `${(
+                                Number(
+                                  removeQuote.lpAmount *
+                                    BigInt(10000) /
+                                    pool.lpSupply,
+                                ) / 100
+                              ).toFixed(2)}%`
+                            : "—"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 flex justify-between text-sm">
+                        <span className="text-slate-400">
                           Slippage
                         </span>
 
@@ -1593,6 +1879,22 @@ export default function DexPage() {
                 )}
               </>
             )}
+
+            {transactionStage !== "idle" &&
+              transactionStage !== "confirmed" &&
+              transactionStage !== "failed" && (
+                <div className="mt-4 rounded-2xl border border-cyan-400/20 bg-cyan-400/[0.06] p-4">
+                  <p className="text-sm font-medium text-cyan-300">
+                    {transactionStage === "signing"
+                      ? "Waiting for wallet confirmation…"
+                      : "Confirming transaction on Solana…"}
+                  </p>
+
+                  <p className="mt-1 text-xs text-slate-500">
+                    Keep your wallet open until the transaction is confirmed.
+                  </p>
+                </div>
+              )}
 
             {successSignature && (
               <div className="mt-4 rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-4">
@@ -1962,5 +2264,6 @@ export default function DexPage() {
         </section>
       </div>
     </main>
+    </div>
   );
 }

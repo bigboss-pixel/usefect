@@ -60,6 +60,10 @@ export async function executeSwap({
     throw new Error("Quote does not match pool");
   }
 
+  if (pool.status !== 1) {
+    throw new Error("Pool is currently inactive.");
+  }
+
   if (
     !quote.inputMint.equals(pool.tokenA) &&
     !quote.inputMint.equals(pool.tokenB)
@@ -98,6 +102,14 @@ export async function executeSwap({
     );
   }
 
+  if (quote.amountIn <= BigInt(0)) {
+    throw new Error("Swap input amount must be greater than zero.");
+  }
+
+  if (quote.amountOut <= BigInt(0)) {
+    throw new Error("Swap output amount must be greater than zero.");
+  }
+
   const userTokenA =
     await getAssociatedTokenAddress(
       pool.tokenA,
@@ -114,12 +126,90 @@ export async function executeSwap({
   const [vaultA] = getVaultAPda(pool.address);
   const [vaultB] = getVaultBPda(pool.address);
 
+  const dexConfigAccount =
+    await connection.getAccountInfo(
+      dexConfig,
+      "confirmed",
+    );
+
+  if (!dexConfigAccount) {
+    throw new Error("DEX configuration account not found.");
+  }
+
+  const { BorshAccountsCoder } = await import(
+    "@coral-xyz/anchor"
+  );
+  const idl = await import("./idl/programs_usefect.json");
+  const coder = new BorshAccountsCoder(
+    idl.default as never,
+  );
+
+  const decoded = coder.decode(
+    "DexConfig",
+    dexConfigAccount.data,
+  ) as {
+    treasury: PublicKey;
+    paused: boolean;
+  };
+
+  if (decoded.paused) {
+    throw new Error("DEX is currently paused.");
+  }
+
+  const treasury = decoded.treasury;
+
+  const protocolFeeTokenA =
+    await getAssociatedTokenAddress(
+      pool.tokenA,
+      treasury,
+    );
+
+  const protocolFeeTokenB =
+    await getAssociatedTokenAddress(
+      pool.tokenB,
+      treasury,
+    );
+
   const program = createDexProgram(
     connection,
     wallet,
   );
 
   const transaction = new Transaction();
+
+  const [protocolFeeAInfo, protocolFeeBInfo] =
+    await Promise.all([
+      connection.getAccountInfo(
+        protocolFeeTokenA,
+        "confirmed",
+      ),
+      connection.getAccountInfo(
+        protocolFeeTokenB,
+        "confirmed",
+      ),
+    ]);
+
+  if (!protocolFeeAInfo) {
+    transaction.add(
+      createAssociatedTokenAccountInstruction(
+        wallet.publicKey,
+        protocolFeeTokenA,
+        treasury,
+        pool.tokenA,
+      ),
+    );
+  }
+
+  if (!protocolFeeBInfo) {
+    transaction.add(
+      createAssociatedTokenAccountInstruction(
+        wallet.publicKey,
+        protocolFeeTokenB,
+        treasury,
+        pool.tokenB,
+      ),
+    );
+  }
 
   const [userTokenAInfo, userTokenBInfo] =
     await Promise.all([
@@ -165,6 +255,8 @@ export async function executeSwap({
         vaultB,
         userTokenA,
         userTokenB,
+        protocolFeeTokenA,
+        protocolFeeTokenB,
         user: wallet.publicKey,
         tokenProgram: TOKEN_PROGRAM_ID,
       })

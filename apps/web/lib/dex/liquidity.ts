@@ -230,6 +230,10 @@ export async function executeAddLiquidity(params: {
     throw new Error("Wallet is not connected");
   }
 
+  if (pool.status !== 1) {
+    throw new Error("Pool is currently inactive.");
+  }
+
   const quote = quoteAddLiquidity(
     pool,
     amountA,
@@ -322,6 +326,10 @@ export async function executeRemoveLiquidity(params: {
 
   if (!wallet.publicKey) {
     throw new Error("Wallet is not connected");
+  }
+
+  if (pool.status !== 1) {
+    throw new Error("Pool is currently inactive.");
   }
 
   const quote = quoteRemoveLiquidity(

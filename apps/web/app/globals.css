@@ -24918,3 +24918,16 @@ a {
     border-radius: 22px;
   }
 }
+
+
+/* USEFECT DEX production number rendering */
+.dex-number {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Prevent accidental horizontal overflow on compact DEX layouts */
+.dex-shell {
+  min-width: 0;
+  overflow-x: clip;
+}

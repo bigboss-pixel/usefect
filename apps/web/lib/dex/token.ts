@@ -66,3 +66,16 @@ export async function fetchWalletTokenBalance(
     uiAmount,
   };
 }
+
+
+export async function fetchMintDecimals(
+  mint: PublicKey,
+): Promise<number> {
+  const mintInfo = await getMint(
+    solanaConnection,
+    mint,
+    "confirmed",
+  );
+
+  return mintInfo.decimals;
+}

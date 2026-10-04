@@ -30,6 +30,18 @@ export const SOLANA_RPC_URL = requireEnv(
 
 export const SOLANA_COMMITMENT = "confirmed" as const;
 
+function assertValidPublicKey(
+  value: string,
+  name: string,
+): void {
+  try {
+    new PublicKey(value);
+  } catch {
+    throw new Error(`${name} is not a valid Solana public key.`);
+  }
+}
+
+
 export const DEX_TOKEN_A_ADDRESS = requireEnv(
   "NEXT_PUBLIC_DEX_TOKEN_A",
   process.env.NEXT_PUBLIC_DEX_TOKEN_A,
@@ -66,5 +78,64 @@ export function getDexTokenAddresses(): {
     };
   } catch {
     return null;
+  }
+}
+
+
+export function assertDexEnvironment(): void {
+  const allowedNetworks = new Set([
+    "devnet",
+    "testnet",
+    "mainnet-beta",
+    "localnet",
+  ]);
+
+  if (!allowedNetworks.has(DEX_NETWORK)) {
+    throw new Error(`Unsupported DEX network: ${DEX_NETWORK}`);
+  }
+
+  if (
+    DEX_NETWORK === "mainnet-beta" &&
+    (SOLANA_RPC_URL.includes("localhost") ||
+      SOLANA_RPC_URL.includes("127.0.0.1") ||
+      SOLANA_RPC_URL.includes("0.0.0.0"))
+  ) {
+    throw new Error(
+      "Mainnet DEX cannot use a local RPC endpoint.",
+    );
+  }
+
+  if (DEX_NETWORK === "mainnet-beta") {
+    if (!DEX_TOKEN_A_ADDRESS || !DEX_TOKEN_B_ADDRESS) {
+      throw new Error(
+        "Mainnet DEX token addresses are not configured.",
+      );
+    }
+
+    if (!DEX_POOL_ADDRESS) {
+      throw new Error(
+        "Mainnet DEX pool address is not configured.",
+      );
+    }
+
+    assertValidPublicKey(
+      process.env.NEXT_PUBLIC_DEX_PROGRAM_ID ?? "",
+      "NEXT_PUBLIC_DEX_PROGRAM_ID",
+    );
+
+    assertValidPublicKey(
+      DEX_TOKEN_A_ADDRESS,
+      "NEXT_PUBLIC_DEX_TOKEN_A_ADDRESS",
+    );
+
+    assertValidPublicKey(
+      DEX_TOKEN_B_ADDRESS,
+      "NEXT_PUBLIC_DEX_TOKEN_B_ADDRESS",
+    );
+
+    assertValidPublicKey(
+      DEX_POOL_ADDRESS,
+      "NEXT_PUBLIC_DEX_POOL_ADDRESS",
+    );
   }
 }
