@@ -10,7 +10,7 @@ use {
         accounts,
         constants::{
             DEX_CONFIG_SEED, LP_LOCK_SEED, LP_MINT_SEED, MINIMUM_LIQUIDITY, POOL_SEED,
-            VAULT_A_SEED, VAULT_B_SEED,
+            POOL_STATUS_ACTIVE, POOL_STATUS_INACTIVE, VAULT_A_SEED, VAULT_B_SEED,
         },
         state::{DexConfig, Pool},
     },
@@ -962,6 +962,371 @@ fn test_add_liquidity() {
     println!("DEX-07B zero LP protection: PASSED");
     println!("DEX-07B excessive LP protection: PASSED");
     println!("DEX-07 atomicity: PASSED");
+
+    // ---------------------------------------------------------
+    // DEX-11: POOL STATUS MANAGEMENT
+    // ---------------------------------------------------------
+    //
+    // ACTIVE -> INACTIVE:
+    // Swap / Add Liquidity / Remove Liquidity harus ditolak.
+    //
+    // INACTIVE -> ACTIVE:
+    // Operasi pool kembali diperbolehkan.
+    //
+
+    let pool_before_status_test = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_before_status_test.status,
+        POOL_STATUS_ACTIVE,
+        "Pool harus ACTIVE sebelum DEX-11"
+    );
+
+    // DEX-11.1: Set pool INACTIVE
+    let set_pool_inactive = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetPoolStatus {
+            status: POOL_STATUS_INACTIVE,
+        }
+        .data(),
+        accounts::SetPoolStatus {
+            dex_config,
+            pool,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[set_pool_inactive], &[&payer]);
+
+    let pool_inactive = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_inactive.status,
+        POOL_STATUS_INACTIVE,
+        "Pool harus berubah menjadi INACTIVE"
+    );
+
+    // DEX-11.2: Add Liquidity harus ditolak saat INACTIVE
+    let add_while_inactive = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 1,
+            amount_b: 4,
+            lp_amount_min: 0,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+    let message =
+        Message::new_with_blockhash(&[add_while_inactive], Some(&payer.pubkey()), &blockhash);
+
+    let tx = VersionedTransaction::try_new(
+        VersionedMessage::Legacy(message),
+        &[&payer],
+    )
+    .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Add Liquidity harus ditolak saat pool INACTIVE"
+    );
+
+    // DEX-11.3: Remove Liquidity harus ditolak saat INACTIVE
+    let remove_while_inactive = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::RemoveLiquidity {
+            lp_amount: 1,
+            amount_a_min: 0,
+            amount_b_min: 0,
+        }
+        .data(),
+        accounts::RemoveLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            user_lp_token_account: user_lp.pubkey(),
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+    let message =
+        Message::new_with_blockhash(&[remove_while_inactive], Some(&payer.pubkey()), &blockhash);
+
+    let tx = VersionedTransaction::try_new(
+        VersionedMessage::Legacy(message),
+        &[&payer],
+    )
+    .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Remove Liquidity harus ditolak saat pool INACTIVE"
+    );
+
+    // Semua state ekonomi harus tetap sama.
+    let pool_after_inactive_tests = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_after_inactive_tests.reserve_a,
+        pool_before_status_test.reserve_a
+    );
+    assert_eq!(
+        pool_after_inactive_tests.reserve_b,
+        pool_before_status_test.reserve_b
+    );
+    assert_eq!(
+        pool_after_inactive_tests.lp_supply,
+        pool_before_status_test.lp_supply
+    );
+
+    // DEX-11.4: Set pool kembali ACTIVE
+    let set_pool_active = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetPoolStatus {
+            status: POOL_STATUS_ACTIVE,
+        }
+        .data(),
+        accounts::SetPoolStatus {
+            dex_config,
+            pool,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[set_pool_active], &[&payer]);
+
+    let pool_active_again = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_active_again.status,
+        POOL_STATUS_ACTIVE,
+        "Pool harus kembali ACTIVE"
+    );
+
+    println!("DEX-11 pool ACTIVE -> INACTIVE: PASSED");
+    println!("DEX-11 add liquidity blocked while inactive: PASSED");
+    println!("DEX-11 remove liquidity blocked while inactive: PASSED");
+    println!("DEX-11 pool INACTIVE -> ACTIVE: PASSED");
+
+    // ---------------------------------------------------------
+    // DEX-12: GLOBAL DEX PAUSE / EMERGENCY CONTROL
+    // ---------------------------------------------------------
+    //
+    // Global pause harus menghentikan operasi ekonomi pool.
+    // Pool sendiri tetap ada dan state ekonomi tidak berubah.
+    //
+
+    let pool_before_global_pause = read_pool(&svm, &pool);
+    let dex_before_global_pause = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert!(!dex_before_global_pause.paused);
+
+    // DEX-12.1: PAUSE GLOBAL DEX
+    let pause_dex = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: true,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[pause_dex], &[&payer]);
+
+    let dex_paused = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert!(dex_paused.paused);
+
+    // DEX-12.2: ADD LIQUIDITY DITOLAK
+    let add_while_paused = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::AddLiquidity {
+            amount_a: 1,
+            amount_b: 4,
+            lp_amount_min: 0,
+        }
+        .data(),
+        accounts::AddLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            lp_lock_account,
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            user_lp_token_account: user_lp.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+    let message =
+        Message::new_with_blockhash(&[add_while_paused], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Add Liquidity harus ditolak saat DEX paused"
+    );
+
+    // DEX-12.3: REMOVE LIQUIDITY DITOLAK
+    let remove_while_paused = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::RemoveLiquidity {
+            lp_amount: 1,
+            amount_a_min: 0,
+            amount_b_min: 0,
+        }
+        .data(),
+        accounts::RemoveLiquidity {
+            dex_config,
+            pool,
+            token_a,
+            token_b,
+            vault_a,
+            vault_b,
+            lp_mint,
+            user_lp_token_account: user_lp.pubkey(),
+            user_token_a: user_token_a.pubkey(),
+            user_token_b: user_token_b.pubkey(),
+            provider: payer.pubkey(),
+            token_program: spl_token::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+    let message =
+        Message::new_with_blockhash(&[remove_while_paused], Some(&payer.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&payer]).unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Remove Liquidity harus ditolak saat DEX paused"
+    );
+
+    // State ekonomi tidak boleh berubah.
+    let pool_after_pause_tests = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_after_pause_tests.reserve_a,
+        pool_before_global_pause.reserve_a
+    );
+    assert_eq!(
+        pool_after_pause_tests.reserve_b,
+        pool_before_global_pause.reserve_b
+    );
+    assert_eq!(
+        pool_after_pause_tests.lp_supply,
+        pool_before_global_pause.lp_supply
+    );
+
+    // DEX-12.4: UNPAUSE
+    let unpause_dex = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: false,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: payer.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &payer, &[unpause_dex], &[&payer]);
+
+    let dex_unpaused = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert!(!dex_unpaused.paused);
+
+    // Setelah UNPAUSE pool tetap utuh.
+    let pool_after_unpause = read_pool(&svm, &pool);
+
+    assert_eq!(
+        pool_after_unpause.reserve_a,
+        pool_before_global_pause.reserve_a
+    );
+    assert_eq!(
+        pool_after_unpause.reserve_b,
+        pool_before_global_pause.reserve_b
+    );
+    assert_eq!(
+        pool_after_unpause.lp_supply,
+        pool_before_global_pause.lp_supply
+    );
+
+    println!("DEX-12 global PAUSE: PASSED");
+    println!("DEX-12 add liquidity blocked: PASSED");
+    println!("DEX-12 remove liquidity blocked: PASSED");
+    println!("DEX-12 state preservation: PASSED");
+    println!("DEX-12 global UNPAUSE: PASSED");
 
     println!("========================================");
     println!("DEX-04 ADD LIQUIDITY TEST: PASSED");

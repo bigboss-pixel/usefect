@@ -10,6 +10,19 @@ pub enum ErrorCode {
     InvalidFee,
     #[msg("Protocol fee cannot exceed the swap fee")]
     InvalidProtocolFee,
+    #[msg("Invalid pool status")]
+    InvalidPoolStatus,
+
+    #[msg("Pool does not belong to this DEX")]
+    InvalidPool,
+    #[msg("Invalid token pair")]
+    InvalidTokenPair,
+
+
+    #[msg("Treasury address is invalid")]
+    InvalidTreasury,
+    #[msg("Authority address is invalid")]
+    InvalidAuthority,
 
     #[msg("Invalid protocol fee token account")]
     InvalidProtocolFeeAccount,

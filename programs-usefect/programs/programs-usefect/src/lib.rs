@@ -72,6 +72,42 @@ pub mod programs_usefect {
         crate::instructions::initialize_dex::handle_initialize_dex(ctx, fee_bps, protocol_fee_bps)
     }
 
+    pub fn set_treasury(
+        ctx: Context<SetTreasury>,
+        treasury: Pubkey,
+    ) -> Result<()> {
+        crate::instructions::admin::handle_set_treasury(ctx, treasury)
+    }
+
+    pub fn set_fees(
+        ctx: Context<SetFees>,
+        fee_bps: u16,
+        protocol_fee_bps: u16,
+    ) -> Result<()> {
+        crate::instructions::admin::handle_set_fees(ctx, fee_bps, protocol_fee_bps)
+    }
+
+    pub fn transfer_authority(
+        ctx: Context<TransferAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        crate::instructions::admin::handle_transfer_authority(ctx, new_authority)
+    }
+
+    pub fn set_dex_pause(
+        ctx: Context<SetDexPause>,
+        paused: bool,
+    ) -> Result<()> {
+        crate::instructions::admin::handle_set_dex_pause(ctx, paused)
+    }
+
+    pub fn set_pool_status(
+        ctx: Context<SetPoolStatus>,
+        status: u8,
+    ) -> Result<()> {
+        crate::instructions::admin::handle_set_pool_status(ctx, status)
+    }
+
     pub fn initialize_launch(
         ctx: Context<InitializeLaunch>,
         token_mint: Pubkey,

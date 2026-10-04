@@ -9,6 +9,17 @@ use crate::error::ErrorCode;
 use crate::state::{DexConfig, Pool};
 
 pub fn handle_initialize_pool(ctx: Context<InitializePool>) -> Result<()> {
+    require!(
+        ctx.accounts.token_a.key() != ctx.accounts.token_b.key(),
+        ErrorCode::InvalidTokenPair
+    );
+
+    require!(
+        ctx.accounts.token_a.key().to_bytes()
+            < ctx.accounts.token_b.key().to_bytes(),
+        ErrorCode::InvalidTokenOrder
+    );
+
     let dex_config = &ctx.accounts.dex_config;
 
     require!(!dex_config.paused, ErrorCode::DexPaused);

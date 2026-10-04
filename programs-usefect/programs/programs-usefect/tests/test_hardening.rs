@@ -2,11 +2,15 @@ use {
     anchor_lang::{
         prelude::Pubkey,
         solana_program::{instruction::Instruction, system_instruction, system_program},
-        InstructionData, ToAccountMetas,
+        AccountDeserialize, InstructionData, ToAccountMetas,
     },
     anchor_spl::token::spl_token,
     litesvm::LiteSVM,
-    programs_usefect::{accounts, constants::DEX_CONFIG_SEED},
+    programs_usefect::{
+        accounts,
+        constants::DEX_CONFIG_SEED,
+        state::DexConfig,
+    },
     solana_keypair::Keypair,
     solana_message::{Message, VersionedMessage},
     solana_signer::Signer,
@@ -892,4 +896,374 @@ fn test_initialize_pool_rejects_reverse_token_order() {
     );
 
     println!("DEX-07F reverse token order protection: PASSED");
+}
+
+
+#[test]
+fn test_admin_authority_hardening() {
+    let program_id = programs_usefect::id();
+    let (mut svm, payer) = setup_svm();
+
+    let dex_config =
+        Pubkey::find_program_address(&[DEX_CONFIG_SEED], &program_id).0;
+
+    // ---------------------------------------------------------
+    // 1. INITIALIZE DEX
+    // ---------------------------------------------------------
+
+    let initialize_dex =
+        initialize_dex_instruction(program_id, &payer, 30, 0);
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(
+            &[initialize_dex],
+            Some(&payer.pubkey()),
+            &blockhash,
+        );
+
+    let tx =
+        VersionedTransaction::try_new(
+            VersionedMessage::Legacy(message),
+            &[&payer],
+        )
+        .unwrap();
+
+    svm.send_transaction(tx)
+        .expect("Initialize DEX gagal");
+
+    // ---------------------------------------------------------
+    // 2. CREATE ATTACKER
+    // ---------------------------------------------------------
+
+    let attacker = Keypair::new();
+
+    svm.airdrop(&attacker.pubkey(), 5_000_000_000)
+        .expect("Airdrop attacker gagal");
+
+    let attacker_treasury = Keypair::new().pubkey();
+
+    // ---------------------------------------------------------
+    // 3. UNAUTHORIZED SET TREASURY
+    // ---------------------------------------------------------
+
+    let unauthorized_treasury =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetTreasury {
+                treasury: attacker_treasury,
+            }
+            .data(),
+            accounts::SetTreasury {
+                dex_config,
+                authority: attacker.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &attacker,
+        unauthorized_treasury,
+    );
+
+    // ---------------------------------------------------------
+    // 4. UNAUTHORIZED SET FEES
+    // ---------------------------------------------------------
+
+    let unauthorized_fees =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetFees {
+                fee_bps: 100,
+                protocol_fee_bps: 20,
+            }
+            .data(),
+            accounts::SetFees {
+                dex_config,
+                authority: attacker.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &attacker,
+        unauthorized_fees,
+    );
+
+    // ---------------------------------------------------------
+    // 5. UNAUTHORIZED PAUSE
+    // ---------------------------------------------------------
+
+    let unauthorized_pause =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetDexPause {
+                paused: true,
+            }
+            .data(),
+            accounts::SetDexPause {
+                dex_config,
+                authority: attacker.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &attacker,
+        unauthorized_pause,
+    );
+
+    // ---------------------------------------------------------
+    // 6. UNAUTHORIZED AUTHORITY TRANSFER
+    // ---------------------------------------------------------
+
+    let unauthorized_transfer =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::TransferAuthority {
+                new_authority: attacker.pubkey(),
+            }
+            .data(),
+            accounts::TransferAuthority {
+                dex_config,
+                authority: attacker.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &attacker,
+        unauthorized_transfer,
+    );
+
+    // Authority harus tetap payer.
+    let dex_before_transfer = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert_eq!(
+        dex_before_transfer.authority,
+        payer.pubkey()
+    );
+
+    assert_eq!(
+        dex_before_transfer.treasury,
+        payer.pubkey()
+    );
+
+    assert_eq!(dex_before_transfer.fee_bps, 30);
+    assert_eq!(dex_before_transfer.protocol_fee_bps, 0);
+    assert!(!dex_before_transfer.paused);
+
+    // ---------------------------------------------------------
+    // 7. LEGITIMATE AUTHORITY TRANSFER
+    // ---------------------------------------------------------
+
+    let new_authority = Keypair::new();
+
+    svm.airdrop(&new_authority.pubkey(), 5_000_000_000)
+        .expect("Airdrop new authority gagal");
+
+    let transfer_authority =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::TransferAuthority {
+                new_authority: new_authority.pubkey(),
+            }
+            .data(),
+            accounts::TransferAuthority {
+                dex_config,
+                authority: payer.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(
+            &[transfer_authority],
+            Some(&payer.pubkey()),
+            &blockhash,
+        );
+
+    let tx =
+        VersionedTransaction::try_new(
+            VersionedMessage::Legacy(message),
+            &[&payer],
+        )
+        .unwrap();
+
+    svm.send_transaction(tx)
+        .expect("Transfer authority gagal");
+
+    // ---------------------------------------------------------
+    // 8. VERIFY NEW AUTHORITY
+    // ---------------------------------------------------------
+
+    let dex_after_transfer = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert_eq!(
+        dex_after_transfer.authority,
+        new_authority.pubkey()
+    );
+
+    // ---------------------------------------------------------
+    // 9. OLD AUTHORITY MUST NO LONGER WORK
+    // ---------------------------------------------------------
+
+    let old_authority_pause =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetDexPause {
+                paused: true,
+            }
+            .data(),
+            accounts::SetDexPause {
+                dex_config,
+                authority: payer.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    send_tx_expect_error(
+        &mut svm,
+        &payer,
+        old_authority_pause,
+    );
+
+    // ---------------------------------------------------------
+    // 10. NEW AUTHORITY MUST WORK
+    // ---------------------------------------------------------
+
+    let new_authority_pause =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetDexPause {
+                paused: true,
+            }
+            .data(),
+            accounts::SetDexPause {
+                dex_config,
+                authority: new_authority.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(
+            &[new_authority_pause],
+            Some(&new_authority.pubkey()),
+            &blockhash,
+        );
+
+    let tx =
+        VersionedTransaction::try_new(
+            VersionedMessage::Legacy(message),
+            &[&new_authority],
+        )
+        .unwrap();
+
+    svm.send_transaction(tx)
+        .expect("New authority seharusnya dapat melakukan pause");
+
+    // ---------------------------------------------------------
+    // 11. NEW AUTHORITY SET FEES
+    // ---------------------------------------------------------
+
+    let new_authority_fees =
+        Instruction::new_with_bytes(
+            program_id,
+            &programs_usefect::instruction::SetFees {
+                fee_bps: 40,
+                protocol_fee_bps: 10,
+            }
+            .data(),
+            accounts::SetFees {
+                dex_config,
+                authority: new_authority.pubkey(),
+            }
+            .to_account_metas(None),
+        );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(
+            &[new_authority_fees],
+            Some(&new_authority.pubkey()),
+            &blockhash,
+        );
+
+    let tx =
+        VersionedTransaction::try_new(
+            VersionedMessage::Legacy(message),
+            &[&new_authority],
+        )
+        .unwrap();
+
+    svm.send_transaction(tx)
+        .expect("New authority seharusnya dapat mengubah fee");
+
+    // ---------------------------------------------------------
+    // 12. FINAL STATE
+    // ---------------------------------------------------------
+
+    let final_dex = {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    assert_eq!(
+        final_dex.authority,
+        new_authority.pubkey()
+    );
+
+    assert!(final_dex.paused);
+    assert_eq!(final_dex.fee_bps, 40);
+    assert_eq!(final_dex.protocol_fee_bps, 10);
+
+    // Treasury tidak boleh berubah akibat serangan unauthorized.
+    assert_eq!(
+        final_dex.treasury,
+        payer.pubkey()
+    );
+
+    println!("FASE-14 unauthorized treasury: PASSED");
+    println!("FASE-14 unauthorized fees: PASSED");
+    println!("FASE-14 unauthorized pause: PASSED");
+    println!("FASE-14 unauthorized authority transfer: PASSED");
+    println!("FASE-14 authority transfer: PASSED");
+    println!("FASE-14 old authority revoked: PASSED");
+    println!("FASE-14 new authority accepted: PASSED");
+    println!("FASE-14 ADMIN AUTHORITY HARDENING: PASSED");
 }

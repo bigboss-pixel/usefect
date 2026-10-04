@@ -28,6 +28,7 @@ pub const VAULT_B_SEED: &[u8] = b"vault-b";
 pub const LP_MINT_SEED: &[u8] = b"lp-mint";
 
 pub const LP_MINT_DECIMALS: u8 = 9;
+pub const POOL_STATUS_INACTIVE: u8 = 0;
 pub const POOL_STATUS_ACTIVE: u8 = 1;
 
 #[constant]
