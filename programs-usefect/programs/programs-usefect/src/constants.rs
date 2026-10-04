@@ -34,3 +34,30 @@ pub const POOL_STATUS_ACTIVE: u8 = 1;
 pub const LP_LOCK_SEED: &[u8] = b"lp-lock";
 
 pub const MINIMUM_LIQUIDITY: u64 = 1_000;
+
+#[constant]
+pub const LAUNCH_SEED: &[u8] = b"launch";
+
+pub const LAUNCH_USE_VAULT_SEED: &[u8] = b"use-vault";
+pub const LAUNCH_SOL_VAULT_SEED: &[u8] = b"sol-vault";
+pub const LAUNCH_GRADUATION_VAULT_SEED: &[u8] = b"graduation-vault";
+pub const LAUNCH_GRADUATION_USE_TEMP_SEED: &[u8] = b"graduation-use-temp";
+pub const LAUNCH_GRADUATION_WSOL_TEMP_SEED: &[u8] = b"graduation-wsol-temp";
+pub const LAUNCH_GRADUATION_LP_TEMP_SEED: &[u8] = b"graduation-lp-temp";
+pub const USE_TOKEN_DECIMALS: u8 = 9;
+pub const USE_TOKEN_BASE_UNITS: u64 = 1_000_000_000;
+
+pub const LAUNCH_STATUS_LIVE: u8 = 1;
+pub const LAUNCH_STATUS_GRADUATION_PENDING: u8 = 2;
+pub const LAUNCH_STATUS_GRADUATED: u8 = 3;
+pub const LAUNCH_STATUS_EXPIRED: u8 = 4;
+
+pub const MAX_LAUNCH_DURATION_SECONDS: u64 = 30 * 24 * 60 * 60;
+
+// V1 USE public bonding-curve allocation: 700M USE with 9 decimals.
+pub const USE_LAUNCH_ALLOCATION: u64 = 700_000_000_000_000_000;
+
+// V1 linear curve target:
+// 0.000005 SOL/USE -> 0.000015 SOL/USE.
+pub const USE_LAUNCH_START_PRICE_LAMPORTS_PER_TOKEN: u64 = 5_000;
+pub const USE_LAUNCH_END_PRICE_LAMPORTS_PER_TOKEN: u64 = 15_000;
