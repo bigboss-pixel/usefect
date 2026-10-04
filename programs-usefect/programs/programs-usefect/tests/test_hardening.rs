@@ -17,6 +17,37 @@ use {
     solana_transaction::versioned::VersionedTransaction,
 };
 
+fn send_tx(
+    svm: &mut LiteSVM,
+    payer: &Keypair,
+    instructions: &[Instruction],
+    signers: &[&Keypair],
+) {
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(instructions, Some(&payer.pubkey()), &blockhash);
+
+    let mut unique_signers: Vec<&Keypair> = Vec::new();
+
+    for signer in signers {
+        if !unique_signers
+            .iter()
+            .any(|existing| existing.pubkey() == signer.pubkey())
+        {
+            unique_signers.push(*signer);
+        }
+    }
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &unique_signers)
+            .expect("Gagal membuat transaction");
+
+    svm.send_transaction(tx)
+        .expect("Transaction gagal");
+}
+
+
 fn send_tx_expect_error(svm: &mut LiteSVM, payer: &Keypair, instruction: Instruction) {
     let blockhash = svm.latest_blockhash();
 
@@ -1390,4 +1421,419 @@ fn test_initialize_pool_rejects_unauthorized_authority() {
     );
 
     println!("FASE-16 unauthorized InitializePool: PASSED");
+}
+
+
+#[test]
+fn test_fase_19_mainnet_operational_safety() {
+    let program_id = programs_usefect::id();
+    let authority = Keypair::new();
+    let mut svm = LiteSVM::new();
+
+    let program_path = concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../target/deploy/programs_usefect_litesvm.so"
+    );
+
+    svm.add_program_from_file(program_id, program_path)
+        .expect("Gagal load program USEFECT");
+
+    svm.airdrop(&authority.pubkey(), 20_000_000_000)
+        .expect("Airdrop authority gagal");
+
+    // ---------------------------------------------------------
+    // 1. INITIALIZE DEX WITH PRODUCTION-LIKE CONFIG
+    // ---------------------------------------------------------
+
+    let dex_config =
+        Pubkey::find_program_address(&[DEX_CONFIG_SEED], &program_id).0;
+
+    let initialize = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::InitializeDex {
+            fee_bps: 30,
+            protocol_fee_bps: 10,
+        }
+        .data(),
+        accounts::InitializeDex {
+            dex_config,
+            authority: authority.pubkey(),
+            system_program: system_program::ID,
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &authority, &[initialize], &[&authority]);
+
+    let read_config = |svm: &LiteSVM| -> DexConfig {
+        let account = svm
+            .get_account(&dex_config)
+            .expect("DexConfig tidak ditemukan");
+
+        let mut data: &[u8] = &account.data;
+
+        DexConfig::try_deserialize(&mut data)
+            .expect("Gagal deserialize DexConfig")
+    };
+
+    let initial = read_config(&svm);
+
+    assert_eq!(initial.authority, authority.pubkey());
+    assert_eq!(initial.treasury, authority.pubkey());
+    assert_eq!(initial.fee_bps, 30);
+    assert_eq!(initial.protocol_fee_bps, 10);
+    assert!(!initial.paused);
+
+    assert!(initial.protocol_fee_bps <= initial.fee_bps);
+    assert!(initial.fee_bps <= 10_000);
+
+    println!("FASE-19 initial operational configuration: PASSED");
+
+    // ---------------------------------------------------------
+    // 2. INVALID TREASURY MUST NEVER BE ACCEPTED
+    // ---------------------------------------------------------
+
+    let invalid_treasury = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetTreasury {
+            treasury: Pubkey::default(),
+        }
+        .data(),
+        accounts::SetTreasury {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[invalid_treasury], Some(&authority.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&authority])
+            .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Treasury Pubkey::default() harus ditolak"
+    );
+
+    let after_invalid_treasury = read_config(&svm);
+
+    assert_eq!(
+        after_invalid_treasury.treasury,
+        authority.pubkey()
+    );
+
+    println!("FASE-19 invalid treasury protection: PASSED");
+
+    // ---------------------------------------------------------
+    // 3. INVALID AUTHORITY MUST NEVER BE ACCEPTED
+    // ---------------------------------------------------------
+
+    let invalid_authority = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::TransferAuthority {
+            new_authority: Pubkey::default(),
+        }
+        .data(),
+        accounts::TransferAuthority {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[invalid_authority], Some(&authority.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&authority])
+            .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Authority Pubkey::default() harus ditolak"
+    );
+
+    let after_invalid_authority = read_config(&svm);
+
+    assert_eq!(
+        after_invalid_authority.authority,
+        authority.pubkey()
+    );
+
+    println!("FASE-19 invalid authority protection: PASSED");
+
+    // ---------------------------------------------------------
+    // 4. INVALID FEE RELATIONSHIP MUST NEVER BE ACCEPTED
+    // ---------------------------------------------------------
+
+    let invalid_fees = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetFees {
+            fee_bps: 30,
+            protocol_fee_bps: 31,
+        }
+        .data(),
+        accounts::SetFees {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(&[invalid_fees], Some(&authority.pubkey()), &blockhash);
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&authority])
+            .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Protocol fee > swap fee harus ditolak"
+    );
+
+    let after_invalid_fees = read_config(&svm);
+
+    assert_eq!(after_invalid_fees.fee_bps, 30);
+    assert_eq!(after_invalid_fees.protocol_fee_bps, 10);
+
+    println!("FASE-19 fee relationship protection: PASSED");
+
+    // ---------------------------------------------------------
+    // 5. TREASURY ROTATION
+    // ---------------------------------------------------------
+
+    let treasury = Keypair::new();
+
+    let set_treasury = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetTreasury {
+            treasury: treasury.pubkey(),
+        }
+        .data(),
+        accounts::SetTreasury {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &authority, &[set_treasury], &[&authority]);
+
+    let after_treasury_rotation = read_config(&svm);
+
+    assert_eq!(
+        after_treasury_rotation.treasury,
+        treasury.pubkey()
+    );
+
+    assert_eq!(
+        after_treasury_rotation.authority,
+        authority.pubkey()
+    );
+
+    assert_eq!(after_treasury_rotation.fee_bps, 30);
+    assert_eq!(after_treasury_rotation.protocol_fee_bps, 10);
+    assert!(!after_treasury_rotation.paused);
+
+    println!("FASE-19 treasury rotation: PASSED");
+
+    // ---------------------------------------------------------
+    // 6. FEE UPDATE WITHIN VALID BOUNDARY
+    // ---------------------------------------------------------
+
+    let set_valid_fees = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetFees {
+            fee_bps: 50,
+            protocol_fee_bps: 15,
+        }
+        .data(),
+        accounts::SetFees {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &authority, &[set_valid_fees], &[&authority]);
+
+    let after_fee_update = read_config(&svm);
+
+    assert_eq!(after_fee_update.fee_bps, 50);
+    assert_eq!(after_fee_update.protocol_fee_bps, 15);
+    assert!(after_fee_update.protocol_fee_bps <= after_fee_update.fee_bps);
+
+    println!("FASE-19 valid fee update: PASSED");
+
+    // ---------------------------------------------------------
+    // 7. AUTHORITY ROTATION
+    // ---------------------------------------------------------
+
+    let new_authority = Keypair::new();
+
+    svm.airdrop(&new_authority.pubkey(), 10_000_000_000)
+        .expect("Airdrop new authority gagal");
+
+    let transfer = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::TransferAuthority {
+            new_authority: new_authority.pubkey(),
+        }
+        .data(),
+        accounts::TransferAuthority {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(&mut svm, &authority, &[transfer], &[&authority]);
+
+    let after_authority_rotation = read_config(&svm);
+
+    assert_eq!(
+        after_authority_rotation.authority,
+        new_authority.pubkey()
+    );
+
+    assert_eq!(
+        after_authority_rotation.treasury,
+        treasury.pubkey()
+    );
+
+    assert_eq!(after_authority_rotation.fee_bps, 50);
+    assert_eq!(after_authority_rotation.protocol_fee_bps, 15);
+    assert!(!after_authority_rotation.paused);
+
+    println!("FASE-19 authority rotation: PASSED");
+
+    // ---------------------------------------------------------
+    // 8. OLD AUTHORITY MUST BE COMPLETELY REVOKED
+    // ---------------------------------------------------------
+
+    let old_authority_attempt = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: true,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    let blockhash = svm.latest_blockhash();
+
+    let message =
+        Message::new_with_blockhash(
+            &[old_authority_attempt],
+            Some(&authority.pubkey()),
+            &blockhash,
+        );
+
+    let tx =
+        VersionedTransaction::try_new(VersionedMessage::Legacy(message), &[&authority])
+            .unwrap();
+
+    assert!(
+        svm.send_transaction(tx).is_err(),
+        "Authority lama tidak boleh mengontrol DEX"
+    );
+
+    let after_old_authority_attempt = read_config(&svm);
+
+    assert_eq!(
+        after_old_authority_attempt.authority,
+        new_authority.pubkey()
+    );
+    assert!(!after_old_authority_attempt.paused);
+
+    println!("FASE-19 old authority revocation: PASSED");
+
+    // ---------------------------------------------------------
+    // 9. NEW AUTHORITY MUST CONTROL DEX
+    // ---------------------------------------------------------
+
+    let pause = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: true,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: new_authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &new_authority,
+        &[pause],
+        &[&new_authority],
+    );
+
+    let paused = read_config(&svm);
+
+    assert_eq!(paused.authority, new_authority.pubkey());
+    assert_eq!(paused.treasury, treasury.pubkey());
+    assert_eq!(paused.fee_bps, 50);
+    assert_eq!(paused.protocol_fee_bps, 15);
+    assert!(paused.paused);
+
+    println!("FASE-19 new authority control: PASSED");
+
+    // ---------------------------------------------------------
+    // 10. UNPAUSE AND FINAL OPERATIONAL STATE
+    // ---------------------------------------------------------
+
+    let unpause = Instruction::new_with_bytes(
+        program_id,
+        &programs_usefect::instruction::SetDexPause {
+            paused: false,
+        }
+        .data(),
+        accounts::SetDexPause {
+            dex_config,
+            authority: new_authority.pubkey(),
+        }
+        .to_account_metas(None),
+    );
+
+    send_tx(
+        &mut svm,
+        &new_authority,
+        &[unpause],
+        &[&new_authority],
+    );
+
+    let final_state = read_config(&svm);
+
+    assert_eq!(final_state.authority, new_authority.pubkey());
+    assert_eq!(final_state.treasury, treasury.pubkey());
+    assert_eq!(final_state.fee_bps, 50);
+    assert_eq!(final_state.protocol_fee_bps, 15);
+    assert!(final_state.protocol_fee_bps <= final_state.fee_bps);
+    assert!(final_state.fee_bps <= 10_000);
+    assert!(!final_state.paused);
+    assert_ne!(final_state.authority, Pubkey::default());
+    assert_ne!(final_state.treasury, Pubkey::default());
+
+    println!("FASE-19 final operational invariants: PASSED");
+    println!("========================================");
+    println!("FASE-19 MAINNET OPERATIONAL SAFETY: PASSED");
+    println!("========================================");
 }
